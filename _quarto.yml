@@ -1,0 +1,34 @@
+project:
+  type: book
+
+book:
+  title: "Locality-preserving representation of *k*-mer sets"
+  author:
+    - name: "Igor Martayan"
+      orcid: 0009-0008-3007-6168
+      url: https://igor.martayan.org
+  site-url: https://phd.martayan.org
+  repo-url: https://github.com/imartayan/phd
+  sidebar:
+    title: "PhD Notes"
+  chapters:
+    - index.qmd
+    - part: "Notes"
+      chapters:
+      - notes/necklace.qmd
+      - notes/hyperkmer.qmd
+    - references.qmd
+
+bibliography: references.bib
+csl: institute-of-mathematics-and-its-applications.csl
+
+format:
+  html:
+    theme: cosmo
+    html-math-method: katex
+    link-external-newwindow: true
+    smooth-scroll: true
+    strip-comments: true
+  pdf:
+    documentclass: scrreprt
+    papersize: a4
