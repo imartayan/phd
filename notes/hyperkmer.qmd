@@ -1,5 +1,0 @@
-# Hyper-*k*-mers
-
-TBA
-
-See [@hyperkmers]
