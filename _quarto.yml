@@ -10,7 +10,7 @@ book:
   site-url: https://phd.martayan.org
   repo-url: https://github.com/imartayan/phd
   sidebar:
-    title: "PhD Notes"
+    title: "PhD Thesis"
   chapters:
     - index.qmd
     - part: "Notes"
@@ -18,9 +18,17 @@ book:
       - notes/necklace.qmd
       - notes/hyperkmer.qmd
     - references.qmd
+  draft-mode: gone
 
 bibliography: references.bib
 csl: institute-of-mathematics-and-its-applications.csl
+biblatexoptions: [
+  style=authoryear,
+  citestyle=authoryear,
+  maxcitenames=2,
+  mincitenames=1,
+  maxbibnames=99,
+]
 
 format:
   html:
@@ -30,5 +38,8 @@ format:
     smooth-scroll: true
     strip-comments: true
   pdf:
+    pdf-engine: xelatex
+    cite-method: biblatex
     documentclass: scrreprt
+    include-in-header: preamble.tex
     papersize: a4

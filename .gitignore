@@ -1,3 +1,13 @@
 /.quarto/
 /_book/
+.luarc.json
 .DS_Store
+
+**/*.quarto_ipynb
+
+*.aux
+*.bbl
+*.bcf
+*.log
+*.toc
+*.xml
