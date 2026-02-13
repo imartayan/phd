@@ -44,3 +44,18 @@ format:
     documentclass: scrreprt
     include-in-header: preamble.tex
     papersize: a4
+
+filters:
+  - search-replace
+  - pseudocode
+  - diagram
+
+crossref:
+  lst-title: Algorithm
+  lst-prefix: Algorithm
+
+search-replace:
+  /kmer: "*k*-mer"
+  /mmer: "*m*-mer"
+  /skmer: "super-*k*-mer"
+  /hkmer: "hyper-*k*-mer"
