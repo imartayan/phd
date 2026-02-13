@@ -34,6 +34,7 @@ format:
   html:
     theme: cosmo
     html-math-method: katex
+    include-in-header: preamble.html
     link-external-newwindow: true
     smooth-scroll: true
     strip-comments: true
