@@ -1,0 +1,60 @@
+# Vectorized computation of minimizers
+
+See [@simd-minimizers]
+
+Branchless computation of the minimum in a sliding window of size $w$
+(in practice $w$ /kmer hashes)
+
+::: {#lst-sliding-min}
+
+```pseudocode
+#| html-line-number: false
+#| html-no-end: true
+#| pdf-line-number: false
+#| pdf-placement: "ht!"
+
+\begin{algorithmic}
+\Function{SlidingMin}{$w, \texttt{hash\_it}$}
+\Comment{\texttt{hash\_it} iterates over 32-bit hashes of each k-mer.}
+
+\State{$\texttt{val\_mask} \gets \texttt{0xffff0000}$}
+\Comment{Use high 16 bits of each value.}
+\State{$\texttt{pos\_mask} \gets \texttt{0x0000ffff}$}
+\Comment{Low 16 bits store positions.}
+\State{$\texttt{prefix\_min} \gets \texttt{0xffffffff}$}
+\State{$\texttt{suffix\_min} \gets$ buffer of size $w$ filled with $\texttt{0xffffffff}$}
+\State{$n \gets |\texttt{hash\_it}| - w - 1$}
+\Comment{The first $w-1$ hashes do not complete a window.}
+\State{$i \gets \texttt{LANE\_IDX} \times n$}
+\Comment{Current position of the lane.}
+\State{$j \gets 0$}
+
+\For{$h$ in $\texttt{hash\_it}$}
+    \State{$\texttt{val} \gets (h \texttt{ \& val\_mask}) \texttt{ | i}$}
+    \State{$\texttt{prefix\_min} \gets \min(\texttt{prefix\_min}, \texttt{val})$}
+    \State{$\texttt{suffix\_min}[j] \gets \texttt{val}$}
+    \Comment{Write the current value into the buffer.}
+    \State{$j \gets j + 1$}
+
+    \If{$j = w$}
+    \Comment{When the buffer is full, recompute suffix minima.}
+        \State{$j \gets 0$}
+        \State{$\texttt{prefix\_min} \gets \texttt{0xffffffff}$}
+        \For{$k$ in $\{w-2, w-3, \ldots, 0\}$}
+            \State{$\texttt{suffix\_min}[k] \gets \min(\texttt{suffix\_min}[k], \texttt{suffix\_min}[k+1])$}
+        \EndFor
+    \EndIf
+
+    \If{$i \ge \texttt{LANE\_IDX} \times n + w-1$}
+    \Comment{Skip the first $w-1$ incomplete windows.}
+        \State{\textbf{yield} $\min(\texttt{prefix\_min}, \texttt{suffix\_min}[j]) \texttt{ \& pos\_mask}$}
+    \EndIf
+
+    \State{$i \gets i + 1$}
+\EndFor
+\EndFunction
+\end{algorithmic}
+```
+
+Sliding min using two stacks
+:::

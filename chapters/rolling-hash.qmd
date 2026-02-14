@@ -1,0 +1,5 @@
+# Rolling hashes on sequences
+
+See [@simd-minimizers]
+
+Bias of default NtHash, see [this repo](https://github.com/imartayan/pfp-distribution)

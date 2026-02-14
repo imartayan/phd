@@ -1,0 +1,3 @@
+# Application to sequence filtering
+
+See [@k2rmini] and [deacon](https://github.com/bede/deacon)

@@ -1,6 +1,5 @@
 ---
-nocite: |
-  @*
+nocite: "@*"
 ---
 
 # References {.unnumbered}

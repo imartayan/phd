@@ -13,10 +13,33 @@ book:
     title: "PhD Thesis"
   chapters:
     - index.qmd
-    - part: "Notes"
+    - part: chapters/intro.qmd
       chapters:
-      - notes/necklace.qmd
-      - notes/hyperkmer.qmd
+      - chapters/intro-seq.qmd
+      - chapters/intro-kmers.qmd
+      - chapters/intro-sketching.qmd
+      - chapters/intro-minimizers.qmd
+    - part: chapters/hpc.qmd
+      chapters:
+      - chapters/intro-simd.qmd
+      - chapters/simd-parsing.qmd
+      - chapters/rolling-hash.qmd
+      - chapters/simd-minimizers.qmd
+      - chapters/filtering.qmd
+    - part: chapters/locality.qmd
+      chapters:
+      - chapters/kmer-sets.qmd
+      - chapters/necklaces.qmd
+      - chapters/set-rep.qmd
+      - chapters/skmer-map.qmd
+      - chapters/skmer-sketch.qmd
+    - part: chapters/sampling.qmd
+      chapters:
+      - chapters/minimizers.qmd
+      - chapters/multimini.qmd
+      - chapters/phrases.qmd
+      - chapters/lexic.qmd
+    - chapters/discussion.qmd
     - references.qmd
   draft-mode: gone
 

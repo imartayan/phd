@@ -1,0 +1,3 @@
+# Vectorized sequence parsing
+
+See [helicase](https://github.com/imartayan/helicase), inspired by [@simd-json]
