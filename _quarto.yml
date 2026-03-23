@@ -44,7 +44,7 @@ book:
   draft-mode: gone
 
 bibliography: references.bib
-csl: institute-of-mathematics-and-its-applications.csl
+csl: references.csl
 biblatexoptions: [
   style=authoryear,
   citestyle=authoryear,
