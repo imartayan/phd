@@ -1,7 +1,5 @@
 # Vectorized sequence parsing
 
-See [helicase](https://github.com/imartayan/helicase), inspired by [@simd-json]
-
 Sequence bioinformatics has always been closely tied to stringology and compression theory, but connections to algebraic automata have remained comparatively rare.
 Recent progress has opened new paths toward high-performance parsers that are both formally grounded and practically competitive.
 This chapter explores one such connection, applying these techniques to the FASTA and FASTQ formats.
@@ -169,7 +167,7 @@ The results of the bitmask are the lexing annotations we need.
 Given a word $u$ that we want to parse, we denote by
 $\mathbf{1}_\texttt{>}$ and $\mathbf{1}_\texttt{↵}$
 the bitmask of position where respectively the symbols `>` and `↵` occur.
-The formula to compute the v_\textrb|header| bitmask is then expressed as follows,
+The formula to compute the `header` bitmask is then expressed as follows,
 using $+$ to denote an addition propagating the carry from left to right, $\lnot$ to denote bitwise `not` and $\oplus$ to denote bitwise `xor`:
 $$
     \texttt{header} := ((\mathbf{1}_\texttt{>} + \lnot \mathbf{1}_\texttt{↵}) \oplus \lnot \mathbf{1}_\texttt{↵}) \vee \mathbf{1}_\texttt{>}
