@@ -146,9 +146,11 @@ To illustrate this methodology, let us focus on the `header` bitmask, critical f
 This bitmask is true for a byte if and only if it belongs to a header of the document.
 Formally, it is delimited by the byte `>` and a line feed without any line feed in between, as described in the regular expression @eq-regex-fasta.
 
+::: {.large-table tbl-colwidths="[12,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8]"}
 | `input`  | `>` | `c` | `h` | `r` | `1` | `↵` | `C` | `G` | `G` | `A` | `C` | `↵` | `A` | `C` | `G` | `T` | `↵` | `>` | `c` | `>` | `h` | `↵` | `C` |
 |------:|:---:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:---:|:-:|:---:|:-:|:-:|:-:|
 | `header` |  1  | 1 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |  1  | 1 |  1  | 1 | 1 | 0 |
+:::
 
 To construct such a bitmask, it is essential to avoid scanning the input sequentially one byte at a time. The first step is to identify the relevant byte values in the input stream. Following the methodology used in `memchr`, we can efficiently produce bitmasks (with architecture-specific implementations discussed later) that mark the occurrences of the characters `>` and `↵`.
 
@@ -175,6 +177,7 @@ $$
 The usage of carry propagation to encode part of the branching originates from @myers1999fast.
 Applying this formula to the previous example, we get the following:
 
+::: {.large-table tbl-colwidths="[12,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8]"}
 | `input` | `>` | `c` | `h` | `r` | `1` | `↵` | `C` | `G` | `G` | `A` | `C` | `↵` | `A` | `C` | `G` | `T` | `↵` | `>` | `c` | `>` | `h` | `↵` | `C` |
 |------:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | $\mathbf{1}_\texttt{↵}$ | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 1 | 0 |
@@ -183,6 +186,7 @@ Applying this formula to the previous example, we get the following:
 | $\mathbf{1}_\texttt{>} + \lnot\mathbf{1}_\texttt{↵}$ | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 1 | 0 | 1 | 1 |
 | $\oplus\,\lnot \mathbf{1}_\texttt{↵}$ | 1 | 1 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 1 | 1 | 0 |
 | $\lor~\mathbf{1}_\texttt{>}$ | **1** | **1** | **1** | **1** | **1** | **1** | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | **1** | **1** | **1** | **1** | **1** | 0 |
+:::
 
 ### Implementation of the lexing phase
 
