@@ -80,8 +80,8 @@ Depending on the application use case, different DNA representations might be de
 Our approach produces three main representations: the traditional ASCII-based one, and two bitpacked versions (*packed* and *columnar*) in which each base is encoded with 2 bits.
 A convenient way to encode bases is to extract the second and third lowest bits from their ASCII representation, as described below:
 
-|     `A`      |     `C`      |     `T`      |     `G`      |
-|:------------:|:------------:|:------------:|:------------:|
+|     `A`    |     `C`    |     `T`    |     `G`    |
+|:----------:|:----------:|:----------:|:----------:|
 | 01000[00]{.mark}1 | 01000[01]{.mark}1 | 01010[10]{.mark}0 | 01000[11]{.mark}1 |
 
 However, sequences may still contain non-ACTG characters for IUPAC codes that we cannot bitpack losslessly, so we have to handle them separately.
@@ -101,9 +101,9 @@ With this approach, 8 bases are stored in two bytes: one for the high bits and t
 This representation maps each base of the sequence to exactly one bit in each part at the corresponding position, which is convenient for bitmask-based operations.
 For instance, locating \texttt{T}s in the sequence is as simple as intersecting the high bits and the negation of the low bits:
 
-::: {tbl-colwidths="[12,10,10,10,10,10,10,10,10]"}
+::: {.large-table}
 | `seq` | `G` | `A` | `T` | `T` | `A` | `C` | `A` | `T` |
-|-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+|---------------------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|
 | `hi`  | 1 | 0 | 1 | 1 | 0 | 0 | 0 | 1 |
 | `lo`  | 1 | 0 | 0 | 0 | 0 | 1 | 0 | 0 |
 | `hi & !lo` | 0 | 0 | **1** | **1** | 0 | 0 | 0 | **1** |
@@ -146,12 +146,12 @@ Those bytes are provided in streaming by blocks of 64 at a time.
 The goal of a highly performant lexer is to produce the desired bitmasks as efficiently as possible, and with the minimal amount of branches.
 To illustrate this methodology, let us focus on the `header` bitmask, critical for the FASTA parsing in Helicase.
 This bitmask is true for a byte if and only if it belongs to a header of the document.
-Formally, it is delimited by the byte `>` and a line feed without any line feed in between, as described in the regular expression @eq-regex-fasta.
+Formally, it is delimited by the byte `>` and a line feed without any line feed in between, as described in @eq-regex-fasta.
 
-::: {.large-table tbl-colwidths="[12,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8]"}
+::: {.large-table}
 | `input`  | `>` | `c` | `h` | `r` | `1` | `↵` | `C` | `G` | `G` | `A` | `C` | `↵` | `A` | `C` | `G` | `T` | `↵` | `>` | `c` | `>` | `h` | `↵` | `C` |
-|------:|:---:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:---:|:-:|:---:|:-:|:-:|:-:|
-| `header` |  1  | 1 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |  1  | 1 |  1  | 1 | 1 | 0 |
+|------:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| `header` | 1 | 1 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 1 | 0 |
 :::
 
 To construct such a bitmask, it is essential to avoid scanning the input sequentially one byte at a time. The first step is to identify the relevant byte values in the input stream. Following the methodology used in `memchr`, we can efficiently produce bitmasks (with architecture-specific implementations discussed later) that mark the occurrences of the characters `>` and `↵`.
@@ -179,9 +179,9 @@ $$
 The usage of carry propagation to encode part of the branching originates from @myers1999fast.
 Applying this formula to the previous example, we get the following:
 
-::: {.large-table tbl-colwidths="[12,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8,3.8]"}
+::: {.large-table}
 | `input` | `>` | `c` | `h` | `r` | `1` | `↵` | `C` | `G` | `G` | `A` | `C` | `↵` | `A` | `C` | `G` | `T` | `↵` | `>` | `c` | `>` | `h` | `↵` | `C` |
-|------:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+|-------:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | $\mathbf{1}_\texttt{↵}$ | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 1 | 0 |
 | $\mathbf{1}_\texttt{>}$ | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 0 |
 | $\lnot\mathbf{1}_\texttt{↵}$ | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 0 | 1 |
