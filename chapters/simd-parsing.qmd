@@ -101,12 +101,14 @@ With this approach, 8 bases are stored in two bytes: one for the high bits and t
 This representation maps each base of the sequence to exactly one bit in each part at the corresponding position, which is convenient for bitmask-based operations.
 For instance, locating \texttt{T}s in the sequence is as simple as intersecting the high bits and the negation of the low bits:
 
+::: {tbl-colwidths="[12,10,10,10,10,10,10,10,10]"}
 | `seq` | `G` | `A` | `T` | `T` | `A` | `C` | `A` | `T` |
 |-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | `hi`  | 1 | 0 | 1 | 1 | 0 | 0 | 0 | 1 |
 | `lo`  | 1 | 0 | 0 | 0 | 0 | 1 | 0 | 0 |
 | `hi & !lo` | 0 | 0 | **1** | **1** | 0 | 0 | 0 | **1** |
 <!-- | `hi & !lo` | 0 | 0 | [1]{.mark} | [1]{.mark} | 0 | 0 | 0 | [1]{.mark} | -->
+:::
 
 ### Streaming the input
 
