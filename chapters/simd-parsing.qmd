@@ -200,9 +200,11 @@ One benefit of having a manual implementation is that we can easily adapt it to 
 ::: {#lst-bitmask}
 
 ```pseudocode
-#| html-line-number: false
 #| html-no-end: true
+#| html-line-number: false
+#| html-comment-delimiter: "//"
 #| pdf-line-number: false
+#| pdf-comment-delimiter: "//"
 #| pdf-placement: "ht!"
 
 \begin{algorithmic}
@@ -245,9 +247,11 @@ Due to these architectural differences, producing a packed representation is sli
 ::: {#lst-columnar-packed}
 
 ```pseudocode
-#| html-line-number: false
 #| html-no-end: true
+#| html-line-number: false
+#| html-comment-delimiter: "//"
 #| pdf-line-number: false
+#| pdf-comment-delimiter: "//"
 #| pdf-placement: "ht!"
 
 \begin{algorithmic}
