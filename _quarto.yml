@@ -11,6 +11,7 @@ book:
   repo-url: https://github.com/imartayan/phd
   sidebar:
     title: "PhD Thesis"
+  output-file: "thesis"
   chapters:
     - index.qmd
     - part: chapters/intro.qmd
