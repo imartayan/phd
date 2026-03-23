@@ -1,3 +1,5 @@
-# An intro to vectorization
+# An intro to vectorization {#sec-intro-simd}
 
 TBA
+
+mention [@Cray1] and `memchr` as an example

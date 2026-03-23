@@ -1,3 +1,283 @@
 # Vectorized sequence parsing
 
 See [helicase](https://github.com/imartayan/helicase), inspired by [@simd-json]
+
+Sequence bioinformatics has always been closely tied to stringology and compression theory, but connections to algebraic automata have remained comparatively rare.
+Recent progress has opened new paths toward high-performance parsers that are both formally grounded and practically competitive.
+This chapter explores one such connection, applying these techniques to the FASTA and FASTQ formats.
+
+## Background
+
+FASTA and FASTQ are among the oldest and most enduring data formats in bioinformatics.
+FASTA was introduced in 1985 alongside the sequence alignment tool of the same name [@fastp;@fasta], while FASTQ emerged in the early 2000s [@fastq] as sequencing technologies began producing per-base quality scores.
+Over the years, both formats achieved near-universal adoption across the bioinformatics ecosystem.
+Nowadays, sequencing pipelines regularly produce billions of reads, and the overwhelming majority of this data is still stored and exchanged in FASTA and FASTQ.
+Public sequencing archives such as the European Nucleotide Archive (ENA) now contain hundreds of petabytes of sequencing data [@ena2025], meaning that infrastructure built around these text-based formats must now operate at scales their designers could not have anticipated.
+This results in a tension between the simplicity that made these formats successful and the performance demands of modern high-throughput bioinformatics.
+
+### Description of the formats
+
+FASTA and FASTQ are text-based formats containing a sequence of *records*.
+
+FASTA records contain two fields: (1) a single-line header starting with `>` followed by an optional description and (2) a multi-line ASCII-encoded sequence.
+The ASCII-encoded sequence contains `A/C/T/G` for DNA and other IUPAC codes to indicate ambiguous bases, and can be split into an arbitrary number of lines until the next record.
+A FASTA record can be matched with the following regular expression:
+$$
+\underbrace{\texttt{(>[\char`^\char`\\n]*\char`\\n)}}_{\text{header}}
+\underbrace{\texttt{(?:[\char`^>]*\char`\\n)+)}}_{\text{sequence}}
+$$ {#eq-regex-fasta}
+
+FASTQ records contain four fields: (1) a single-line header starting with `@` followed by an identifier and an optional description, (2) a single-line ASCII-encoded sequence, (3) a single-line separator starting with `+` optionally followed by an identifier and (4) a quality line of the same length of the sequence encoding the quality score of each base at the corresponding position.
+Compared to FASTA, the ASCII-encoded sequence also contains `A/C/T/G` and other IUPAC codes, but cannot be split into multiple lines.
+The quality line, however, may contain *any character* in the ASCII range [33, 126] including `@`, `+` or any alphabetic character.
+Also note that, while the quality represents almost 50\% of the content of a FASTQ file, it is often discarded during the analysis.
+
+### Efficient parsing
+
+At its core, parsing FASTA and FASTQ files reduces to a lexical analysis problem over large byte streams. The parser must identify structural delimiters, such as line feeds (`\n`), header markers (`>` and `@`), and separators (`+`) and segment the input into records accordingly. Since modern datasets often reach billions of reads, the dominant cost is no longer algorithmic complexity but the raw throughput at which these critical positions can be detected.
+
+Reaching a high throughput requires minimizing branching and favoring regular, predictable computation patterns that can be efficiently executed on wide data paths.
+This constraint naturally shifts the focus from traditional parsing strategies toward approaches that process the input stream in bulk while limiting branches.
+
+### Vectorization
+
+See @sec-intro-simd
+
+<!-- Since the 1980s [@Cray1], CPUs have exposed SIMD (Single Instruction, Multiple Data) instructions that operate on wide registers, processing multiple bytes in parallel within a single instruction.
+Compilers can exploit these instructions automatically through auto-vectorization, and this proved to be effective for scientific and high-performance computing.
+However, auto-vectorization often fails when branches depend on input data, which is precisely the situation arising when parsing.
+Achieving high throughput therefore requires *manual* vectorization by encoding the parsing logic with SIMD intrinsics. -->
+
+A canonical example of a hand-optimized SIMD routine is `memchr`, which scans a memory region for the first occurrence of a given byte.
+While naive scalar implementations only reach a few GB/s, carefully vectorized ones approach the full RAM bandwidth at close to 40 GB/s on modern hardware.
+Parsing FASTA/Q, however, requires searching for *multiple* markers simultaneously (line feeds, header markers and separators) so relying on independent `memchr` calls leaves performance on the table.
+Fusing these searches into a single vectorized pass is the key algorithmic challenge we address in this contribution.
+
+### Existing work
+
+Most state-of-the-art parsers share a pretty similar design.
+The input file is first split into sequence of lines using `memchr` to locate line feeds (`\n`).
+For FASTQ files, counting the lines is sufficient for the parsing logic since each field spans over a single line.
+For FASTA files, however, we also need to check the first character of the line to determine if it starts a header (`>`).
+This usually incurs a second check after each `memchr` match to detect a new record.
+In particular, both `kseq` [@kseq] and `needletail` [@needletail], two of the most popular parsers in the community, rely on this approach.
+According to Heng Li's `biofast` benchmark [@biofast], `needletail` is the fastest single-threaded parser currently available, so this will be the baseline we compare against.
+
+Recent methods focused more specifically on parallelization strategies for parsing [@rabbitfx] and decompressing [@mim] FASTA/Q inputs.
+Among these works, RabbitFX [@rabbitfx] stands out as the state-of-the-art for parallel parsing of plain and gzipped FASTA/Q.
+However, since our work focuses on accelerating the parsing algorithm for a given thread, we will not evaluate RabbitFX in this chapter.
+
+### Contributions
+
+In this chapter, we present new vectorized algorithms for high-throughput FASTA/Q parsing, which support on-the-fly detection and handling non-ACTG characters, and provide bitpacked representations of the sequence.
+Formally, given an input FASTA/Q file, we produce a structured iterator over the (possibly bitpacked) content of each record.
+This approach is implemented in *Helicase*, a Rust library providing a configurable interface to expose caller-requested fields for each record, avoiding unnecessary computation.
+We evaluate our approach on both x86 and ARM architectures. Across all tested scenarios, Helicase matches or exceeds the throughput of existing single-threaded parsers while maintaining feature parity. In addition, it provides extended functionality, such as bitpacked sequence output, without compromising performance. For data already loaded in RAM, Helicase is able to parse uncompressed short reads at 27 GB/s and long reads at 49 GB/s on an Apple M3 Pro using a single thread, reaching the core memory bandwidth. Our library is available at [github.com/imartayan/helicase](https://github.com/imartayan/helicase) under a permissive open-source license.
+
+## Methods
+
+### DNA representations
+
+Depending on the application use case, different DNA representations might be desirable.
+Our approach produces three main representations: the traditional ASCII-based one, and two bitpacked versions (*packed* and *columnar*) in which each base is encoded with 2 bits.
+A convenient way to encode bases is to extract the second and third lowest bits from their ASCII representation, as described below:
+
+|     `A`      |     `C`      |     `T`      |     `G`      |
+|:------------:|:------------:|:------------:|:------------:|
+| 01000[00]{.mark}1 | 01000[01]{.mark}1 | 01010[10]{.mark}0 | 01000[11]{.mark}1 |
+
+However, sequences may still contain non-ACTG characters for IUPAC codes that we cannot bitpack losslessly, so we have to handle them separately.
+We propose two different ways to solve this.
+One solution is to treat non-ACTG characters as splits and only return contiguous chunks of ACTGs.
+Another solution a lossy encoding that returns an additional bitmask marking ambiguous positions with ones (thus requiring 3 bits per base in total).
+
+#### Packed format
+
+Once each base is mapped to two bits, an intuitive way to represent the sequence is to pack each pair of bits consecutively, thus storing 4 bases in one byte.
+This bitpacked representation is probably the most commonly used, and allows simple iteration on the bases by shifting and masking.
+
+#### Columnar format
+
+Another way to represent the sequence is to separate the stream of high bits and low bits.
+With this approach, 8 bases are stored in two bytes: one for the high bits and the other for the low bits.
+This representation maps each base of the sequence to exactly one bit in each part at the corresponding position, which is convenient for bitmask-based operations.
+For instance, locating \texttt{T}s in the sequence is as simple as intersecting the high bits and the negation of the low bits:
+
+| `seq` | `G` | `A` | `T` | `T` | `A` | `C` | `A` | `T` |
+|-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| `hi`  | 1 | 0 | 1 | 1 | 0 | 0 | 0 | 1 |
+| `lo`  | 1 | 0 | 0 | 0 | 0 | 1 | 0 | 0 |
+| `hi & !lo` | 0 | 0 | **1** | **1** | 0 | 0 | 0 | **1** |
+<!-- | `hi & !lo` | 0 | 0 | [1]{.mark} | [1]{.mark} | 0 | 0 | 0 | [1]{.mark} | -->
+
+### Streaming the input
+
+Our approach follows three phases of *streaming*, *lexing* and *parsing*: the input is first streamed to a lexer that provides a tokenization of the stream, which is then fed to a parser to build the desired output.
+
+The very first step of our algorithm is to stream the input that we want to parse.
+We support two main kinds of input: the ones that support random access (e.g. data in RAM or memory-mapped file) and the ones that have to be consumed sequentially (e.g. file reader or stdin).
+In particular, reader-based inputs allow transparent decompression of the data by detecting compressor-specific signatures ("magic bytes") at the start of the input.
+To handle all these types of input generically, we provide a unifying abstraction that streams the data by blocks of fixed size (in our case 64 bytes).
+While streaming these blocks is straightforward for data in memory and does not require any copy, we need a buffering strategy for reader-based input to amortize the cost of read syscalls.
+
+The buffering strategy differs depending on the type of output produced.
+For bitpacked representations, the input buffer is only needed for tokenization so we simply use a fixed-size buffer (128 KB by default) and refill it when it is entirely consumed.
+For the ASCII-based representation, however, we want to reuse the sequence loaded in the buffer whenever possible and avoid copies.
+In that case, we use an adaptive strategy similar to Needletail [@needletail] or RabbitFX [@rabbitfx].
+When a record is too large to fit in the current buffer, the size of the buffer is doubled.
+In practice, this occurs only for very long sequences such as chromosomes.
+When a record overlaps the boundary between two buffer fills, the partial record at the end of the current buffer is copied to the beginning of the next one before refilling.
+
+### Classifying the input with bitmasks
+
+Unlike traditional lexing/parsing situations, we need to carefully design the structure of the
+lexing phase to be fully compatible with vectorized processing.
+Instead of consuming the input and producing lexemes to be consume later by the parser,
+the lexing phase will annotate the stream by producing bitmasks that encompass some information
+about the input. For instance, we will produce a bitmask that distinguishes parts of the input
+that are within the header of a FASTA record or within the sequence.
+
+Producing bitmasks efficiently to classify the input is a classic way to produce highly efficient code.
+For instance, in simdjson [@simd-json], the lexing phase produces bitmasks for the position of structural characters in a JSON document.
+In rsonpath [@rsonpath], the small programs generating relevant bitmasks are denoted *classifiers*, and we will follow this terminology from now on.
+
+Concretely, a bitmask gives a boolean information for each byte of the input.
+Those bytes are provided in streaming by blocks of 64 at a time.
+The goal of a highly performant lexer is to produce the desired bitmasks as efficiently as possible, and with the minimal amount of branches.
+To illustrate this methodology, let us focus on the `header` bitmask, critical for the FASTA parsing in Helicase.
+This bitmask is true for a byte if and only if it belongs to a header of the document.
+Formally, it is delimited by the byte `>` and a line feed without any line feed in between, as described in the regular expression @eq-regex-fasta.
+
+| `input`  | `>` | `c` | `h` | `r` | `1` | `↵` | `C` | `G` | `G` | `A` | `C` | `↵` | `A` | `C` | `G` | `T` | `↵` | `>` | `c` | `>` | `h` | `↵` | `C` |
+|------:|:---:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:---:|:-:|:---:|:-:|:-:|:-:|
+| `header` |  1  | 1 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |  1  | 1 |  1  | 1 | 1 | 0 |
+
+To construct such a bitmask, it is essential to avoid scanning the input sequentially one byte at a time. The first step is to identify the relevant byte values in the input stream. Following the methodology used in `memchr`, we can efficiently produce bitmasks (with architecture-specific implementations discussed later) that mark the occurrences of the characters `>` and `↵`.
+
+The goal is then to derive a bitmask that identifies precisely the bytes located between a `>` and a `↵`. Remarkably, this can be achieved without iterating over the bytes individually. Instead, the construction relies on carry propagation during the addition of two bit-vectors. This approach is efficient because modern processors perform additions on 64-bit integers with highly optimized carry propagation. In particular, the processor’s carry flag enables fast propagation of carries across successive additions, allowing the required bitmask to be computed with only a few arithmetic and bitwise operations.
+
+#### From automata to vectorized programs
+
+It is possible, using the work of [@soyez2023;@soyez_phd;@Serre04], to analyze a given automaton and determine whether its execution can be expressed solely using bitwise bit-vector operations combined with addition.
+An automaton that admits an efficient program has several characterizations and belongs to the class of so-called *counter-free automata* [@McNaughton1971CounterFreeA].
+Although these characterizations are decidable and conceptually well understood, there is currently no efficient implementation that automatically derives the corresponding vectorized program from the automaton.
+For small enough instances such as our lexer, the proof methodology of @soyez2023 can be applied manually to synthesize such a program.
+
+We can produce a compact representation of the lexing phase through so called *vectorial circuits*.
+Those circuits can be thought of as formulas on bitmasks that can be evaluated on a given word.
+The results of the bitmask are the lexing annotations we need.
+Given a word $u$ that we want to parse, we denote by
+$\mathbf{1}_\texttt{>}$ and $\mathbf{1}_\texttt{↵}$
+the bitmask of position where respectively the symbols `>` and `↵` occur.
+The formula to compute the v_\textrb|header| bitmask is then expressed as follows,
+using $+$ to denote an addition propagating the carry from left to right, $\lnot$ to denote bitwise `not` and $\oplus$ to denote bitwise `xor`:
+$$
+    \texttt{header} := ((\mathbf{1}_\texttt{>} + \lnot \mathbf{1}_\texttt{↵}) \oplus \lnot \mathbf{1}_\texttt{↵}) \vee \mathbf{1}_\texttt{>}
+$$
+The usage of carry propagation to encode part of the branching originates from @myers1999fast.
+Applying this formula to the previous example, we get the following:
+
+| `input` | `>` | `c` | `h` | `r` | `1` | `↵` | `C` | `G` | `G` | `A` | `C` | `↵` | `A` | `C` | `G` | `T` | `↵` | `>` | `c` | `>` | `h` | `↵` | `C` |
+|------:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| $\mathbf{1}_\texttt{↵}$ | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 1 | 0 |
+| $\mathbf{1}_\texttt{>}$ | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 0 |
+| $\lnot\mathbf{1}_\texttt{↵}$ | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 0 | 1 |
+| $\mathbf{1}_\texttt{>} + \lnot\mathbf{1}_\texttt{↵}$ | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 1 | 0 | 1 | 1 |
+| $\oplus\,\lnot \mathbf{1}_\texttt{↵}$ | 1 | 1 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 1 | 1 | 0 |
+| $\lor~\mathbf{1}_\texttt{>}$ | **1** | **1** | **1** | **1** | **1** | **1** | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | **1** | **1** | **1** | **1** | **1** | 0 |
+
+### Implementation of the lexing phase
+
+While this formula provides us with the appropriate semantics, implementing it requires a bit more work since it is interpreted over a stream of 64-bytes blocks.
+We now describe its concrete implementation in the lexing phase as a *classifier*, i.e. an iterator that builds the annotation on-the-fly.
+
+The first step of the lexing phase is to load the input block into a SIMD register, and to compute bitmasks for specific characters: `\n` for FASTQ, and both `\n` and `>` for FASTA.
+Additionally, we may want to detect non-ACTG bases to split the sequence or mark their positions.
+Both of these steps are described in @lst-bitmask and rely essentially on vectorized byte-wise comparisons followed by a `movemask`.
+The `movemask` instruction, natively supported on x86 since SSE, extracts the most significant bit of each byte in a SIMD register into a scalar bitmask.
+However, this instruction is not available on ARM CPUs, so we have to implement it manually using multiple intrinsics, making it more expensive than on x86.
+A relatively efficient method to implement it on ARM is to make use of NEON's interleaved layout and byte-wise packing^[[stackoverflow.com/questions/74722950](https://stackoverflow.com/questions/74722950)].
+One benefit of having a manual implementation is that we can easily adapt it to extract multiple bits from each byte instead of a single one, which will turn out to be useful for the packed representation.
+
+::: {#lst-bitmask}
+
+```pseudocode
+#| html-line-number: false
+#| html-no-end: true
+#| pdf-line-number: false
+#| pdf-placement: "ht!"
+
+\begin{algorithmic}
+\Function{IsNewline}{$v_\text{data}$}
+\State $v_\text{eq} \gets \texttt{cmp\_eq}(v_\text{data}, v_\texttt{↵})$
+\Comment{test equality between each byte and \texttt{↵}}
+\State \textbf{return} \texttt{movemask}($v_\text{eq}$)
+\Comment{return the corresponding bitmask (1 if equal, 0 otherwise)}
+\EndFunction
+
+\Function{IsACTG}{$v_\text{data}$}
+\State $\texttt{LUT} \gets \texttt{["A", \_, "C", \_, "T", \_, "G", \_]}$
+\Comment{constant lookup table mapping bits to bases}
+\State $v_\text{bits} \gets v_\text{data} \texttt{ \& 0b110}$
+\Comment{two bits encoding with a trailing zero}
+\State $v_\text{lookup} \gets \texttt{lookup}(\texttt{LUT}, v_\text{bits})$
+\Comment{map the bits to ACTG using the lookup table}
+\State $v_\text{upper} \gets v_\text{data} \texttt{ \& !0b00100000}$
+\Comment{uppercase the input}
+\State $v_\text{eq} \gets \texttt{cmp\_eq}(v_\text{lookup}, v_\text{upper})$
+\Comment{test equality between uppercased input and lookup}
+\State \textbf{return} \texttt{movemask}($v_\text{eq}$)
+\EndFunction
+\end{algorithmic}
+```
+
+Pseudocode to detect newlines and non-ACTG characters.
+:::
+
+Depending on the type of desired output, we also use the lexing phase to produce a stream of columnar or packed sequences, both described in @lst-columnar-packed.
+For the columnar representation, we simply shift each bytes by 5 (resp. 6) positions to move the high (resp. low) bit to the beginning of the byte, which we can then extract using `movemask` as before.
+The packed representation, however, requires different strategies depending on the architecture.
+On x86, since `movemask` can only extract one bit at a time, we essentially reuse the high and low bits from the columnar format and interleave them.
+A simple way to interleave the bits is to use the PDEP instruction available with BMI2.
+However, this instruction is not supported by old CPUs, and has been notoriously slow on AMD CPUs until the Zen3 generation because it was microcoded.
+As a fallback for this kind of hardware, we also provide an alternative implementation that does the interleaving step on the *bytes* before the `movemask` rather than the bits.
+On the other hand, computing packed representations on ARM is much simpler since we can change the `movemask` implementation to extract two bits at a time, thus entirely avoiding the interleaving step.
+Due to these architectural differences, producing a packed representation is slightly more expensive than a columnar one on x86.
+
+::: {#lst-columnar-packed}
+
+```pseudocode
+#| html-line-number: false
+#| html-no-end: true
+#| pdf-line-number: false
+#| pdf-placement: "ht!"
+
+\begin{algorithmic}
+\Function{Columnar}{$v_\text{data}$}
+\State $v_\text{hi} \gets v_\text{data} \texttt{ << 5}$
+\Comment{shift the third lowest bit to the beginning of the byte}
+\State $v_\text{lo} \gets v_\text{data} \texttt{ << 6}$
+\Comment{same for the second lowest bit}
+\State \textbf{return} \texttt{movemask}($v_\text{hi}$), \texttt{movemask}($v_\text{lo}$)
+\Comment{movemask only extracts the highest bit of each byte}
+\EndFunction
+
+\Function{Packedx86}{$v_\text{data}$}
+\State $v_\text{hi} \gets v_\text{data} \texttt{ << 5}$
+\State $v_\text{lo} \gets v_\text{data} \texttt{ << 6}$
+\State $m_\text{hi} \gets \texttt{movemask}(v_\text{hi})$
+\State $m_\text{lo} \gets \texttt{movemask}(v_\text{lo})$
+\State \textbf{return} \texttt{interleave}($m_\text{hi}, m_\text{lo}$)
+\Comment{interleave one bit of each mask, usually using PDEP}
+\EndFunction
+
+\Function{PackedARM}{$v_\text{data}$}
+\State $v_\text{shift} \gets v_\text{data} \texttt{ << 5}$
+\State \textbf{return} $\texttt{movemask}_2(v_\text{shift})$
+\Comment{variant of movemask that extracts the highest two bits together}
+\EndFunction
+\end{algorithmic}
+```
+
+Pseudocode to compute the columnar and packed representations, on x86 and ARM.
+:::
