@@ -1,5 +1,9 @@
 # Vectorized sequence parsing
 
+:::{.callout-note}
+This chapter is adapted from [@helicase].
+:::
+
 Sequence bioinformatics has always been closely tied to stringology and compression theory, but connections to algebraic automata have remained comparatively rare.
 Recent progress has opened new paths toward high-performance parsers that are both formally grounded and practically competitive.
 This chapter explores one such connection, applying these techniques to the FASTA and FASTQ formats.
@@ -101,7 +105,7 @@ With this approach, 8 bases are stored in two bytes: one for the high bits and t
 This representation maps each base of the sequence to exactly one bit in each part at the corresponding position, which is convenient for bitmask-based operations.
 For instance, locating \texttt{T}s in the sequence is as simple as intersecting the high bits and the negation of the low bits:
 
-::: {.large-table}
+:::{.large-table}
 | `seq` | `G` | `A` | `T` | `T` | `A` | `C` | `A` | `T` |
 |---------------------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|
 | `hi`  | 1 | 0 | 1 | 1 | 0 | 0 | 0 | 1 |
@@ -148,7 +152,7 @@ To illustrate this methodology, let us focus on the `header` bitmask, critical f
 This bitmask is true for a byte if and only if it belongs to a header of the document.
 Formally, it is delimited by the byte `>` and a line feed without any line feed in between, as described in @eq-regex-fasta.
 
-::: {.large-table}
+:::{.large-table}
 | `input`  | `>` | `c` | `h` | `r` | `1` | `↵` | `C` | `G` | `G` | `A` | `C` | `↵` | `A` | `C` | `G` | `T` | `↵` | `>` | `c` | `>` | `h` | `↵` | `C` |
 |------:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | `header` | 1 | 1 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 1 | 0 |
@@ -179,7 +183,7 @@ $$
 The usage of carry propagation to encode part of the branching originates from @myers1999fast.
 Applying this formula to the previous example, we get the following:
 
-::: {.large-table}
+:::{.large-table}
 | `input` | `>` | `c` | `h` | `r` | `1` | `↵` | `C` | `G` | `G` | `A` | `C` | `↵` | `A` | `C` | `G` | `T` | `↵` | `>` | `c` | `>` | `h` | `↵` | `C` |
 |-------:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | $\mathbf{1}_\texttt{↵}$ | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 1 | 0 |
@@ -203,8 +207,7 @@ However, this instruction is not available on ARM CPUs, so we have to implement 
 A relatively efficient method to implement it on ARM is to make use of NEON's interleaved layout and byte-wise packing^[[stackoverflow.com/questions/74722950](https://stackoverflow.com/questions/74722950)].
 One benefit of having a manual implementation is that we can easily adapt it to extract multiple bits from each byte instead of a single one, which will turn out to be useful for the packed representation.
 
-::: {#lst-bitmask}
-
+:::{#lst-bitmask}
 ```pseudocode
 #| html-no-end: true
 #| html-line-number: false
@@ -236,7 +239,6 @@ One benefit of having a manual implementation is that we can easily adapt it to 
 \EndFunction
 \end{algorithmic}
 ```
-
 Pseudocode to detect newlines and non-ACTG characters.
 :::
 
@@ -250,8 +252,7 @@ As a fallback for this kind of hardware, we also provide an alternative implemen
 On the other hand, computing packed representations on ARM is much simpler since we can change the `movemask` implementation to extract two bits at a time, thus entirely avoiding the interleaving step.
 Due to these architectural differences, producing a packed representation is slightly more expensive than a columnar one on x86.
 
-::: {#lst-columnar-packed}
-
+:::{#lst-columnar-packed}
 ```pseudocode
 #| html-no-end: true
 #| html-line-number: false
@@ -286,6 +287,5 @@ Due to these architectural differences, producing a packed representation is sli
 \EndFunction
 \end{algorithmic}
 ```
-
 Pseudocode to compute the columnar and packed representations, on x86 and ARM.
 :::
