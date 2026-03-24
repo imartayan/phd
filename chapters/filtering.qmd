@@ -1,3 +1,285 @@
 # Application to sequence filtering
 
-See [@k2rmini] and [deacon](https://github.com/bede/deacon)
+:::{.callout-note}
+This chapter is adapted from [@k2rmini].
+:::
+
+## Background
+
+The immense volume of available sequencing data presents both significant opportunities and challenges in bioinformatics.
+Assembled datasets have reached the Petabase scale, as seen in the 2 Petabytes of unitigs from the Logan project [@logan], while even curated databases like GenBank are nearing 6 Terabases [@genbank2024]. Although holistic analyses of these large-scale datasets, such as those on viral [@edgar2022petabase], soil [@ma2023genomic], gut [@nayfach2019new], and environmental metagenomes [@parks2017recovery] are promising, they remain computationally expensive.
+Identifying matches to a query sequence in large collections, a fundamental task exemplified by BLAST [@blast], has evolved.
+Traditional alignment tools were overwhelmed by data growth, leading to the use of strings of fixed length *k*, or /kmers [@zielezinski2017alignment].
+To improve scalability, indexing structures allowing false positives were adopted, making shared  /kmer fingerprints a necessary, though not sufficient, condition for a match [@marchet2021data;@marchet2023scalable;@lemane2024indexing].
+Some methods further enhance scalability by indexing only a fraction of /kmers, relying on detecting substantial matches from partial signals [@needle;@rahman2025estimating;@niqki].
+
+Large-scale indexes can thus efficiently identify a small, relevant subset of documents (e.g., read sets, unitigs, contigs).
+However, this initial filtering isn't final.
+Due to false positives from  probabilistic indexes, or sparse/non-collinear matches, queried /kmers may not be truly present or usable for mapping.
+Therefore, recovering specific sequences within identified documents that genuinely share /kmers with the query is crucial.
+This refinement, moving from relevant documents to relevant sequences suitable for alignment, mitigates downstream scalability issues and can reduce data volume by orders of magnitude, such as identifying a few relevant sequences from  billions.
+
+The problem of */kmer-based sequence filtering* can be formalized as follows:
+given a set of /kmers of interest $\mathcal{Q} = \left\lbrace q_1, \dots, q_m \right\rbrace$ (the "queries"), a set of sequences $\mathcal{S} = \left\lbrace S_1, \dots, S_n \right\rbrace$ and a threshold $T$, output for each $S_i \in \mathcal{S}$ whether $\sum_{q \in \mathcal{Q}} \#\text{occ}(q, S_i) \ge T$, i.e. whether $S_i$ contains at least $T$ occurrences of /kmers of interest.
+In practice, the threshold can either be set as an absolute value $T \in \mathbb{N}$ or as a relative value proportional to the size of the sequence: given $t \in [0, 1]$, $T_i = \left\lceil t \cdot (|S_i| -k + 1) \right\rceil$.
+
+### Related work
+
+Although sequence-level indexes have been proposed [@karasikov2022lossless;@vandamme2024k2r], indexing and storing entire dataset collection at this resolution remains expensive and challenging at scale, thus favoring lightweight filtering methods directly from unindexed data.
+Efficient multi-pattern matching is a highly studied topic from both the theoretical [@crochemore1999fastmulti] and practical point of view [@faro2013exact].
+Practical implementation can be found in classical data processing with grep-like efficient tools such as Ripgrep [@ripgrep] or Hyperscan [@hyperscan].
+Some tools perform pattern matching adapted to genomic data, such as Seqkit [@seqkit1;@seqkit2], fqgrep [@fqgrep] or grepq [@grepq].
+However, these solutions tend to scale poorly as the number of query /kmers increases and fail to leverage the fixed length of the search patterns.
+This is a critical issue, as querying numerous /kmers is often necessary for large queries (contigs, long reads, whole genomes), searching for many distinct sequences (variant or gene collections), or optimizing batched queries.
+The recent BackToSequences [@bts] tool, used in the Logan project, addresses these issues by simply indexing query /kmers in a hash table to search for target documents.
+Very recently, both Deacon [@deacon] and Cleanifier [@cleanifier] were proposed as scalable solutions for contaminant depletion, that is removing sequences originating from a given genome, which is a direct application of sequence filtering.
+In particular, Deacon effectively uses many of the techniques presented in this article.
+Finally, while to our knowledge it has not been used for sequence filtering, the spectral Burrows-Wheeler transform (SBWT) [@sbwt] is also a suitable method for this problem thanks to efficient matching statistics [@sbwt-matching-statistics].
+
+### Contributions
+
+This work presents three main contributions.
+First, we introduce a new algorithm that uses random minimizers to quickly filter out sequences that contains too few /kmers of interest, effectively reducing the cost of negative matches by a factor $w / 2$.
+Second, we propose an optimized implementation named *K2Rmini*, that takes advantage of vectorized instructions to parse sequences, hash /kmers and compute minimizers efficiently.
+Third, we compare our approach to many different tools and evaluate their scalability for a large number of patterns, highlighting the benefits of different methods.
+Our tool, K2Rmini, is able to filter 2 Gbp/s on a consumer laptop and is available online at <https://github.com/Malfoy/K2Rmini>.
+
+## Methods
+
+Classical multi-pattern matching algorithms, which generalize the Knuth-Morris-Pratt approach, construct deterministic finite automata to achieve linear time complexity relative to the pattern and input data sizes.
+While these methods offer strong theoretical guarantees, they often exhibit poor cache locality.
+Furthermore, they address the more general problem of matching variable-length patterns, whereas our work focuses exclusively on fixed-size patterns.
+This constraint creates an opportunity for hash-based techniques, which are better suited for large pattern sets and more amenable to hardware acceleration through vectorized instructions.
+
+One of the state-of-the-art solutions, BackToSequences [@bts], uses an efficient hash table containing all /kmers of interest and skips irrelevant fields.
+However, its main limitation is its necessity to perform a hash table lookup for every /kmer in the data stream.
+This process becomes computationally expensive, especially when the hash table is large and does not fit into low-level caches.
+To address this bottleneck, we propose K2Rmini (<https://github.com/Malfoy/K2Rmini>), a method that integrates minimizer-based filtering and Single Instruction, Multiple Data (SIMD) operations.
+
+### Using minimizers to upper bound the number of /kmer matches
+
+Minimizers [@schleimer2003winnowing;@roberts2004reducing] are a widely used /kmer sampling method that selects the smallest /mmer out of every $w$ consecutive one, usually using a random ordering.
+The set of sampled minimizers is typically much smaller, by a factor $2 / (w+1)$ called the *density* [@pellow2023efficient], than the whole sequence while preserving a lot of information, making it a key component of large-scale sequence analysis.
+An important property of minimizers is that they are *locally consistent*: two sequences sharing contexts of $w$ $m$-mers will always sample the same minimizers from these contexts.
+Thus, comparing minimizers can be used as a proxy to identify similar sequences [@minimap2;@needle;@mdbg].
+
+One core idea of our approach is to leverage this property to avoid exhaustive /kmer scanning.
+Given a set $\mathcal{Q}$ of /kmers of interest, we compute the set of associated minimizers $\mathcal{M}(\mathcal{Q}) = \left\lbrace \text{minimizer}(q) : q \in \mathcal{Q} \right\rbrace$.
+Then, instead of checking every /kmer from a sequence $S$, we only compare the minimizers of $S$ against $\mathcal{M}(\mathcal{Q})$.
+We know that each minimizer match implies that up to $w$ /kmers of $S$ are in $\mathcal{Q}$.
+Thus, if we have $\ell$ minimizer matches, the number of /kmer matches is upper-bounded by $\ell \times w$, so having $\ell < \left\lceil \frac{T}{w} \right\rceil$ is sufficient to discard a sequence.
+
+While this upper bound is quite accurate for sparse matches, it is very loose (by a factor close to 2) for dense matches.
+One way to refine this upper bound is to observe that if two minimizers are $d$ positions apart from each other, they cover at most $w + d$ /kmers.
+Therefore, if we have a chain of consecutive minimizer matches at positions $p_1, \dots, p_r$, the number of /kmer matches is upper-bounded by $w + p_r - p_1$.
+
+In practice, we often have access the exact number of /kmers covered by each minimizer as a byproduct of the sliding window algorithm [@simd-minimizers].
+In that case, we can simply sum them to get a tight upper bound.
+
+### Minimizer-based filtering algorithm
+
+Our algorithm, detailed in @lst-mini-filtering, works in two passes.
+The first pass computes an upper bound on the number of /kmer matches, as detailed in the previous section, by performing $\mathcal{O}\left(\frac{|S|}{w}\right)$ queries to $\mathcal{T_M}$ (the hash table of minimizers).
+This has two main advantages: not only do we reduce the number of lookups, but querying $\mathcal{T_M}$ is also faster than $\mathcal{T_Q}$ (the hash table of /kmers) because it is roughly $w / 2$ times smaller when /kmers from $\mathcal{Q}$ are consecutive.
+
+The second pass only happens for sequences with an upper bound on /kmer matches above the threshold.
+In that case, we must count the exact number of /kmer matches to identify true hits.
+Deacon [@deacon], another tool tailored for decontamination developed by some of the authors, uses a simplified version of the method proposed here.
+In particular, it omits this second pass, reducing computational overhead at the cost of potential false positives.
+
+:::{#lst-mini-filtering}
+```pseudocode
+#| html-no-end: true
+#| html-line-number: false
+#| html-comment-delimiter: "//"
+#| pdf-line-number: false
+#| pdf-comment-delimiter: "//"
+#| pdf-placement: "ht!"
+
+\begin{algorithmic}
+\Function{Filter}{set of \textit{k}-mers $\mathcal{Q}$, set of sequences $\mathcal{S}$, threshold $T$}
+\State $\mathcal{T_Q} \gets \text{HashSet}(\mathcal{Q})$
+\Comment{hash table of \textit{k}-mers of interest}
+\State $\mathcal{T_M} \gets \text{HashSet}(\mathcal{M(Q)})$
+\Comment{hash table of minimizers of interest}
+\For{$S \in \mathcal{S}$}
+\State $u \gets 0$
+\Comment{upper bound of \textit{k}-mer matches}
+\For{each minimizer $m$ in $S$, covering $c$ \textit{k}-mers}
+\If{$m \in \mathcal{T_M}$}
+\State $u \gets u + c$
+\EndIf
+\EndFor
+\If{$u < T$}
+\State \textbf{yield} false
+\State \textbf{continue}
+\EndIf
+\State $s \gets 0$
+\Comment{exact count of \textit{k}-mer matches}
+\For{each \textit{k}-mer $x$ in $S$}
+\If{$x \in \mathcal{T_Q}$}
+\State $s \gets s + 1$
+\EndIf
+\EndFor
+\State \textbf{yield} $s \ge T$
+\EndFor
+\EndFunction
+\end{algorithmic}
+```
+Minimizer-based filtering.
+:::
+
+### Vectorization
+
+Multiple parts of our algorithm are accelerated using vectorized instructions.
+First of all, we implemented a library called `helicase` (<https://github.com/imartayan/helicase>) that vectorizes the parsing of the sequence files and outputs bitpacked representations for faster processing.
+Then, we build upon SimdMinimizers [@simd-minimizers] to have a vectorized computation of minimizer positions, along with the number of /kmers that they cover.
+SimdMinimizers relies on a completely branchless sliding window minimum algorithm using two stacks and processes 8 independent chunks of the sequence within a single SIMD register.
+Finally, we use a vectorized rolling hash adapted from NtHash [@nthash] to accelerate the /kmer lookups in the second pass.
+
+### Parallelization
+
+On top of the vectorized computation of the matches, we adopt a parallelization strategy for the main loop based on a producer-consumer model.
+A producer thread parses the sequences and sends batches of sequences (up to a desired length) to multiple consumer threads, which in turn compute the matches on their batch and output the results.
+One approach that we have not implemented yet but could be worth trying would be to let each consumer thread directly parse a chunk of the input file in parallel, thus removing the need for a producer thread and reducing the communication overhead.
+
+## Results
+
+All experiments were run with the benchmarking workflow available at <https://github.com/imartayan/K2Rmini_experiments>.
+The benchmarking framework is easily extensible, since each additional program only requires a dedicated command wrapper to be added to a common interface before it can be executed and plotted with the other tools.
+All reported times include both the cost of indexing the queried patterns and the filtering step.
+Benchmarks were performed on a dual-socket Intel Xeon Gold 6430 machine with 64 cores and 64 GB of RAM running Ubuntu 24.04.2. Because no ready-to-use SBWT-based sequence filtering implementation was available for our setting, we implemented the SBWT baseline ourselves^[<https://github.com/imartayan/K2Rmini_experiments/tree/main/sbwt_filter>] using the Rust `sbwt` crate^[<https://docs.rs/sbwt/latest/sbwt/>].
+
+### State-of-the-art analysis
+
+To evaluate state-of-the-art tools, we benchmarked a selection of specialized and general-purpose programs while varying the number of queried /kmers.
+The specialized tools included Seqkit 2.13.0 [@seqkit1;@seqkit2], fqgrep 1.1.1 [@fqgrep], grepq 1.6.5 [@grepq], BackToSequences 0.8.3 [@bts], Cleanifier 1.2.0 [@cleanifier], Deacon 0.14.0 [@deacon], and our SBWT-based implementation.
+For comparison, we also included grep 3.11, ripgrep 15.1.0 [@ripgrep], and Hyperscan 5.4.2 [@hyperscan] (or Vectorscan 5.4.12 on ARM).
+As shown in @fig:bench_time @fig:bench_memory, we benchmarked these tools on 2.6 Gbp of PacBio HiFi reads from HG002^[<https://s3-us-west-2.amazonaws.com/human-pangenomics/NHGRI_UCSC_panel/HG002/hpp_HG002_NA24385_son_v1/PacBio_HiFi/15kb/m54328_180928_230446.Q20.fastq>] while increasing the number of queried /kmers.
+
+TODO add plots
+
+The results separate the tested methods into two broad groups.
+Classical multiple-pattern matching tools such as grep, ripgrep, Hyperscan, Seqkit, fqgrep, and grepq scale poorly as the number of queried /kmers increases.
+Their running time rises rapidly and they become impractical once the query set reaches the large regimes that matter for genomic filtering.
+In contrast, methods that explicitly index the queried patterns, or a sketch derived from them, remain effective over the full range of tested query sizes.
+
+Among these scalable approaches, Deacon and K2Rmini are the fastest overall.
+Cleanifier is also largely insensitive to the number of queried /kmers, but with a clearly higher absolute running time.
+SBWT and BackToSequences remain much more scalable than general-purpose pattern matchers, although both become slower than Deacon and K2Rmini as the number of queried /kmers grows.
+In the multithreaded setting, SBWT remains consistently ahead of BackToSequences for the largest query sets, while both are clearly outperformed by the minimizer-based approaches.
+
+The gap between positive and negative queries is especially informative for K2Rmini.
+For negative /kmers, most reads are rejected during the minimizer pass, which keeps the running time close to flat across a broad range of query counts.
+For positive /kmers, more reads pass this first filter and trigger the exact counting phase, so the running time increases more substantially.
+This behavior directly reflects the design of K2Rmini, where minimizers are used to avoid unnecessary exact searches, but exact verification is still required whenever the upper bound is above threshold.
+
+This comparison must be interpreted more carefully for Deacon.
+Deacon only indexes minimizers and does not perform an exact second pass on the surviving reads.
+Its excellent scalability therefore comes from solving a relaxed version of the problem, which may introduce false positives.
+By contrast, K2Rmini uses minimizers as a lossless prefilter and performs exact /kmer counting whenever necessary.
+
+A  practical observation is that at some point, pattern indexing itself is a visible part of the total running time and filtering is no longer the only bottleneck.
+
+Memory usage reveals a similar separation between approaches.
+General-purpose tools such as ripgrep already have a large baseline memory footprint and can reach several gigabytes for the largest query sets.
+By contrast, the specialized genomic tools initially use much less memory, but their scaling behavior differs substantially. Among the scalable exact methods,
+K2Rmini has the lowest memory footprint over most of the explored range and remains below BackToSequences and SBWT at large query sizes.
+BackToSequences starts from a very small footprint on small query sets, but its memory usage grows steeply and eventually becomes the highest among the indexed genomic methods.
+SBWT scales more smoothly than BackToSequences, but still requires substantially more memory than K2Rmini for large pattern sets.
+Cleanifier and Deacon exhibit a higher baseline memory usage, yet their growth is more moderate, which is consistent with their good scalability in running time.
+Overall, these results show that K2Rmini provides the best end-to-end compromise among exact methods, combining low running time with low memory usage over a broad range of query sizes.
+
+### Influence of parameters
+
+To better understand the behavior of the most scalable approaches, we compared BackToSequences, SBWT, Deacon, and K2Rmini while varying the number of threads and the /kmer size.
+The results are shown in @fig:bench_threads @fig:bench_k.
+
+TODO add plots
+
+When increasing the number of threads, K2Rmini remains the fastest method throughout the benchmark.
+Most of the speedup is obtained within the first four threads, after which the running time stabilizes around 1.3--1.4 seconds.
+Deacon shows a very similar trend, with slightly higher running times and the same early saturation.
+This suggests that, for both minimizer-based approaches, the main bottleneck quickly shifts away from the matching procedure itself toward parsing and other shared overheads.
+In contrast, BackToSequences and SBWT continue to benefit from additional threads over the full range, with their running times decreasing steadily from about 100 seconds on one thread to around 6 seconds on 16 threads.
+Cleanifier shows almost no parallel speedup in this experiment, remaining close to 35 seconds regardless of the thread count.
+
+The memory trends differ markedly from the time trends.
+K2Rmini has the lowest memory footprint and remains nearly constant as the number of threads increases, staying around 8--10 MB.
+SBWT also remains essentially flat, at about 8 MB.
+BackToSequences has a larger but still stable footprint, around 50 MB, independent of the number of threads.
+By contrast, Deacon and Cleanifier both show a substantial increase in memory usage with additional threads.
+Deacon grows roughly linearly from about 15 MB on one thread to around 180 MB on 16 threads, while Cleanifier increases from about 110 MB to about 195 MB.
+Therefore, among the tested methods, K2Rmini combines the best running time with the smallest and most stable memory usage in the multithreaded setting.
+
+We also evaluated the effect of the /kmer size with a single thread and 1M queried patterns.
+As *k* increases, K2Rmini becomes slightly faster, decreasing from about 4 seconds at *k*=31 to about 2.3 seconds for the largest tested values.
+This trend is consistent with our minimizer-based design.
+Keeping the minimizer size fixed while increasing *k* enlarges the minimizer window, reducing minimizer density, and therefore decreasing the number of lookups required during the first filtering pass.
+Deacon exhibits a similar, though less pronounced, decrease in running time.
+In contrast, BackToSequences becomes slower as *k* increases, rising from about 80 seconds to more than 120 seconds, while SBWT remains roughly constant around 90 seconds.
+These results again highlight that minimizer-based filtering benefits from larger /kmer sizes, whereas exact indexed lookup of every /kmer does not.
+
+The memory usage as a function of *k* remains moderate for all methods, but the trends are again distinct.
+K2Rmini stays almost constant around 7--8 MB across the full range of tested values. Deacon remains below 20 MB, with only a small increase as *k* grows.
+SBWT increases more noticeably, specifically after each power of two (32 and 64 in the plot), from about 7--8 MB at small *k* to about 20 MB for the largest tested values, especially on negative queries.
+BackToSequences has the highest memory usage throughout this experiment, steadily increasing from about 50 MB to more than 60 MB.
+Overall, these experiments confirm that K2Rmini is not only the fastest of the exact methods considered here, but also the most memory-efficient and the least sensitive to both thread count and /kmer size.
+
+### Real data
+
+To complement the synthetic benchmarks, we compared BackToSequences and K2Rmini on several real datasets with heterogeneous sequence lengths and structures, summarized in @tbl-k2r-bts-perf.
+The evaluation includes Oxford Nanopore ultra-long reads (`SRR23365080`), PacBio HiFi reads of 10--20 Kbp (`SRX7897685-8`), and Illumina 250 bp reads (`ERR3239454`).
+We also evaluated assembled sequences from the Logan project [@logan], including both contigs and unitigs (`SRR7853572`), and the complete human T2T reference genome (`GCF_009914755.1`), which represents very long contiguous sequences.
+These experiments were run on a laptop equipped with a 13th Gen Intel Core i9-13950HX processor, 64\,GB of RAM, and an SSD, using 8 threads.
+For the positive case, the queried patterns were sequences of length 1000 selected from each dataset, using 100 patterns for short reads and unitigs so as to total 10<sup>6</sup> queried bases.
+For the negative case, the queried patterns were random sequences of length 1000.
+Across all datasets and in both positive and negative settings, K2Rmini is consistently faster than BackToSequences in both CPU time and wall-clock time.
+
+The largest gains are observed on ONT and HiFi reads.
+On ONT data, K2Rmini is 10.55× faster than BackToSequences in CPU time and 4.94× faster in elapsed time for positive queries, while the speedup increases to 17.74× and 16.09× on negative queries.
+On HiFi reads, the gains are even larger for positive queries, reaching 26.94× in CPU time and 27.41× in elapsed time, and remain very high on negative queries with speedups of 17.23× and 16.55×.
+On Illumina reads, the improvement is more moderate but still substantial, ranging from 5.53× to 5.98× in CPU time and from 3.97× to 4.48× in elapsed time.
+Overall, these results confirm that the minimizer-based prefilter is especially effective on raw reads, with the strongest gains on long-read datasets.
+
+The same trend holds on assembled and reference sequences, although with more variable gains.
+On the T2T genome, K2Rmini is 4.00× faster in CPU time and 4.19× faster in elapsed time for positive queries, while negative queries lead to much larger speedups of 15.19× and 11.10×.
+On Logan contigs, the gains are stable between positive and negative cases, around 7.3× to 7.4× in CPU time and 5.8× to 5.9× in elapsed time.
+Logan unitigs show the smallest difference, with speedups around 2.5× in CPU time and 1.9× in elapsed time in both settings.
+More generally, negative queries tend to benefit more from K2Rmini than positive ones, which is consistent with the minimizer filter rejecting most sequences early and therefore avoiding the exact counting phase.
+Overall, K2Rmini consistently outperforms BackToSequences across all tested datasets, with the strongest improvements on long reads and on negative queries.
+
+:::{#tbl-k2r-bts-perf .large-table}
+| | | CPU time (s) | | | Elapsed time (s) | |
+|:-|:-:|:--:|:-:|:-:|:--:|:-:|
+| **Experiment** | **K2Rmini** | **BTS** | **Speedup** | **K2Rmini** | **BTS** | **Speedup** |
+| ONT +      | 1850.65 | 19529.04 | ×10.55 |  531.83 | 2626.34 | ×4.94  |
+| ONT -      |  959.72 | 17021.16 | ×17.74 |  125.13 | 2013.64 | ×16.09 |
+| HiFi +     |  279.46 |  7527.53 | ×26.94 |   33.11 |  907.56 | ×27.41 |
+| HiFi -     |  273.75 |  4716.76 | ×17.23 |   33.70 |  557.88 | ×16.55 |
+| Illumina + |  278.24 |  1537.61 | ×5.53  |   43.56 |  173.02 | ×3.97  |
+| Illumina - |  267.35 |  1597.82 | ×5.98  |   40.41 |  180.89 | ×4.48  |
+| T2T +      |   55.85 |   223.67 | ×4.00  |    8.88 |   37.19 | ×4.19  |
+| T2T -      |    9.81 |   148.98 | ×15.19 |    2.31 |   25.63 | ×11.10 |
+| Contigs +  |   14.05 |   102.10 | ×7.27  |    2.18 |   12.66 | ×5.81  |
+| Contigs -  |   13.83 |   102.29 | ×7.40  |    2.15 |   12.70 | ×5.91  |
+| Unitigs +  |   76.56 |   191.45 | ×2.50  |   13.87 |   26.49 | ×1.91  |
+| Unitigs -  |   75.29 |   192.07 | ×2.55  |   14.07 |   26.65 | ×1.89  |
+
+Runtime comparison between K2Rmini and BTS using 8 threads.
+:::
+
+## Discussion
+
+This work has demonstrated that a search strategy based on SIMD-accelerated minimizer filtering is fast and resource-efficient across a broad spectrum of applications.
+Similar tools are being developed for screening sequence repositories for antimicrobial resistance mutations, emerging pathogen surveillance, or sequencing contaminant filtration [@deacon].
+Currently, the main limitation of our implementation is that the indexation of the patterns is single-threaded and relies on a generic hash table.
+One promising direction to improve the indexation step would be to implement a concurrent hash table that relies on minimizers for grouping keys, such as the one recently described in kache-hash [@kache-hash].
+This would be especially relevant since we already have efficient methods to compute both minimizers and /kmer hashes, and we could thus easily batch insertions and queries.
+A second direction for improvement would be to parallelize the parsing step by attributing independent chunks of the input file to each thread, which would fully benefit from our vectorized parsing library and reduce the communication overhead.
+
+Future work could explore alternative search strategies, including using sparser minimizer schemes to further reduce the number of minimizers to query [@mod-mini;@ocmm;@greedymini;@pellow2023efficient;@finimizers].
+We could also imagine a middleground between the costly exact search used in the second pass and doing no search at all at the cost of false positives, possibly by using small filters for faster queries with a lower false positive rate.
+
+Finally, as the throughput of the core algorithm increases, performance bottlenecks shift to other components of the pipeline, mostly I/O bounded.
+While uncompressed FASTA/Q files are unnecessarily wasteful, reading input from compressed FASTA/Q files is a major bottleneck, highlighting the need for more performant alternatives [@binseq;@mim].

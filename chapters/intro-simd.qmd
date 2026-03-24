@@ -2,4 +2,4 @@
 
 TBA
 
-mention [@Cray1] and `memchr` as an example
+mention [@cray1] and `memchr` as an example
