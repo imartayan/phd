@@ -72,6 +72,7 @@ format:
     papersize: a4
     geometry:
       - margin=1in
+    indent: true
 
 filters:
   - search-replace
