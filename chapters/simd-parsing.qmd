@@ -32,7 +32,7 @@ $$ {#eq-regex-fasta}
 FASTQ records contain four fields: (1) a single-line header starting with `@` followed by an identifier and an optional description, (2) a single-line ASCII-encoded sequence, (3) a single-line separator starting with `+` optionally followed by an identifier and (4) a quality line of the same length of the sequence encoding the quality score of each base at the corresponding position.
 Compared to FASTA, the ASCII-encoded sequence also contains `A/C/T/G` and other IUPAC codes, but cannot be split into multiple lines.
 The quality line, however, may contain *any character* in the ASCII range [33, 126] including `@`, `+` or any alphabetic character.
-Also note that, while the quality represents almost 50\% of the content of a FASTQ file, it is often discarded during the analysis.
+Also note that, while the quality represents almost 50% of the content of a FASTQ file, it is often discarded during the analysis.
 
 ### Efficient parsing
 
@@ -53,6 +53,7 @@ Achieving high throughput therefore requires *manual* vectorization by encoding 
 A canonical example of a hand-optimized SIMD routine is `memchr`, which scans a memory region for the first occurrence of a given byte.
 While naive scalar implementations only reach a few GB/s, carefully vectorized ones approach the full RAM bandwidth at close to 40 GB/s on modern hardware.
 Parsing FASTA/Q, however, requires searching for *multiple* markers simultaneously (line feeds, header markers and separators) so relying on independent `memchr` calls leaves performance on the table.
+<!-- familier -->
 Fusing these searches into a single vectorized pass is the key algorithmic challenge we address in this contribution.
 
 ### Existing work
@@ -74,7 +75,7 @@ However, since our work focuses on accelerating the parsing algorithm for a give
 In this chapter, we present new vectorized algorithms for high-throughput FASTA/Q parsing, which support on-the-fly detection and handling non-ACTG characters, and provide bitpacked representations of the sequence.
 Formally, given an input FASTA/Q file, we produce a structured iterator over the (possibly bitpacked) content of each record.
 This approach is implemented in *Helicase*, a Rust library providing a configurable interface to expose caller-requested fields for each record, avoiding unnecessary computation.
-We evaluate our approach on both x86 and ARM architectures. Across all tested scenarios, Helicase matches or exceeds the throughput of existing single-threaded parsers while maintaining feature parity. In addition, it provides extended functionality, such as bitpacked sequence output, without compromising performance. For data already loaded in RAM, Helicase is able to parse uncompressed short reads at 27 GB/s and long reads at 49 GB/s on an Apple M3 Pro using a single thread, reaching the core memory bandwidth. Our library is available at [github.com/imartayan/helicase](https://github.com/imartayan/helicase) under a permissive open-source license.
+We evaluate our approach on both x86 and ARM architectures. Across all tested scenarios, Helicase matches or exceeds the throughput of existing single-threaded parsers while maintaining feature parity. In addition, it provides extended functionality, such as bitpacked sequence output, without compromising performance. For data already loaded in RAM, Helicase is able to parse uncompressed short reads at 27 GB/s and long reads at 49 GB/s on an Apple M3 Pro using a single thread, reaching the core memory bandwidth. Our library is available at <https://github.com/imartayan/helicase> under a permissive open-source license.
 
 ## Methods
 
@@ -103,7 +104,7 @@ This bitpacked representation is probably the most commonly used, and allows sim
 Another way to represent the sequence is to separate the stream of high bits and low bits.
 With this approach, 8 bases are stored in two bytes: one for the high bits and the other for the low bits.
 This representation maps each base of the sequence to exactly one bit in each part at the corresponding position, which is convenient for bitmask-based operations.
-For instance, locating \texttt{T}s in the sequence is as simple as intersecting the high bits and the negation of the low bits:
+For instance, locating `T`s in the sequence is as simple as intersecting the high bits and the negation of the low bits:
 
 :::{.large-table}
 | `seq` | `G` | `A` | `T` | `T` | `A` | `C` | `A` | `T` |
@@ -160,7 +161,7 @@ Formally, it is delimited by the byte `>` and a line feed without any line feed 
 
 To construct such a bitmask, it is essential to avoid scanning the input sequentially one byte at a time. The first step is to identify the relevant byte values in the input stream. Following the methodology used in `memchr`, we can efficiently produce bitmasks (with architecture-specific implementations discussed later) that mark the occurrences of the characters `>` and `↵`.
 
-The goal is then to derive a bitmask that identifies precisely the bytes located between a `>` and a `↵`. Remarkably, this can be achieved without iterating over the bytes individually. Instead, the construction relies on carry propagation during the addition of two bit-vectors. This approach is efficient because modern processors perform additions on 64-bit integers with highly optimized carry propagation. In particular, the processor’s carry flag enables fast propagation of carries across successive additions, allowing the required bitmask to be computed with only a few arithmetic and bitwise operations.
+The goal is then to derive a bitmask that identifies precisely the bytes located between a `>` and a `↵`. Remarkably, this can be achieved without iterating over the bytes individually. Instead, the construction relies on carry propagation during the addition of two bit-vectors. This approach is efficient because modern processors perform additions on 64-bit integers with highly optimized carry propagation. In particular, the processor's carry flag enables fast propagation of carries across successive additions, allowing the required bitmask to be computed with only a few arithmetic and bitwise operations.
 
 #### From automata to vectorized programs
 
@@ -204,7 +205,7 @@ Additionally, we may want to detect non-ACTG bases to split the sequence or mark
 Both of these steps are described in @lst-bitmask and rely essentially on vectorized byte-wise comparisons followed by a `movemask`.
 The `movemask` instruction, natively supported on x86 since SSE, extracts the most significant bit of each byte in a SIMD register into a scalar bitmask.
 However, this instruction is not available on ARM CPUs, so we have to implement it manually using multiple intrinsics, making it more expensive than on x86.
-A relatively efficient method to implement it on ARM is to make use of NEON's interleaved layout and byte-wise packing^[[stackoverflow.com/questions/74722950](https://stackoverflow.com/questions/74722950)].
+A relatively efficient method to implement it on ARM is to make use of NEON's interleaved layout and byte-wise packing^[<https://stackoverflow.com/questions/74722950>].
 One benefit of having a manual implementation is that we can easily adapt it to extract multiple bits from each byte instead of a single one, which will turn out to be useful for the packed representation.
 
 :::{#lst-bitmask}
@@ -287,5 +288,184 @@ Due to these architectural differences, producing a packed representation is sli
 \EndFunction
 \end{algorithmic}
 ```
-Pseudocode to compute the columnar and packed representations, on x86 and ARM.
+Pseudocode for the columnar and packed representations, on x86 and ARM.
 :::
+
+### Parsing: extracting relevant information with a control finite state machine
+
+The parsing stage is implemented as a deterministic control layer operating over the output of the lexing classifiers.
+Rather than inspecting input bytes individually, the parser consumes bitmask summaries associated with fixed-size blocks, where each mask encodes the positions of structurally relevant symbols such as header markers and DNA characters.
+This design allows the parser to advance directly between meaningful positions using bitwise selection, avoiding per-character control flow.
+
+The control logic for FASTA parsing is structured around a small number of states corresponding to the successive processing steps.
+Execution begins by locating the start of a header, after which the header line is consumed.
+The parser then enters an intermediate phase where it determines whether the subsequent region corresponds to another header or to DNA content.
+When a DNA region is detected, the parser initializes the necessary context and enters a tight processing loop over contiguous DNA symbols (restricted to `A/C/T/G` for some bitpacking strategies).
+This loop continues as long as the lexical masks indicate valid DNA positions. Upon encountering a boundary condition, such as a non-DNA symbol, a header marker, or the end of the input, the current DNA segment is finalized and control returns to the intermediate phase.
+On FASTQ, the structure is similar but since each field spans over a single line, the corresponding states directly correspond to a given line count modulo 4, making it simpler overall.
+
+All transitions are driven by predicates evaluated over the lexical masks.
+In practice, the parser repeatedly queries these masks to locate the next relevant position, using bitwise operations to identify the first occurrence of a header, DNA symbol or boundary.
+If no such position exists within the current block, the parser advances to the next block and repeats the process.
+<!-- clarifier unnecessary fields, constant time -->
+As a result, large regions of unnecessary fields are skipped in constant time per block, and control decisions are made only at structurally significant locations.
+
+The parser maintains a mutable state associated with the current record and DNA segment.
+Depending on the configuration, this state may include ranges for header and quality data, accumulators for DNA sequences, or alternative encodings such as packed and columnar representations.
+These data structures are updated incrementally during DNA processing and may be reset or extended when transitioning between segments.
+Boundary conditions determine when a DNA segment is considered complete, and user-defined policies control whether segments are split, merged or filtered.
+
+The parsing stage can also produce events corresponding to record boundaries or DNA segments. These events are emitted at well-defined points in the control flow, typically when a new header is encountered or when a DNA segment is finalized. Event generation is entirely configuration-dependent and does not affect the structure of the control logic.
+
+Overall, the parser follows a two-level organization in which a data-parallel lexing stage exposes structural information as bitmasks, and a compact control layer reacts to this information through a small set of states.
+This separation enables high-throughput streaming by eliminating fine-grained branching while preserving a simple and predictable execution model.
+
+The parser's behavior is entirely dictated by a set of configuration parameters processed at compile time.
+These parameters control header processing, DNA accumulation strategy (string, packed, and/or columnar), boundary handling, and event emission. Conceptually, this design can be understood as generating a distinct parser implementation for each configuration, rather than a single generic parser containing runtime conditionals.
+
+This approach corresponds to compile-time specialization (often referred to as "monomorphization"), where a generic implementation is transformed into multiple concrete variants.
+In contrast to designs relying on runtime branching (e.g. `if (compute_dna_columnar) ...`), each generated variant contains only the code relevant to the selected configuration, with all other paths removed during compilation.
+
+### Compile-time configuration and specialization
+
+This specialization extends across both the parsing and lexing phases. Critical functions are aggressively inlined, and inlining propagates into the lexer itself. As a consequence, lexical computations that are not required under a given configuration are eliminated at compile time.
+For example, when DNA string accumulation is disabled, the corresponding logic for extracting and storing DNA bases is not generated, and the lexer omits the associated processing entirely.
+All the conditions governing buffer management, boundary semantics, and event emission are thus resolved statically. Each configuration hence produces a specialized instance of the control automaton in which transitions and associated actions are fixed in advance, with no residual dynamic branching. At the moment of writing, we provide 13 flags that can each
+trigger different behaviors. Altogether, this amounts to 8192 different possible specializations. More specialization could occur in the future to open the way for more
+efficient code.
+
+## Results
+
+To evaluate the performance of our approach, we compared it against two state-of-the-art Rust libraries: Needletail 0.6.3 [@needletail] and Paraseq 0.4.8 [@paraseq].
+Needletail is the fastest single-threaded library to our knowledge, while Paraseq is getting increasingly popular because of its parallel-friendly design.
+The benchmarks presented in this section were run using the commit `5557b93` of our library.
+We measured the throughput of each parser in three main scenarios: parsing a genome in multiline FASTA format, short reads in FASTQ format and long reads in FASTQ format.
+The datasets used are detailed in @tbl-datasets.
+
+:::{#tbl-datasets}
+| Dataset | Format | Size | \# records | avg. seq. len. | line breaks | Link |
+|:--------|:------:|-----:|:----------:|:--------------:|:-----------:|:----:|
+| Human genome (CHM13v2.0)   | FASTA | 3.16 GB | 25   | 125 Mbp | every 80 bp | [^a] |
+| PacBio human HiFi reads    | FASTQ | 2.58 GB | 92 K | 14 Kbp  | ---         | [^b] |
+| Illumina human short reads | FASTQ | 2.23 GB | 4 M  | 250 bp  | ---         | [^c] |
+
+Description of the datasets benchmarked in the article.
+:::
+
+[^a]: <https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/analysis_set/chm13v2.0.fa.gz>
+[^b]: <https://s3-us-west-2.amazonaws.com/human-pangenomics/NHGRI_UCSC_panel/HG002/hpp_HG002_NA24385_son_v1/PacBio_HiFi/15kb/m54328_180928_230446.Q20.fastq>
+[^c]: <https://s3-us-west-2.amazonaws.com/human-pangenomics/NHGRI_UCSC_panel/HG002/hpp_HG002_NA24385_son_v1/ILMN/NIST_Illumina_2x250bps/D1_S1_L001_R2_007.fastq.gz>
+
+The benchmarks are orchestrated through a bash script^[<https://github.com/imartayan/helicase/blob/main/bench/bench.sh>], which iterates over all input datasets, runs the parsers in release mode, and records the results in a CSV file.
+The compilation is configured to target the native microarchitecture of each machine, ensuring that the generated code fully exploits the available CPU features.
+Multiple parser configurations are evaluated to capture performance sensitivity to instruction-level differences.
+Each measurement is averaged over ten repetitions.
+
+To ensure representative and robust measurements, the benchmarks were deployed across a wide range of heterogeneous machines available on Grid'5000 [@grid5000] (with different CPU generations and microarchitectures).
+Jobs were executed on reserved nodes in isolation from other workloads, ensuring that no external interference perturbs the results.
+This setup provides a broad and controlled view of performance across architectures.
+For completeness, the same benchmarks were also run on the author's personal laptop and desktop systems, allowing comparison with more conventional environments.
+A description of all the CPUs used across the benchmarks can be found in [@tbl-cpus].
+
+:::{#tbl-cpus}
+| CPU | Year | SSE | AVX2 | BMI2 | NEON |
+|:----|----:|:----:|:----:|:----:|:----:|
+| **Intel** | | | | | |
+| Intel Xeon X5670             | 2010 | ✓ | ✗ | ✗ | ✗ |
+| Intel Xeon E5-2620           | 2012 | ✓ | ✗ | ✗ | ✗ |
+| Intel Xeon E7-4850 V3        | 2015 | ✓ | ✓ | ✓ | ✗ |
+| Intel Xeon E5-2620 V4        | 2016 | ✓ | ✓ | ✓ | ✗ |
+| Intel Xeon Gold 6130         | 2017 | ✓ | ✓ | ✓ | ✗ |
+| Intel Xeon Gold 5218         | 2019 | ✓ | ✓ | ✓ | ✗ |
+| Intel Xeon Gold 5318Y        | 2021 | ✓ | ✓ | ✓ | ✗ |
+| Intel Xeon Silver 4314       | 2021 | ✓ | ✓ | ✓ | ✗ |
+| Intel Xeon Gold 6442Y        | 2023 | ✓ | ✓ | ✓ | ✗ |
+| Intel Core Ultra 7 165H \*[^pc]   | 2023 | ✓ | ✓ | ✓ | ✗ |
+| **AMD** | | | | | |
+| AMD Epyc 7301                | 2017 | ✓ | ✓ | ~[^pdep] | ✗ |
+| AMD Epyc 7452                | 2019 | ✓ | ✓ | ~ | ✗ |
+| AMD Epyc 7642                | 2019 | ✓ | ✓ | ~ | ✗ |
+| AMD Epyc 7513                | 2021 | ✓ | ✓ | ✓ | ✗ |
+| AMD Epyc 9254                | 2022 | ✓ | ✓ | ✓ | ✗ |
+| AMD Ryzen 5 8500G \*         | 2024 | ✓ | ✓ | ✓ | ✗ |
+| **ARM** | | | | | |
+| Apple M1 \*                  | 2020 | ✗ | ✗ | ✗ | ✓ |
+| Apple M3 Pro \*              | 2023 | ✗ | ✗ | ✗ | ✓ |
+| ARM Neoverse-V2              | 2023 | ✗ | ✗ | ✗ | ✓ |
+
+Instruction-set extensions supported by the benchmarked CPUs.
+:::
+
+[^pc]: (\*) personal computers, not benchmarked in a reproducible environment
+[^pdep]: (~) microcoded PDEP/PEXT instructions (very slow)
+
+### Parsing throughput
+
+The main metric that we evaluated is the throughput of each parser on the different datasets.
+In order to have a fair comparison that reflects a typical execution, the performance was measured when reading the files from disk and are thus subject to more significant I/O bottlenecks than for data loaded in RAM.
+[fig:throughput] shows the throughput when parsing a human genome (in FASTA format) and short reads (in FASTQ format).
+<!-- explicit data source -->
+An additional plot for long reads is available in [fig:throughput_long_reads] in appendix.
+For completeness, we also included results on data loaded in RAM in [fig:throughput_ram] and results comparing the throughput of collecting the sequence string and only counting the number of bases in [fig:throughput_count] in appendix.
+
+When parsing the human genome, Helicase is consistently twice as fast as its competitors on Intel CPUs, and roughly 50% faster on AMD and ARM CPUs.
+This trend is confirmed over all generations of CPUs, from the oldest ones only supporting SSE to those supporting AVX2 or NEON.
+We also observe that both bitpacking strategies (columnar and packed) are competitive with plain string parsing in this setting, which can be explained by the fact that the string version still has to eliminate the newlines contained in the sequence and thus cannot be copy-free.
+As expected given the extra interleaving step it requires, computing the packed representation is always slightly slower than the columnar one. Our implementation scales better with newer hardware. On old CPUs (e.g. Xeon X5670, 2010), the throughput
+is around 1.1 GB/s for Needletail and Paraseq and between 1.4 and 1.6 for variants of Helicase. Meanwhile, in the latest generation (Xeon Gold 6442Y, 2023), the throughput for Needletail and Paraseq ranges between 1.3 and 1.4 GB/s while Helicase achieves a
+throughput ranging from 3.7 to 4.7 GB/s. Hence, and contrary to the baseline, the implementation
+of Helicase clearly leverages hardware improvements of the last decade.%than the baseline.
+
+When parsing short reads, Helicase is consistently 10-30% faster than Needletail, itself faster than Paraseq.
+Compared to the results on the human genome, we observe that the overall throughput is higher and that the difference between Helicase and Needletail is less pronounced.
+This is mainly explained because FASTQ parsing requires less work (keeping track of the line count is sufficient to transition between states) and because the sequence of each record is not split across multiple lines, thus allowing a zero-copy strategy.
+On the other hand, bitpacked configurations do not benefit from this property and are comparatively slower than outputting plain strings.
+The results on long reads, shown in [fig:throughput_long_reads] in appendix, are even less pronounced.
+Having longer contiguous sequences make the zero-copy strategy is even more noticeable and file I/O becomes a bigger limitation.
+
+To illustrate the impact of compile-time specialization of the parser, we compared the throughput of collecting the sequence string for each record against a configuration that only counts the number of ACTG bases (skipping other IUPAC codes) on the human genome.
+This comparison, presented in [fig:throughput_count] in appendix, confirms that a lighter configuration requirement successfully produces more efficient code.
+
+### Number of instructions, cycles and branches per byte
+
+In addition to throughput, we measured the number of instructions, cycles and branches corresponding to each execution using perf counters, and divided it by the input size to have uniform values.
+Since perf counters are not as widely available on macOS, we did not include Apple CPUs for these metrics.
+[fig:instructions_and_cycles] shows the number of instructions and cycles per bytes for each parser on the human genome.
+Additional plots on short reads are available in [fig:instructions_and_cycles_short_reads] in appendix, as well as plots on the number of branches per byte in [fig:branches] and the number of branch misses per MB in [fig:branch_misses].
+
+These plots provide many interesting insights on the CPU characteristics and how well each parser exploits them.
+First of all, we note that the main factor impacting the number of instructions is the instruction-set supported by each CPU.
+This is especially noticeable when comparing Intel CPUs only supporting SSE (first two Xeon CPUs in [fig:instructions], prior to 2013) to those supporting AVX2 afterwards: since SSE vectors are twice as small as AVX vectors, scanning a given block requires more instructions.
+When focusing on the packed representation, we can also observe the shift from microcoded PDEP instructions (first three Epyc CPUs, prior to 2020), which we avoided in favor of a fallback implementation shown in brown, to native PDEP instructions on AMD CPUs over the years.
+
+Even though the number of instructions is roughly constant for a given instruction-set, the number of cycles spent to execute them is not.
+We observe in [fig:cycles] a decrease in the number of cycles over the years, reflecting the continuous improvements of CPU manufacturers.
+However, we can also notice that while Helicase has a number of instructions similar to Needletail, it uses significantly less cycles.
+This suggests that our implementation relies on instructions that the CPUs evaluate in parallel, making a better use of vectorized instructions, and therefore allows a good pipelining strategy.
+Finally, the results on the number of branches (shown in [fig:branches] in appendix) confirm that Helicase successfully eliminates more branches with our vectorization strategy.
+
+## Conclusion
+
+We presented Helicase, a high-throughput Rust library for parsing FASTA and FASTQ files
+that exploits SIMD vectorization to maximize single-threaded throughput on both x86 and ARM.
+At the core of our approach is a vectorized lexing stage based on bitmask classifiers derived from the theory of counter-free automata [@soyez2023;@Serre04].
+Rather than scanning the input byte by byte, the lexer annotates 64-byte blocks in parallel using carry-propagating arithmetic and bitwise operations, fusing the detection of all structural markers into a single pass.
+The parser is then structured as a finite state machine over these bitmasks, and specialized at compile time to only contain the code paths relevant to the requested fields.
+Helicase is able to produce on-the-fly DNA bitpacking for two compact representations: a *packed* format and a *columnar* format that separates the high and low bits, with non-ACTG characters handled either as segment boundaries or via a lossy encoding with an additional ambiguity mask.
+We also interfaced Helicase with the existing libraries developed for SimdMinimizers [@simd-minimizers], to support efficient /kmer hashing and minimizer computation for the packed format.
+
+We evaluated Helicase on a wide collection of CPUs, deployed reproducibly on Grid'5000.
+On FASTA genome parsing, Helicase is up to 2× faster than Needletail on Intel CPUs and 50% faster on AMD and ARM, while matching or exceeding it on all FASTQ workloads.
+For data loaded in RAM, Helicase reaches the core memory bandwidth (49 GB/s on an Apple M3 Pro for long reads), confirming that the vectorized design successfully eliminates the parsing overhead as a bottleneck.
+
+A number of avenues remain to extend and improve our approach.
+On the memory management side, DNA records are currently stored entirely in main memory, which is sufficient for most organisms but may fall short for certain species whose chromosome sizes exceed human genome standards by an order of magnitude [@Schartl2024].
+As such large genomes accumulate through ambitious sequencing programs [@biogenome], introducing a configurable buffer size to process DNA records under memory constraints is a natural next step.
+On the hardware side, implementing a version optimized for AVX-512 could provide substantial performance gains on latest CPUs.
+Parallelization is another important direction: since Helicase processes a file as a single stream, one could instead partition the input into multiple chunks and assign each to a separate reader, avoiding the synchronization overhead of a producer-consumer model.
+On the algorithmic side, there is potential to further exploit the columnar DNA representation by designing specialized algorithms for /kmer generation and hashing or pattern matching.
+
+In addition to FASTA and FASTQ, Helicase could also be extended to parse annotations in GFF and GTF formats efficiently.
+Another extension involves packaging Helicase for interpreted languages such as Python and JavaScript.
+While this would broaden accessibility, it introduces challenges related to managing the configuration state and controlling runtime code size.
+Finally, building additional tooling on top of the core library, such as utilities for format conversion, filtering or statistics, would further integrate Helicase into everyday workflows.
