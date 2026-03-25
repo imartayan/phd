@@ -77,6 +77,7 @@ format:
     papersize: a4
     geometry:
       - margin=1in
+    mathspec: true
     indent: true
 
 filters:
