@@ -72,6 +72,8 @@ format:
     include-in-header: preamble.tex
     default-image-extension: pdf
     fontsize: 10pt
+    sansfont: "Lato"
+    monofont: "DejaVu Sans Mono"
     papersize: a4
     geometry:
       - margin=1in
