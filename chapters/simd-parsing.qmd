@@ -85,9 +85,11 @@ Depending on the application use case, different DNA representations might be de
 Our approach produces three main representations: the traditional ASCII-based one, and two bitpacked versions (*packed* and *columnar*) in which each base is encoded with 2 bits.
 A convenient way to encode bases is to extract the second and third lowest bits from their ASCII representation, as described below:
 
-|     `A`    |     `C`    |     `T`    |     `G`    |
-|:----------:|:----------:|:----------:|:----------:|
+:::{.large-table}
+| `A` | `C` | `T` | `G` |
+|:-:|:-:|:-:|:-:|
 | 01000[00]{.mark}1 | 01000[01]{.mark}1 | 01010[10]{.mark}0 | 01000[11]{.mark}1 |
+:::
 
 However, sequences may still contain non-ACTG characters for IUPAC codes that we cannot bitpack losslessly, so we have to handle them separately.
 We propose two different ways to solve this.
@@ -342,7 +344,7 @@ The benchmarks presented in this section were run using the commit `5557b93` of 
 We measured the throughput of each parser in three main scenarios: parsing a genome in multiline FASTA format, short reads in FASTQ format and long reads in FASTQ format.
 The datasets used are detailed in @tbl-datasets.
 
-:::{#tbl-datasets}
+:::{#tbl-datasets .large-table}
 | Dataset | Format | Size | \# records | avg. seq. len. | line breaks | Link |
 |:--------|:------:|-----:|:----------:|:--------------:|:-----------:|:----:|
 | Human genome (CHM13v2.0)   | FASTA | 3.16 GB | 25   | 125 Mbp | every 80 bp | [^a] |
@@ -367,31 +369,31 @@ This setup provides a broad and controlled view of performance across architectu
 For completeness, the same benchmarks were also run on the author's personal laptop and desktop systems, allowing comparison with more conventional environments.
 A description of all the CPUs used across the benchmarks can be found in [@tbl-cpus].
 
-:::{#tbl-cpus}
+:::{#tbl-cpus .large-table}
 | CPU | Year | SSE | AVX2 | BMI2 | NEON |
-|:----|----:|:----:|:----:|:----:|:----:|
+|:----|:----:|:----:|:----:|:----:|:----:|
 | **Intel** | | | | | |
-| Intel Xeon X5670             | 2010 | ✓ | ✗ | ✗ | ✗ |
-| Intel Xeon E5-2620           | 2012 | ✓ | ✗ | ✗ | ✗ |
-| Intel Xeon E7-4850 V3        | 2015 | ✓ | ✓ | ✓ | ✗ |
-| Intel Xeon E5-2620 V4        | 2016 | ✓ | ✓ | ✓ | ✗ |
-| Intel Xeon Gold 6130         | 2017 | ✓ | ✓ | ✓ | ✗ |
-| Intel Xeon Gold 5218         | 2019 | ✓ | ✓ | ✓ | ✗ |
-| Intel Xeon Gold 5318Y        | 2021 | ✓ | ✓ | ✓ | ✗ |
-| Intel Xeon Silver 4314       | 2021 | ✓ | ✓ | ✓ | ✗ |
-| Intel Xeon Gold 6442Y        | 2023 | ✓ | ✓ | ✓ | ✗ |
-| Intel Core Ultra 7 165H \*[^pc]   | 2023 | ✓ | ✓ | ✓ | ✗ |
+| Xeon X5670             | 2010 | ✓ | ✗ | ✗ | ✗ |
+| Xeon E5-2620           | 2012 | ✓ | ✗ | ✗ | ✗ |
+| Xeon E7-4850 V3        | 2015 | ✓ | ✓ | ✓ | ✗ |
+| Xeon E5-2620 V4        | 2016 | ✓ | ✓ | ✓ | ✗ |
+| Xeon Gold 6130         | 2017 | ✓ | ✓ | ✓ | ✗ |
+| Xeon Gold 5218         | 2019 | ✓ | ✓ | ✓ | ✗ |
+| Xeon Gold 5318Y        | 2021 | ✓ | ✓ | ✓ | ✗ |
+| Xeon Silver 4314       | 2021 | ✓ | ✓ | ✓ | ✗ |
+| Xeon Gold 6442Y        | 2023 | ✓ | ✓ | ✓ | ✗ |
+| Core Ultra 7 165H \*[^pc]   | 2023 | ✓ | ✓ | ✓ | ✗ |
 | **AMD** | | | | | |
-| AMD Epyc 7301                | 2017 | ✓ | ✓ | ~[^pdep] | ✗ |
-| AMD Epyc 7452                | 2019 | ✓ | ✓ | ~ | ✗ |
-| AMD Epyc 7642                | 2019 | ✓ | ✓ | ~ | ✗ |
-| AMD Epyc 7513                | 2021 | ✓ | ✓ | ✓ | ✗ |
-| AMD Epyc 9254                | 2022 | ✓ | ✓ | ✓ | ✗ |
-| AMD Ryzen 5 8500G \*         | 2024 | ✓ | ✓ | ✓ | ✗ |
+| Epyc 7301                | 2017 | ✓ | ✓ | ~[^pdep] | ✗ |
+| Epyc 7452                | 2019 | ✓ | ✓ | ~ | ✗ |
+| Epyc 7642                | 2019 | ✓ | ✓ | ~ | ✗ |
+| Epyc 7513                | 2021 | ✓ | ✓ | ✓ | ✗ |
+| Epyc 9254                | 2022 | ✓ | ✓ | ✓ | ✗ |
+| Ryzen 5 8500G \*         | 2024 | ✓ | ✓ | ✓ | ✗ |
 | **ARM** | | | | | |
 | Apple M1 \*                  | 2020 | ✗ | ✗ | ✗ | ✓ |
 | Apple M3 Pro \*              | 2023 | ✗ | ✗ | ✗ | ✓ |
-| ARM Neoverse-V2              | 2023 | ✗ | ✗ | ✗ | ✓ |
+| Neoverse-V2              | 2023 | ✗ | ✗ | ✗ | ✓ |
 
 Instruction-set extensions supported by the benchmarked CPUs.
 :::
@@ -414,7 +416,8 @@ We also observe that both bitpacking strategies (columnar and packed) are compet
 As expected given the extra interleaving step it requires, computing the packed representation is always slightly slower than the columnar one. Our implementation scales better with newer hardware. On old CPUs (e.g. Xeon X5670, 2010), the throughput
 is around 1.1 GB/s for Needletail and Paraseq and between 1.4 and 1.6 for variants of Helicase. Meanwhile, in the latest generation (Xeon Gold 6442Y, 2023), the throughput for Needletail and Paraseq ranges between 1.3 and 1.4 GB/s while Helicase achieves a
 throughput ranging from 3.7 to 4.7 GB/s. Hence, and contrary to the baseline, the implementation
-of Helicase clearly leverages hardware improvements of the last decade.%than the baseline.
+of Helicase clearly leverages hardware improvements of the last decade.
+<!-- than the baseline. -->
 
 When parsing short reads, Helicase is consistently 10-30% faster than Needletail, itself faster than Paraseq.
 Compared to the results on the human genome, we observe that the overall throughput is higher and that the difference between Helicase and Needletail is less pronounced.
