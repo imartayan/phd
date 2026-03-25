@@ -155,9 +155,23 @@ Benchmarks were performed on a dual-socket Intel Xeon Gold 6430 machine with 64 
 To evaluate state-of-the-art tools, we benchmarked a selection of specialized and general-purpose programs while varying the number of queried /kmers.
 The specialized tools included Seqkit 2.13.0 [@seqkit1;@seqkit2], fqgrep 1.1.1 [@fqgrep], grepq 1.6.5 [@grepq], BackToSequences 0.8.3 [@bts], Cleanifier 1.2.0 [@cleanifier], Deacon 0.14.0 [@deacon], and our SBWT-based implementation.
 For comparison, we also included grep 3.11, ripgrep 15.1.0 [@ripgrep], and Hyperscan 5.4.2 [@hyperscan] (or Vectorscan 5.4.12 on ARM).
-As shown in @fig:bench_time @fig:bench_memory, we benchmarked these tools on 2.6 Gbp of PacBio HiFi reads from HG002^[<https://s3-us-west-2.amazonaws.com/human-pangenomics/NHGRI_UCSC_panel/HG002/hpp_HG002_NA24385_son_v1/PacBio_HiFi/15kb/m54328_180928_230446.Q20.fastq>] while increasing the number of queried /kmers.
+As shown in [@fig-bench-time;@fig-bench-memory], we benchmarked these tools on 2.6 Gbp of PacBio HiFi reads from HG002^[<https://s3-us-west-2.amazonaws.com/human-pangenomics/NHGRI_UCSC_panel/HG002/hpp_HG002_NA24385_son_v1/PacBio_HiFi/15kb/m54328_180928_230446.Q20.fastq>] while increasing the number of queried /kmers.
 
-TODO add plots
+:::{#fig-bench-time layout-ncol=1}
+
+![Running time with a single thread.](../fig/filtering/plot_time_k31_t1){#fig-bench-time-1}
+
+![Running time with 8 threads.](../fig/filtering/plot_time_k31_t8){#fig-bench-time-8}
+
+Running time of state-of-the-art tools when filtering 2.6 Gbp of PacBio HiFi reads from HG002 (`m54328_180928_230446`) with an increasing number of queried /kmers
+for *k*=31. Positive /kmers are extracted from the reads while negative /kmers are random sequences.
+:::
+
+:::{#fig-bench-memory}
+![](../fig/filtering/plot_memory_k31_t8)
+
+Memory usage of state-of-the-art tools when filtering 2.6 Gbp of PacBio HiFi reads from HG002 (`m54328_180928_230446`) with an increasing number of queried /kmers for *k*=31. Positive /kmers are extracted from the reads while negative /kmers are random sequences.
+:::
 
 The results separate the tested methods into two broad groups.
 Classical multiple-pattern matching tools such as grep, ripgrep, Hyperscan, Seqkit, fqgrep, and grepq scale poorly as the number of queried /kmers increases.
@@ -193,9 +207,25 @@ Overall, these results show that K2Rmini provides the best end-to-end compromise
 ### Influence of parameters
 
 To better understand the behavior of the most scalable approaches, we compared BackToSequences, SBWT, Deacon, and K2Rmini while varying the number of threads and the /kmer size.
-The results are shown in @fig:bench_threads @fig:bench_k.
+The results are shown in [@fig-bench-threads;@fig-bench-k].
 
-TODO add plots
+:::{#fig-bench-threads layout-ncol=2}
+
+![Running time versus number of threads.](../fig/filtering/plot_time_vs_t_k31_1M){#fig-bench-time-vs-threads}
+
+![Memory usage versus number of threads.](../fig/filtering/plot_memory_vs_t_k31_1M){#fig-bench-memory-vs-threads}
+
+Influence of the number of threads when filtering 2.6 Gbp of reads with 1M patterns of size *k*=31.
+:::
+
+:::{#fig-bench-k layout-ncol=2}
+
+![Running time versus *k*.](../fig/filtering/plot_time_vs_k_t1_1M){#fig-bench-time-vs-k}
+
+![Memory usage versus *k*.](../fig/filtering/plot_memory_vs_k_t1_1M){#fig-bench-memory-vs-k}
+
+Influence of the /kmer size when filtering 2.6 Gbp of reads with 1M patterns and a single thread. Cleanifier is not included because it does not support *k* > 32.
+:::
 
 When increasing the number of threads, K2Rmini remains the fastest method throughout the benchmark.
 Most of the speedup is obtained within the first four threads, after which the running time stabilizes around 1.3--1.4 seconds.
