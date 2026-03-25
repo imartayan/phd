@@ -8,8 +8,13 @@
 *.aux
 *.bbl
 *.bcf
+*.blg
+*.fls
 *.log
+*.synctex.gz
 *.toc
+*.xdv
 *.xml
 
 thesis.tex
+thesis.pdf
