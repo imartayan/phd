@@ -59,6 +59,7 @@ format:
     theme: cosmo
     html-math-method: katex
     include-in-header: preamble.html
+    default-image-extension: svg
     link-external-newwindow: true
     smooth-scroll: true
     strip-comments: true
@@ -68,6 +69,7 @@ format:
     cite-method: biblatex
     documentclass: scrreprt
     include-in-header: preamble.tex
+    default-image-extension: pdf
     fontsize: 10pt
     papersize: a4
     geometry:
