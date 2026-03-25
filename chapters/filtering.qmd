@@ -19,7 +19,7 @@ Due to false positives from  probabilistic indexes, or sparse/non-collinear matc
 Therefore, recovering specific sequences within identified documents that genuinely share /kmers with the query is crucial.
 This refinement, moving from relevant documents to relevant sequences suitable for alignment, mitigates downstream scalability issues and can reduce data volume by orders of magnitude, such as identifying a few relevant sequences from  billions.
 
-The problem of */kmer-based sequence filtering* can be formalized as follows:
+The problem of /kmer-based *sequence filtering* can be formalized as follows:
 given a set of /kmers of interest $\mathcal{Q} = \left\lbrace q_1, \dots, q_m \right\rbrace$ (the "queries"), a set of sequences $\mathcal{S} = \left\lbrace S_1, \dots, S_n \right\rbrace$ and a threshold $T$, output for each $S_i \in \mathcal{S}$ whether $\sum_{q \in \mathcal{Q}} \#\text{occ}(q, S_i) \ge T$, i.e. whether $S_i$ contains at least $T$ occurrences of /kmers of interest.
 In practice, the threshold can either be set as an absolute value $T \in \mathbb{N}$ or as a relative value proportional to the size of the sequence: given $t \in [0, 1]$, $T_i = \left\lceil t \cdot (|S_i| -k + 1) \right\rceil$.
 
