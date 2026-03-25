@@ -63,6 +63,7 @@ format:
     link-external-newwindow: true
     smooth-scroll: true
     strip-comments: true
+    lightbox: true
   pdf:
     keep-tex: true
     pdf-engine: xelatex
