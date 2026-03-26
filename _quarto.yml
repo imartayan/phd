@@ -42,6 +42,9 @@ book:
       - chapters/lexic.qmd
     - chapters/discussion.qmd
     - references.qmd
+  appendices:
+    - appendix/simd-parsing.qmd
+    - appendix/filtering.qmd
   draft-mode: gone
 
 bibliography: references.bib
