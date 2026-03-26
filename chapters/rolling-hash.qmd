@@ -1,5 +1,7 @@
 # Rolling hashes on sequences
 
-See [@simd-minimizers]
+:::{.callout-note}
+This chapter is partially adapted from [@simd-minimizers].
+:::
 
 Bias of default NtHash, see [this repo](https://github.com/imartayan/pfp-distribution)

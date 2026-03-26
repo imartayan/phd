@@ -297,6 +297,7 @@ Overall, K2Rmini consistently outperforms BackToSequences across all tested data
 | Unitigs -  |   75.29 |   192.07 | ×2.55  |   14.07 |   26.65 | ×1.89  |
 
 Runtime comparison between K2Rmini and BTS using 8 threads.
+`+` indicates positives queries while `-` indicates negative ones.
 :::
 
 ## Discussion

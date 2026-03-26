@@ -1,3 +1,5 @@
 # Necklaces and minimizers
 
-See [@cbl]
+:::{.callout-note}
+This chapter is partially adapted from [@cbl].
+:::

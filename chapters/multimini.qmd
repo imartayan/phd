@@ -1,3 +1,5 @@
 # Multiminimizers
 
-See [@multiminimizers]
+:::{.callout-note}
+This chapter is adapted from [@multiminimizers].
+:::

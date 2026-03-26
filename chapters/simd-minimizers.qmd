@@ -1,6 +1,8 @@
 # Vectorized computation of minimizers
 
-See [@simd-minimizers]
+:::{.callout-note}
+This chapter is adapted from [@simd-minimizers].
+:::
 
 Branchless computation of the minimum in a sliding window of size $w$
 (in practice $w$ /kmer hashes)
