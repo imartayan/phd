@@ -373,10 +373,10 @@ A description of all the CPUs used across the benchmarks can be found in @tbl-cp
 
 The main metric that we evaluated is the throughput of each parser on the different datasets.
 In order to have a fair comparison that reflects a typical execution, the performance was measured when reading the files from disk and are thus subject to more significant I/O bottlenecks than for data loaded in RAM.
-@fig:throughput shows the throughput when parsing a human genome (in FASTA format) and short reads (in FASTQ format).
+@fig-throughput shows the throughput when parsing a human genome (in FASTA format) and short reads (in FASTQ format).
 <!-- explicit data source -->
-An additional plot for long reads is available in @fig:throughput_long_reads in appendix.
-For completeness, we also included results on data loaded in RAM in @fig:throughput_ram and results comparing the throughput of collecting the sequence string and only counting the number of bases in @fig:throughput_count in appendix.
+An additional plot for long reads is available in @fig-throughput-long-reads in appendix.
+For completeness, we also included results on data loaded in RAM in @fig-throughput-ram and results comparing the throughput of collecting the sequence string and only counting the number of bases in @fig-throughput-count in appendix.
 
 When parsing the human genome, Helicase is consistently twice as fast as its competitors on Intel CPUs, and roughly 50% faster on AMD and ARM CPUs.
 This trend is confirmed over all generations of CPUs, from the oldest ones only supporting SSE to those supporting AVX2 or NEON.
@@ -391,31 +391,47 @@ When parsing short reads, Helicase is consistently 10-30% faster than Needletail
 Compared to the results on the human genome, we observe that the overall throughput is higher and that the difference between Helicase and Needletail is less pronounced.
 This is mainly explained because FASTQ parsing requires less work (keeping track of the line count is sufficient to transition between states) and because the sequence of each record is not split across multiple lines, thus allowing a zero-copy strategy.
 On the other hand, bitpacked configurations do not benefit from this property and are comparatively slower than outputting plain strings.
-The results on long reads, shown in @fig:throughput_long_reads in appendix, are even less pronounced.
+The results on long reads, shown in @fig-throughput-long-reads in appendix, are even less pronounced.
 Having longer contiguous sequences make the zero-copy strategy is even more noticeable and file I/O becomes a bigger limitation.
 
 To illustrate the impact of compile-time specialization of the parser, we compared the throughput of collecting the sequence string for each record against a configuration that only counts the number of ACTG bases (skipping other IUPAC codes) on the human genome.
-This comparison, presented in @fig:throughput_count in appendix, confirms that a lighter configuration requirement successfully produces more efficient code.
+This comparison, presented in @fig-throughput-count in appendix, confirms that a lighter configuration requirement successfully produces more efficient code.
+
+:::{#fig-throughput layout-ncol=2}
+
+![On a human genome (FASTA format).](../fig/parsing/parser_throughput_mmap_chm13v2_0_fa){#fig-throughput-genome}
+
+![On short reads (FASTQ format).](../fig/parsing/parser_throughput_mmap_D1_S1_L001_R2_007_fq){#fig-throughput-short-reads}
+
+Throughput of each parser for FASTA and FASTQ files read from disk on multiple CPUs, sorted by manufacturer and year.
+:::
 
 ### Number of instructions, cycles and branches per byte
 
 In addition to throughput, we measured the number of instructions, cycles and branches corresponding to each execution using perf counters, and divided it by the input size to have uniform values.
 Since perf counters are not as widely available on macOS, we did not include Apple CPUs for these metrics.
-@fig:instructions_and_cycles shows the number of instructions and cycles per bytes for each parser on the human genome.
-Additional plots on short reads are available in @fig:instructions_and_cycles_short_reads in appendix, as well as plots on the number of branches per byte in @fig:branches and the number of branch misses per MB in @fig:branch_misses.
+@fig-instructions-and-cycles shows the number of instructions and cycles per bytes for each parser on the human genome.
+Additional plots on short reads are available in @fig-instructions-and-cycles-short-reads in appendix, as well as plots on the number of branches per byte in @fig-branches and the number of branch misses per MB in @fig-branch-misses.
 
 These plots provide many interesting insights on the CPU characteristics and how well each parser exploits them.
 First of all, we note that the main factor impacting the number of instructions is the instruction-set supported by each CPU.
-This is especially noticeable when comparing Intel CPUs only supporting SSE (first two Xeon CPUs in @fig:instructions, prior to 2013) to those supporting AVX2 afterwards: since SSE vectors are twice as small as AVX vectors, scanning a given block requires more instructions.
+This is especially noticeable when comparing Intel CPUs only supporting SSE (first two Xeon CPUs in @fig-instructions, prior to 2013) to those supporting AVX2 afterwards: since SSE vectors are twice as small as AVX vectors, scanning a given block requires more instructions.
 When focusing on the packed representation, we can also observe the shift from microcoded PDEP instructions (first three Epyc CPUs, prior to 2020), which we avoided in favor of a fallback implementation shown in brown, to native PDEP instructions on AMD CPUs over the years.
 
 Even though the number of instructions is roughly constant for a given instruction-set, the number of cycles spent to execute them is not.
-We observe in @fig:cycles a decrease in the number of cycles over the years, reflecting the continuous improvements of CPU manufacturers.
+We observe in @fig-cycles a decrease in the number of cycles over the years, reflecting the continuous improvements of CPU manufacturers.
 However, we can also notice that while Helicase has a number of instructions similar to Needletail, it uses significantly less cycles.
 This suggests that our implementation relies on instructions that the CPUs evaluate in parallel, making a better use of vectorized instructions, and therefore allows a good pipelining strategy.
-Finally, the results on the number of branches (shown in @fig:branches in appendix) confirm that Helicase successfully eliminates more branches with our vectorization strategy.
+Finally, the results on the number of branches (shown in @fig-branches in appendix) confirm that Helicase successfully eliminates more branches with our vectorization strategy.
 
-TODO add plots
+:::{#fig-instructions-and-cycles layout-ncol=2}
+
+![Instructions per byte on a human genome.](../fig/parsing/parser_instructions_reader_chm13v2_0_fa){#fig-instructions}
+
+![Cycles per byte on a human genome.](../fig/parsing/parser_cycles_reader_chm13v2_0_fa){#fig-cycles}
+
+Instructions and cycles per byte on multiple CPUs, sorted by manufacturer and year.
+:::
 
 ## Conclusion
 

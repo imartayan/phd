@@ -1,5 +1,7 @@
 # Vectorized sequence parsing
 
+## Features of the benchmarked CPUs
+
 :::{#tbl-cpus .large-table}
 | CPU | Year | SSE | AVX2 | BMI2 | NEON |
 |:----|:----:|:----:|:----:|:----:|:----:|
@@ -31,3 +33,62 @@ Instruction-set extensions supported by the benchmarked CPUs.
 
 [^pc]: (\*) personal computers, not benchmarked in a reproducible environment
 [^pdep]: (~) microcoded PDEP/PEXT instructions (very slow)
+
+## Additional experiments on data read from disk
+
+:::{#fig-throughput-long-reads layout-ncol=2}
+![](../fig/parsing/parser_throughput_mmap_m54328_180928_230446_Q20_fq)
+
+Throughput of each parser for long reads on multiple CPUs, sorted by manufacturer and year.
+:::
+
+## Additional experiments on data loaded in RAM
+
+### Throughput
+
+:::{#fig-throughput-ram layout-ncol=2}
+
+![On short reads (FASTQ format).](../fig/parsing/parser_throughput_reader_D1_S1_L001_R2_007_fq){#fig-throughput-short-reads-ram}
+
+![On long reads (FASTQ format).](../fig/parsing/parser_throughput_reader_m54328_180928_230446_Q20_fq){#fig-throughput-long-reads-ram}
+
+Throughput of each parser for data loaded in RAM on multiple CPUs, sorted by manufacturer and year. Needletail and Paraseq both have to use a reader over a slice,
+which degrades their performance.
+:::
+
+:::{#fig-throughput-count layout-ncol=2}
+![](../fig/parsing/count_throughput_reader_chm13v2_0_fa)
+
+Throughput of Helicase string collection compared to counting DNA bases.
+:::
+
+### Instructions and cycles
+
+:::{#fig-instructions-and-cycles-short-reads layout-ncol=2}
+
+![Instructions per byte on short reads.](../fig/parsing/parser_instructions_reader_D1_S1_L001_R2_007_fq){#fig-instructions-short-reads}
+
+![Cycles per byte on short reads.](../fig/parsing/parser_cycles_reader_D1_S1_L001_R2_007_fq){#fig-cycles-short-reads}
+
+Instructions and cycles per byte on multiple CPUs, sorted by manufacturer and year.
+:::
+
+### Branches and branch misses
+
+:::{#fig-branches layout-ncol=2}
+
+![On a human genome (FASTA format).](../fig/parsing/parser_branches_reader_chm13v2_0_fa){#fig-branches-genome}
+
+![On short reads (FASTQ format).](../fig/parsing/parser_branches_reader_D1_S1_L001_R2_007_fq){#fig-branches-short-reads}
+
+Branches per byte on multiple CPUs, sorted by manufacturer and year.
+:::
+
+:::{#fig-branch-misses layout-ncol=2}
+
+![On a human genome (FASTA format).](../fig/parsing/parser_branch_misses_reader_chm13v2_0_fa){#fig-branch-misses-genome}
+
+![On short reads (FASTQ format).](../fig/parsing/parser_branch_misses_reader_D1_S1_L001_R2_007_fq){#fig-branch-misses-short-reads}
+
+Branch misses per MB on multiple CPUs, sorted by manufacturer and year.
+:::
