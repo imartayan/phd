@@ -1,6 +1,7 @@
 /.quarto/
 /_book/
 .luarc.json
+.brename_detail.txt
 .DS_Store
 
 **/*.quarto_ipynb
