@@ -1,3 +1,9 @@
 # Comparing genomic sequences
 
 TBA
+
+- what is sequencing?
+- what is it used for?
+- sequencing archives (SRA, ENA, GenBank...)
+- main formats currently used (esp. FASTA, FASTQ...)
+- different approaches for comparison (alignment-based, alignment-free...)

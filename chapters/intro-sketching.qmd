@@ -1,3 +1,7 @@
 # Sketching sequences
 
 TBA
+
+- why do we need to sketch in the first place?
+- approximating similarity, Jaccard index
+- MinHash and friends (bottom, frac, bucket, HLL fingerprints...)

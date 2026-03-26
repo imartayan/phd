@@ -1,3 +1,9 @@
 # Sampling with minimizers
 
 TBA
+
+- historical context [@schleimer2003winnowing;@roberts2004reducing]
+- random vs lexicographic
+- the quest for lower density
+- recent progress [@pellow2023efficient;@mod-mini;@ocmm;@greedymini;@finimizers]
+- practical use cases

@@ -1,3 +1,7 @@
 # Comparing using k-mers
 
 TBA
+
+- a quick history of dBGs and /kmer methods
+- comparison with full-text indexes
+- common use cases: abundance, correction, assembly, mapping...
