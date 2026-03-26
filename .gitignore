@@ -17,5 +17,7 @@
 *.xdv
 *.xml
 
+index.tex
+index.pdf
 thesis.tex
 thesis.pdf
