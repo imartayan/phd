@@ -148,7 +148,7 @@ One approach that we have not implemented yet but could be worth trying would be
 All experiments were run with the benchmarking workflow available at <https://github.com/imartayan/K2Rmini_experiments>.
 The benchmarking framework is easily extensible, since each additional program only requires a dedicated command wrapper to be added to a common interface before it can be executed and plotted with the other tools.
 All reported times include both the cost of indexing the queried patterns and the filtering step.
-Benchmarks were performed on a dual-socket Intel Xeon Gold 6430 machine with 64 cores and 64 GB of RAM running Ubuntu 24.04.2. Because no ready-to-use SBWT-based sequence filtering implementation was available for our setting, we implemented the SBWT baseline ourselves^[<https://github.com/imartayan/K2Rmini_experiments/tree/main/sbwt_filter>] using the Rust `sbwt` crate^[<https://docs.rs/sbwt/latest/sbwt/>].
+Benchmarks were performed on a dual-socket Intel Xeon Gold 6430 machine with 64 cores and 512 GB of RAM running Ubuntu 24.04.2. Because no ready-to-use SBWT-based sequence filtering implementation was available for our setting, we implemented the SBWT baseline ourselves^[<https://github.com/imartayan/K2Rmini_experiments/tree/main/sbwt_filter>] using the Rust `sbwt` crate^[<https://docs.rs/sbwt/latest/sbwt/>].
 
 ### State-of-the-art analysis
 
