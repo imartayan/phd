@@ -93,36 +93,41 @@ In particular, it omits this second pass, reducing computational overhead at the
 #| html-line-number: false
 #| html-comment-delimiter: "//"
 #| pdf-line-number: false
+#| pdf-no-end: true
+#| pdf-indent-lines: true
+#| pdf-italic-comment: true
+#| pdf-right-comment: true
+#| pdf-comment-color: "darkgray"
 #| pdf-comment-delimiter: "//"
 #| pdf-placement: "ht!"
 
 \begin{algorithmic}
 \Function{Filter}{set of \textit{k}-mers $\mathcal{Q}$, set of sequences $\mathcal{S}$, threshold $T$}
-\State $\mathcal{T_Q} \gets \text{HashSet}(\mathcal{Q})$
-\Comment{hash table of \textit{k}-mers of interest}
-\State $\mathcal{T_M} \gets \text{HashSet}(\mathcal{M(Q)})$
-\Comment{hash table of minimizers of interest}
-\For{$S \in \mathcal{S}$}
-\State $u \gets 0$
-\Comment{upper bound of \textit{k}-mer matches}
-\For{each minimizer $m$ in $S$, covering $c$ \textit{k}-mers}
-\If{$m \in \mathcal{T_M}$}
-\State $u \gets u + c$
-\EndIf
-\EndFor
-\If{$u < T$}
-\State \textbf{yield} false
-\State \textbf{continue}
-\EndIf
-\State $s \gets 0$
-\Comment{exact count of \textit{k}-mer matches}
-\For{each \textit{k}-mer $x$ in $S$}
-\If{$x \in \mathcal{T_Q}$}
-\State $s \gets s + 1$
-\EndIf
-\EndFor
-\State \textbf{yield} $s \ge T$
-\EndFor
+    \State $\mathcal{T_Q} \gets \text{HashSet}(\mathcal{Q})$
+    \Comment{hash table of \textit{k}-mers of interest}
+    \State $\mathcal{T_M} \gets \text{HashSet}(\mathcal{M(Q)})$
+    \Comment{hash table of minimizers of interest}
+    \For{$S \in \mathcal{S}$}
+        \State $u \gets 0$
+        \Comment{upper bound of \textit{k}-mer matches}
+        \For{each minimizer $m$ in $S$, covering $c$ \textit{k}-mers}
+            \If{$m \in \mathcal{T_M}$}
+                \State $u \gets u + c$
+            \EndIf
+        \EndFor
+        \If{$u < T$}
+            \State \textbf{yield} false
+            \State \textbf{continue}
+        \EndIf
+        \State $s \gets 0$
+        \Comment{exact count of \textit{k}-mer matches}
+        \For{each \textit{k}-mer $x$ in $S$}
+            \If{$x \in \mathcal{T_Q}$}
+                \State $s \gets s + 1$
+            \EndIf
+        \EndFor
+        \State \textbf{yield} $s \ge T$
+    \EndFor
 \EndFunction
 \end{algorithmic}
 ```

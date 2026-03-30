@@ -216,29 +216,34 @@ One benefit of having a manual implementation is that we can easily adapt it to 
 #| html-line-number: false
 #| html-comment-delimiter: "//"
 #| pdf-line-number: false
+#| pdf-no-end: true
+#| pdf-indent-lines: true
+#| pdf-italic-comment: true
+#| pdf-right-comment: true
+#| pdf-comment-color: "darkgray"
 #| pdf-comment-delimiter: "//"
 #| pdf-placement: "ht!"
 
 \begin{algorithmic}
 \Function{IsNewline}{$v_\text{data}$}
-\State $v_\text{eq} \gets \texttt{cmp\_eq}(v_\text{data}, v_\texttt{↵})$
-\Comment{test equality between each byte and \texttt{↵}}
-\State \textbf{return} \texttt{movemask}($v_\text{eq}$)
-\Comment{return the corresponding bitmask (1 if equal, 0 otherwise)}
+    \State $v_\text{eq} \gets \texttt{cmp\_eq}(v_\text{data}, v_\texttt{↵})$
+    \Comment{test equality between each byte and \texttt{↵}}
+    \State \textbf{return} \texttt{movemask}($v_\text{eq}$)
+    \Comment{return the corresponding bitmask (1 if equal, 0 otherwise)}
 \EndFunction
 
 \Function{IsACTG}{$v_\text{data}$}
-\State $\texttt{LUT} \gets \texttt{["A", \_, "C", \_, "T", \_, "G", \_]}$
-\Comment{constant lookup table mapping bits to bases}
-\State $v_\text{bits} \gets v_\text{data} \texttt{ \& 0b110}$
-\Comment{two bits encoding with a trailing zero}
-\State $v_\text{lookup} \gets \texttt{lookup}(\texttt{LUT}, v_\text{bits})$
-\Comment{map the bits to ACTG using the lookup table}
-\State $v_\text{upper} \gets v_\text{data} \texttt{ \& !0b00100000}$
-\Comment{uppercase the input}
-\State $v_\text{eq} \gets \texttt{cmp\_eq}(v_\text{lookup}, v_\text{upper})$
-\Comment{test equality between uppercased input and lookup}
-\State \textbf{return} \texttt{movemask}($v_\text{eq}$)
+    \State $\texttt{LUT} \gets \texttt{["A", \_, "C", \_, "T", \_, "G", \_]}$
+    \Comment{constant lookup table mapping bits to bases}
+    \State $v_\text{bits} \gets v_\text{data} \texttt{ \& 0b110}$
+    \Comment{two bits encoding with a trailing zero}
+    \State $v_\text{lookup} \gets \texttt{lookup}(\texttt{LUT}, v_\text{bits})$
+    \Comment{map the bits to ACTG using the lookup table}
+    \State $v_\text{upper} \gets v_\text{data} \texttt{ \& !0b00100000}$
+    \Comment{uppercase the input}
+    \State $v_\text{eq} \gets \texttt{cmp\_eq}(v_\text{lookup}, v_\text{upper})$
+    \Comment{test equality between uppercased input and lookup}
+    \State \textbf{return} \texttt{movemask}($v_\text{eq}$)
 \EndFunction
 \end{algorithmic}
 ```
@@ -261,32 +266,37 @@ Due to these architectural differences, producing a packed representation is sli
 #| html-line-number: false
 #| html-comment-delimiter: "//"
 #| pdf-line-number: false
+#| pdf-no-end: true
+#| pdf-indent-lines: true
+#| pdf-italic-comment: true
+#| pdf-right-comment: true
+#| pdf-comment-color: "darkgray"
 #| pdf-comment-delimiter: "//"
 #| pdf-placement: "ht!"
 
 \begin{algorithmic}
 \Function{Columnar}{$v_\text{data}$}
-\State $v_\text{hi} \gets v_\text{data} \texttt{ << 5}$
-\Comment{shift the third lowest bit to the beginning of the byte}
-\State $v_\text{lo} \gets v_\text{data} \texttt{ << 6}$
-\Comment{same for the second lowest bit}
-\State \textbf{return} \texttt{movemask}($v_\text{hi}$), \texttt{movemask}($v_\text{lo}$)
-\Comment{movemask only extracts the highest bit of each byte}
+    \State $v_\text{hi} \gets v_\text{data} \texttt{ << 5}$
+    \Comment{shift the third lowest bit to the beginning of the byte}
+    \State $v_\text{lo} \gets v_\text{data} \texttt{ << 6}$
+    \Comment{same for the second lowest bit}
+    \State \textbf{return} \texttt{movemask}($v_\text{hi}$), \texttt{movemask}($v_\text{lo}$)
+    \Comment{movemask only extracts the highest bit of each byte}
 \EndFunction
 
 \Function{Packedx86}{$v_\text{data}$}
-\State $v_\text{hi} \gets v_\text{data} \texttt{ << 5}$
-\State $v_\text{lo} \gets v_\text{data} \texttt{ << 6}$
-\State $m_\text{hi} \gets \texttt{movemask}(v_\text{hi})$
-\State $m_\text{lo} \gets \texttt{movemask}(v_\text{lo})$
-\State \textbf{return} \texttt{interleave}($m_\text{hi}, m_\text{lo}$)
-\Comment{interleave one bit of each mask, usually using PDEP}
+    \State $v_\text{hi} \gets v_\text{data} \texttt{ << 5}$
+    \State $v_\text{lo} \gets v_\text{data} \texttt{ << 6}$
+    \State $m_\text{hi} \gets \texttt{movemask}(v_\text{hi})$
+    \State $m_\text{lo} \gets \texttt{movemask}(v_\text{lo})$
+    \State \textbf{return} \texttt{interleave}($m_\text{hi}, m_\text{lo}$)
+    \Comment{interleave one bit of each mask, usually using PDEP}
 \EndFunction
 
 \Function{PackedARM}{$v_\text{data}$}
-\State $v_\text{shift} \gets v_\text{data} \texttt{ << 5}$
-\State \textbf{return} $\texttt{movemask}_2(v_\text{shift})$
-\Comment{variant of movemask that extracts the highest two bits together}
+    \State $v_\text{shift} \gets v_\text{data} \texttt{ << 5}$
+    \State \textbf{return} $\texttt{movemask}_2(v_\text{shift})$
+    \Comment{variant of movemask that extracts the highest two bits together}
 \EndFunction
 \end{algorithmic}
 ```

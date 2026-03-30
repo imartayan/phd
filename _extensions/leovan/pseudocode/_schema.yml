@@ -52,6 +52,21 @@ attributes:
     pdf-comment-delimiter:
       type: string
       description: Comment delimiter token in PDF output.
+    pdf-no-end:
+      type: boolean
+      description: Hide end statements in PDF output.
+    pdf-indent-lines:
+      type: boolean
+      description: Show indent guide lines in PDF output.
+    pdf-italic-comment:
+      type: boolean
+      description: Italic comments in PDF output.
+    pdf-right-comment:
+      type: boolean
+      description: Right justified comments in PDF output.
+    pdf-comment-color:
+      type: string
+      description: Color of the comments in PDF output.
 
 classes:
   pseudocode:
