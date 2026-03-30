@@ -1,3 +1,7 @@
 # Locality-preserving representations of k-mer sets
 
-TBA
+:::{.callout-tip appearance="minimal"}
+*Keep your friends close, and your k-mers closer.*
+
+-- not Sun Tzu
+:::

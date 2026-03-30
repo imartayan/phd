@@ -1,3 +1,7 @@
 # High-performance sequence processing
 
-TBA
+:::{.callout-tip appearance="minimal"}
+*All we have to decide is what to do with the cycles that are given us.*
+
+-- not J. R. R. Tolkien
+:::

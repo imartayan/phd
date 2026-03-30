@@ -1,3 +1,7 @@
 # Sampling k-mers to lower memory & complexity
 
-TBA
+:::{.callout-tip appearance="minimal"}
+*He who controls the space controls the universe.*
+
+-- not Frank Herbert
+:::
