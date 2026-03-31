@@ -27,6 +27,7 @@ book:
       - chapters/rolling-hash.qmd
       - chapters/simd-minimizers.qmd
       - chapters/filtering.qmd
+      - chapters/hpc-discussion.qmd
     - part: chapters/locality.qmd
       chapters:
       - chapters/kmer-sets.qmd
@@ -34,12 +35,14 @@ book:
       - chapters/set-rep.qmd
       - chapters/skmer-map.qmd
       - chapters/skmer-sketch.qmd
+      - chapters/locality-discussion.qmd
     - part: chapters/sampling.qmd
       chapters:
       - chapters/minimizers.qmd
       - chapters/multimini.qmd
       - chapters/phrases.qmd
       - chapters/lexic.qmd
+      - chapters/sampling-discussion.qmd
     - chapters/discussion.qmd
     - references.qmd
   appendices:
