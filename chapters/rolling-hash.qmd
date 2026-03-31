@@ -4,4 +4,28 @@
 This chapter is partially adapted from [@simd-minimizers].
 :::
 
+## Rolling hashes and their properties
+
+Introduced by @karp-rabin
+
+### Constant-time updates
+
+### Associativity
+
+### Prefix trick
+
+## NtHash and its variants
+
+### Cyclic polynomial
+
+### Bias for consecutive /kmers
+
 Bias of default NtHash, see [this repo](https://github.com/imartayan/pfp-distribution)
+
+### MulHash
+
+## Vectorized implementation of NtHash
+
+- start from a packed sequence as described in @sec-dna-rep
+- parallel iteration on 8 chunks
+- compute one hash per lane by xoring and shifting, vectorized table lookup
