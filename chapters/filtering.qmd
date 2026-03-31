@@ -314,7 +314,7 @@ One promising direction to improve the indexation step would be to implement a c
 This would be especially relevant since we already have efficient methods to compute both minimizers and /kmer hashes, and we could thus easily batch insertions and queries.
 A second direction for improvement would be to parallelize the parsing step by attributing independent chunks of the input file to each thread, which would fully benefit from our vectorized parsing library and reduce the communication overhead.
 
-Future work could explore alternative search strategies, including using sparser minimizer schemes to further reduce the number of minimizers to query [@mod-mini;@ocmm;@greedymini;@pellow2023efficient;@finimizers].
+Future work could explore alternative search strategies, including using sparser minimizer schemes to further reduce the number of minimizers to query [@pellow2023efficient;@mod-mini;@ocmm;@finimizers;@greedymini;@10-minimizers].
 We could also imagine a middleground between the costly exact search used in the second pass and doing no search at all at the cost of false positives, possibly by using small filters for faster queries with a lower false positive rate.
 
 Finally, as the throughput of the core algorithm increases, performance bottlenecks shift to other components of the pipeline, mostly I/O bounded.
