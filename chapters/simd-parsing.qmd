@@ -79,7 +79,7 @@ We evaluate our approach on both x86 and ARM architectures. Across all tested sc
 
 ## Methods
 
-### DNA representations
+### DNA representations {#sec-dna-rep}
 
 Depending on the application use case, different DNA representations might be desirable.
 Our approach produces three main representations: the traditional ASCII-based one, and two bitpacked versions (*packed* and *columnar*) in which each base is encoded with 2 bits.
@@ -99,6 +99,7 @@ Another solution a lossy encoding that returns an additional bitmask marking amb
 #### Packed format
 
 Once each base is mapped to two bits, an intuitive way to represent the sequence is to pack each pair of bits consecutively, thus storing 4 bases in one byte.
+Note that, by convention, the first bases are mapped to the lowest bits and the sequence of bytes follows a little-endian order.
 This bitpacked representation is probably the most commonly used, and allows simple iteration on the bases by shifting and masking.
 
 #### Columnar format
