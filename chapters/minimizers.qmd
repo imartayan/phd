@@ -5,3 +5,4 @@ TBA
 - the quest for lower density
 - recent progress [@pellow2023efficient;@mod-mini;@ocmm;@finimizers;@greedymini;@10-minimizers]
 - practical impact of lower density: fewer queries, less space usage (e.g. in K2Rmini, Deacon, SSHash or KFC)
+- improving conservation [@syncmers;@shaw-conservation;@strobemers;@strobealign]

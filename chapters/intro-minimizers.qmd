@@ -4,5 +4,5 @@ TBA
 
 - historical context [@schleimer2003winnowing;@roberts2004reducing]
 - random vs lexicographic
-- practical use cases
+- practical use cases [@minimizers-review]
 - recent results detailed in @sec-minimizers
