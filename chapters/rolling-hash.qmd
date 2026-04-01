@@ -6,9 +6,30 @@ This chapter is partially adapted from [@simd-minimizers].
 
 ## Rolling hashes and their properties
 
-Introduced by @karp-rabin
+The concept of *rolling hash* (or recursive hash) was first introduced @karp-rabin for pattern matching.
+Its purpose is to efficiently compute a hash over a sliding window of integers, without having to rehash the content of the entire window as it slides.
+
+@karp-rabin defined polynomial rolling hashes as follows: given a large prime number $p$ and $a \in [0, p)$,
+$$
+h(x_0 \dots x_{k-1}) = \sum_{i=0}^{k-1} a^{k-1-i} x_i \mod p
+$$
 
 ### Constant-time updates
+
+The most important property of rolling hashes is that adding a new value at the end of the window or removing its first value only requires a constant-time update to the hash.
+
+When appending a new value $x_k$, we can shift the previous values by one position to the left by multiplying by $a$.
+Therefore we have
+$$
+h(x_0 \dots x_k) = h(x_0 \dots x_{k-1}) \cdot a + x_k \mod p
+$$
+And removing $x_0$ only requires subtracting the corresponding term:
+$$
+h(x_1 \dots x_k) = h(x_0 \dots x_k) - a^k x_0 \mod p
+$$
+Note that, assuming the window size $k$ is known in advance, $a^k \mod p$ can simply be precomputed once.
+
+By combining these two operations, we can compute the hashes of every window of size $k$ in a text $T$ in $\mathcal{O}(|T|)$, regardless of the size $k$.
 
 ### Associativity
 
