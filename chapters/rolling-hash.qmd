@@ -29,9 +29,19 @@ h(x_1 \dots x_k) = h(x_0 \dots x_k) - a^k x_0 \mod p
 $$
 Note that, assuming the window size $k$ is known in advance, $a^k \mod p$ can simply be precomputed once.
 
-By combining these two operations, we can compute the hashes of every window of size $k$ in a text $T$ in $\mathcal{O}(|T|)$, regardless of the size $k$.
+By combining these two operations, we can compute the hashes of sliding windows in a text $T$ in $\mathcal{O}(|T|)$, regardless of the window size.
+In the context of bioinformatics, this is especially useful for hashing /kmers, including large ones that would not fit in an integer.
 
-### Associativity
+### Merging and splitting hashes
+
+Another useful property is that the hashes of two sequences $u$ and $v$ can also be merged in constant time:
+$$
+h(uv) = h(u) \cdot a^{|v|} + h(v)
+$$
+And the same relation can be used to remove any prefix of a given hash:
+$$
+h(v) = h(uv) - h(u) \cdot a^{|v|}
+$$
 
 ### Prefix trick
 
