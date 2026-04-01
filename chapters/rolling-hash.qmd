@@ -34,7 +34,7 @@ In the context of bioinformatics, this is especially useful for hashing /kmers, 
 
 ### Merging and splitting hashes
 
-Another useful property is that the hashes of two sequences $u$ and $v$ can also be merged in constant time:
+Another useful property is that the hashes of two sequences $u$ and $v$ can be merged in constant time:
 $$
 h(uv) = h(u) \cdot a^{|v|} + h(v)
 $$
@@ -42,8 +42,17 @@ And the same relation can be used to remove any prefix of a given hash:
 $$
 h(v) = h(uv) - h(u) \cdot a^{|v|}
 $$
+In particular, the merging property can be used to parallelize the hash computation of a large string by dividing it into chunks, hashing them in parallel and merging the resulting hashes.
 
-### Prefix trick
+### Hashing arbitrary substrings using prefixes
+
+While rolling hashes are traditionally used to hash fixed-sized windows, we can also use them to compute the hash of arbitrary substrings.
+
+One way to achieve this is to compute the hashes of every prefix of the text $T$ and then use the splitting property to subtract the corresponding prefixes:
+$$
+h(T[i,j)) = h(T[0,j)) - h(T[0,i)) \cdot a^{j-i}
+$$
+This technique allows any substring of $T$ to be hashed in constant time, at the cost of preindexing the prefix hashes in $\mathcal{O}(|T|)$ time and space.
 
 ## NtHash and its variants
 
