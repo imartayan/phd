@@ -6,12 +6,12 @@ This chapter is partially adapted from [@simd-minimizers].
 
 ## Rolling hashes and their properties
 
-The concept of *rolling hash* (or recursive hash) was first introduced @karp-rabin for pattern matching.
+The concept of *rolling hash* (or *recursive hash*) was first introduced @karp-rabin for pattern matching.
 Its purpose is to efficiently compute a hash over a sliding window of integers, without having to rehash the content of the entire window as it slides.
 
-@karp-rabin defined polynomial rolling hashes as follows: given a large prime number $p$ and $a \in [0, p)$,
+@karp-rabin defined their rolling hash as follows: given a large prime number $p$ and $a \in [0, p)$,
 $$
-h(x_0 \dots x_{k-1}) = \sum_{i=0}^{k-1} a^{k-1-i} x_i \mod p
+H(x_0 \dots x_{k-1}) = \sum_{i=0}^{k-1} a^{k-1-i} x_i \mod p
 $$
 
 ### Constant-time updates
@@ -21,26 +21,26 @@ The most important property of rolling hashes is that adding a new value at the 
 When appending a new value $x_k$, we can shift the previous values by one position to the left by multiplying by $a$.
 Therefore we have
 $$
-h(x_0 \dots x_k) = h(x_0 \dots x_{k-1}) \cdot a + x_k \mod p
+H(x_0 \dots x_k) = H(x_0 \dots x_{k-1}) \cdot a + x_k \mod p
 $$
 And removing $x_0$ only requires subtracting the corresponding term:
 $$
-h(x_1 \dots x_k) = h(x_0 \dots x_k) - a^k x_0 \mod p
+H(x_1 \dots x_k) = H(x_0 \dots x_k) - a^k x_0 \mod p
 $$
 Note that, assuming the window size $k$ is known in advance, $a^k \mod p$ can simply be precomputed once.
 
 By combining these two operations, we can compute the hashes of sliding windows in a text $T$ in $\mathcal{O}(|T|)$, regardless of the window size.
-In the context of bioinformatics, this is especially useful for hashing /kmers, including large ones that would not fit in an integer.
+In the context of bioinformatics, this is especially useful for hashing /kmers, including large ones that would not fit in a native integer.
 
 ### Merging and splitting hashes
 
 Another useful property is that the hashes of two sequences $u$ and $v$ can be merged in constant time:
 $$
-h(uv) = h(u) \cdot a^{|v|} + h(v)
+H(uv) = H(u) \cdot a^{|v|} + H(v)
 $$
 And the same relation can be used to remove any prefix of a given hash:
 $$
-h(v) = h(uv) - h(u) \cdot a^{|v|}
+H(v) = H(uv) - H(u) \cdot a^{|v|}
 $$
 In particular, the merging property can be used to parallelize the hash computation of a large string by dividing it into chunks, hashing them in parallel and merging the resulting hashes.
 
@@ -50,19 +50,61 @@ While rolling hashes are traditionally used to hash fixed-sized windows, we can 
 
 One way to achieve this is to compute the hashes of every prefix of the text $T$ and then use the splitting property to subtract the corresponding prefixes:
 $$
-h(T[i,j)) = h(T[0,j)) - h(T[0,i)) \cdot a^{j-i}
+H(T[i,j)) = H(T[0,j)) - H(T[0,i)) \cdot a^{j-i}
 $$
 This technique allows any substring of $T$ to be hashed in constant time, at the cost of preindexing the prefix hashes in $\mathcal{O}(|T|)$ time and space.
 
 ## NtHash and its variants
 
-### Cyclic polynomial
+### Cyclic polynomial hashing
+
+One of the drawbacks of Rabin-Karp hashing is that it requires multiplying and computing a modulo for every update, which is quite expensive compared to other operations.
+@rolling-hash-cyclic proposed an alternative rolling hash, based on cyclic polynomials, that replaces the multiplication by a bitwise left rotation (denoted $\text{rol}$) and the addition by an exclusive or (denoted $\oplus$):
+$$
+H(x_0 \dots x_{k-1}) = \bigoplus_{i=0}^{k-1} \text{rol}^{k-1-i}(h(x_i))
+$$
+Note that each $x_i$ is replaced by a seed value $h(x_i)$, typically computed using a lookup table, to have a better distribution of the bits.
+
+Using this definition, we have
+$$
+H(x_0 \dots x_k) = \text{rol}(H(x_0 \dots x_{k-1})) \oplus h(x_k)
+$$
+and
+$$
+H(x_1 \dots x_k) = H(x_0 \dots x_k) \oplus \text{rol}^k(h(x_0))
+$$
+Again, assuming the window size $k$ is known in advance, $\text{rol}^k(h(\cdot))$ can be precomputed and stored in a separate lookup table.
+
+### NtHash and MulHash
+
+NtHash [@nthash] is a direct adaptation of cyclic polynomial hashing, specialized for the DNA alphabet `A/C/T/G`.
+The main benefit is that since the lookup table only needs to store 4 hashes, it can fit in a 128-bit (resp. 256-bit) register for 32-bit (resp. 64-bit) hashes, making it convenient for vectorization.
+
+Another variation, introduced as MulHash in [@simd-minimizers], is to replace the lookup table by a simple multiplication: $h(x_i) = C \cdot x_i$ where $C$ is a fixed random constant.
+This approach is slightly slower than a lookup table for small alphabets, but faster for larger alphabets such as ASCII inputs.
+
+### Reverse-complement and canonical hashing
+
+This definition of rolling hashes is also convenient to hash the reverse-complement of a sequence.
+Since we process the values in a reverse order, we can simply change the direction of rotation:
+$$
+\overline{H}(x_0 \dots x_{k-1}) = \bigoplus_{i=0}^{k-1} \text{rol}^i(h(\overline{x_i}))
+$$
+In that case, we have
+$$
+\overline{H}(x_0 \dots x_k) = \overline{H}(x_0 \dots x_{k-1}) \oplus \text{rol}^k(h(\overline{x_k}))
+$$
+and
+$$
+\overline{H}(x_1 \dots x_k) = \text{ror}\left(\overline{H}(x_0 \dots x_k) \oplus h(\overline{x_0})\right)
+$$
+
+Since we can easily maintain the hash of both a sequence and its reverse-complement, we can add both hash values to obtain a canonical hash: $\widehat{H} = H + \overline{H}$.
+Note that any symmetric operation could work here, but something like a $\min$ would introduce a bias in the high bits.
 
 ### Bias for consecutive /kmers
 
-Bias of default NtHash, see [this repo](https://github.com/imartayan/pfp-distribution)
-
-### MulHash
+TODO bias of default NtHash, see [this repo](https://github.com/imartayan/pfp-distribution)
 
 ## Vectorized implementation of NtHash
 
