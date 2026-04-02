@@ -99,7 +99,7 @@ Another solution a lossy encoding that returns an additional bitmask marking amb
 #### Packed format
 
 Once each base is mapped to two bits, an intuitive way to represent the sequence is to pack each pair of bits consecutively, thus storing 4 bases in one byte.
-Note that, by convention, the first bases are mapped to the lowest bits and the sequence of bytes follows a little-endian order.
+By convention, the first bases are mapped to the least significant bits and the bytes follow a little-endian order.
 This bitpacked representation is probably the most commonly used, and allows simple iteration on the bases by shifting and masking.
 
 #### Columnar format
@@ -117,6 +117,8 @@ For instance, locating `T`s in the sequence is as simple as intersecting the hig
 | `hi & !lo` | 0 | 0 | **1** | **1** | 0 | 0 | 0 | **1** |
 <!-- | `hi & !lo` | 0 | 0 | [1]{.mark} | [1]{.mark} | 0 | 0 | 0 | [1]{.mark} | -->
 :::
+
+Again, note that the first bases on the left correspond to the least significant bits.
 
 ### Streaming the input
 
