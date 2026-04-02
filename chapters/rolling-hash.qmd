@@ -59,21 +59,21 @@ This technique allows any substring of $T$ to be hashed in constant time, at the
 ### Cyclic polynomial hashing
 
 One of the drawbacks of Rabin-Karp hashing is that it requires multiplying and computing a modulo for every update, which is quite expensive compared to other operations.
-@rolling-hash-cyclic proposed an alternative rolling hash, based on cyclic polynomials, that replaces the multiplication by a bitwise left rotation (denoted $\text{rol}$) and the addition by an exclusive or (denoted $\oplus$):
+@rolling-hash-cyclic proposed an alternative rolling hash, based on cyclic polynomials, that replaces the multiplication by a bitwise left rotation (denoted $\operatorname{rol}$) and the addition by an exclusive or (denoted $\oplus$):
 $$
-H(x_0 \dots x_{k-1}) = \bigoplus_{i=0}^{k-1} \text{rol}^{k-1-i}(h(x_i))
+H(x_0 \dots x_{k-1}) = \bigoplus_{i=0}^{k-1} \operatorname{rol}^{k-1-i}(h(x_i))
 $$
 Note that each $x_i$ is replaced by a seed value $h(x_i)$, typically computed using a lookup table, to have a better distribution of the bits.
 
 Using this definition, we have
 $$
-H(x_0 \dots x_k) = \text{rol}(H(x_0 \dots x_{k-1})) \oplus h(x_k)
+H(x_0 \dots x_k) = \operatorname{rol}(H(x_0 \dots x_{k-1})) \oplus h(x_k)
 $$
 and
 $$
-H(x_1 \dots x_k) = H(x_0 \dots x_k) \oplus \text{rol}^k(h(x_0))
+H(x_1 \dots x_k) = H(x_0 \dots x_k) \oplus \operatorname{rol}^k(h(x_0))
 $$
-Again, assuming the window size $k$ is known in advance, $\text{rol}^k(h(\cdot))$ can be precomputed and stored in a separate lookup table.
+Again, assuming the window size $k$ is known in advance, $\operatorname{rol}^k(h(\cdot))$ can be precomputed and stored in a separate lookup table.
 
 ### NtHash and MulHash
 
@@ -88,16 +88,17 @@ This approach is slightly slower than a lookup table for small alphabets, but fa
 This definition of rolling hashes is also convenient to hash the reverse-complement of a sequence.
 Since we process the values in a reverse order, we can simply change the direction of rotation:
 $$
-\overline{H}(x_0 \dots x_{k-1}) = \bigoplus_{i=0}^{k-1} \text{rol}^i(h(\overline{x_i}))
+\overline{H}(x_0 \dots x_{k-1}) = \bigoplus_{i=0}^{k-1} \operatorname{rol}^i(h(\overline{x_i}))
 $$
 In that case, we have
 $$
-\overline{H}(x_0 \dots x_k) = \overline{H}(x_0 \dots x_{k-1}) \oplus \text{rol}^k(h(\overline{x_k}))
+\overline{H}(x_0 \dots x_k) = \overline{H}(x_0 \dots x_{k-1}) \oplus \operatorname{rol}^k(h(\overline{x_k}))
 $$
 and
 $$
-\overline{H}(x_1 \dots x_k) = \text{ror}\left(\overline{H}(x_0 \dots x_k) \oplus h(\overline{x_0})\right)
+\overline{H}(x_1 \dots x_k) = \operatorname{ror}\left(\overline{H}(x_0 \dots x_k) \oplus h(\overline{x_0})\right)
 $$
+where $\operatorname{ror}$ denotes a bitwise right rotation.
 
 Since we can easily maintain the hash of both a sequence and its reverse-complement, we can add both hash values to obtain a canonical hash: $\widehat{H} = H + \overline{H}$.
 Note that any symmetric operation could work here, but something like a $\min$ would introduce a bias in the high bits.
