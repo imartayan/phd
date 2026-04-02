@@ -11,18 +11,20 @@
     }
   }
 
-  .large-table th,
-  .large-table td {
-    padding: .5rem .05rem;
+  @media(max-width: 992px) {
+
+    .pseudocode-container,
+    .katex-display {
+      overflow-x: auto;
+    }
   }
 
   .large-table {
     overflow-x: auto;
   }
 
-  @media(max-width: 992px) {
-    .katex-display {
-      overflow-x: auto;
-    }
+  .large-table th,
+  .large-table td {
+    padding: .5rem .05rem;
   }
 </style>
