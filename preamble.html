@@ -16,8 +16,13 @@
     padding: .5rem .05rem;
   }
 
-  .large-table,
-  .katex-display {
+  .large-table {
     overflow-x: auto;
+  }
+
+  @media(max-width: 992px) {
+    .katex-display {
+      overflow-x: auto;
+    }
   }
 </style>
