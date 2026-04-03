@@ -159,6 +159,7 @@ Therefore, instead of computing 8 consecutive hashes, we focus on computing 8 *i
 As input to our algorithm, we use the 2-bit *packed* sequence representation as described in @sec-dna-rep.
 Since we want to compute 8 independent hashes, we first split the sequence into 8 chunks and assign each chunk to a dedicated *lane* of a SIMD register.
 Note that the chunks overlap by $k - 1$ bases so that each each window of size $k$ is processed once.
+Once each chunk is loaded in a separate lane, we can iterate over the bases of each chunk simultaneously by shifting and masking the bottom 2 bits of each lane, as illustrated in @fig-packed-iter.
 
 :::{#fig-packed-iter}
 ![](../fig/hashing/packed_iter)
@@ -170,3 +171,7 @@ Note that while the figure shows $L=4$, we use $L=8$ lanes in practice for 256-b
 This routine for parallel iteration over packed sequences is available in a Rust library named [packed-seq](https://github.com/rust-seq/packed-seq).
 
 ### Vectorized operations and table lookups
+
+Using this approach for parallel iteration, we produce two iterators for the bases coming in and out of each /kmer.
+We can then reuse @lst-nthash and replace each scalar operation with the corresponding vectorized on 8 lanes.
+The `table_lookup` operation that computes $h(x_i)$ or $\operatorname{rol}^{k-1}(h(x_i))$ for each lane is implemented using `_mm256_permutevar_ps` in AVX2 and `vqtbl1q_u8` in NEON.
