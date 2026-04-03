@@ -159,13 +159,15 @@ Therefore, instead of computing 8 consecutive hashes, we focus on computing 8 *i
 As input to our algorithm, we use the 2-bit *packed* sequence representation as described in @sec-dna-rep.
 Since we want to compute 8 independent hashes, we first split the sequence into 8 chunks and assign each chunk to a dedicated *lane* of a SIMD register.
 Note that the chunks overlap by $k - 1$ bases so that each each window of size $k$ is processed once.
-Once each chunk is loaded in a separate lane, we can iterate over the bases of each chunk simultaneously by shifting and masking the bottom 2 bits of each lane, as illustrated in @fig-packed-iter.
+In order to have the content of each chunk available in separate lanes, we load one 256-bit register per chunk and perform a *transpose* operation^[<https://stackoverflow.com/questions/25622745>].
+Once each chunk is loaded in a separate lane, we can iterate over the bases of each chunk simultaneously by shifting and masking the bottom 2 bits of each lane.
+The entire iteration pipeline is illustrated in @fig-packed-iter.
 
 :::{#fig-packed-iter}
 ![](../fig/hashing/packed_iter)
 
 Overview of parallel iteration on a packed sequence, each color correspond a SIMD lane associated to a given chunk.
-Note that while the figure shows $L=4$, we use $L=8$ lanes in practice for 256-bit registers.
+Note that while the figure shows $L=4$ lanes, we use $L=8$ lanes in practice for 256-bit registers.
 :::
 
 This routine for parallel iteration over packed sequences is available in a Rust library named [packed-seq](https://github.com/rust-seq/packed-seq).
@@ -174,10 +176,9 @@ This routine for parallel iteration over packed sequences is available in a Rust
 
 Using this approach for parallel iteration, we produce two iterators for the bases coming in and out of each /kmer.
 We can then reuse @lst-nthash and replace each scalar operation with the corresponding vectorized operation on 8 lanes.
-The `table_lookup` operation that computes $h(x_i)$ or $\operatorname{rol}^{k-1}(h(x_i))$ for each lane is implemented using `_mm256_permutevar_ps` in AVX2 and `vqtbl1q_u8` in NEON.
+The main difference is for the `table_lookup` that computes $h(x_i)$ or $\operatorname{rol}^{k-1}(h(x_i))$ for each lane, which we implemented using `_mm256_permutevar_ps` in AVX2 and `vqtbl1q_u8` in NEON.
+Our vectorized implementation of ntHash and MulHash, built on top of [packed-seq](https://github.com/rust-seq/packed-seq), is available in the [seq-hash](https://github.com/rust-seq/seq-hash) Rust library.
 
 ### Performance
 
 TODO add a small benchmark for throughput
-
-This vectorized implementation of ntHash, built on top of [packed-seq](https://github.com/rust-seq/packed-seq), is available in a Rust library named [seq-hash](https://github.com/rust-seq/seq-hash).
