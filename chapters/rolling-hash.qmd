@@ -175,3 +175,9 @@ This routine for parallel iteration over packed sequences is available in a Rust
 Using this approach for parallel iteration, we produce two iterators for the bases coming in and out of each /kmer.
 We can then reuse @lst-nthash and replace each scalar operation with the corresponding vectorized on 8 lanes.
 The `table_lookup` operation that computes $h(x_i)$ or $\operatorname{rol}^{k-1}(h(x_i))$ for each lane is implemented using `_mm256_permutevar_ps` in AVX2 and `vqtbl1q_u8` in NEON.
+
+### Performance
+
+TODO add a small benchmark for throughput
+
+This vectorized implementation of ntHash, built on top of [packed-seq](https://github.com/rust-seq/packed-seq), is available in a Rust library named [seq-hash](https://github.com/rust-seq/seq-hash).
