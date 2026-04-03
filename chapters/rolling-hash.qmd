@@ -149,6 +149,24 @@ TODO bias of default NtHash, see [this repo](https://github.com/imartayan/pfp-di
 
 ## Vectorized implementation of ntHash
 
-- start from a packed sequence as described in @sec-dna-rep
-- parallel iteration on 8 chunks
-- compute one hash per lane by xoring and shifting, vectorized table lookup
+Because it only relies on bitwise operations and has no branches, @lst-nthash is a good candidate for vectorization.
+In order to make full use the 256-bit registers available on most x86 CPUs, our goal in this section will be to compute 8 32-bit hashes at the same time.
+The main limitation here is that rolling hashes are inherently sequential: each hash value is updated from the hash of the previous window.
+Therefore, instead of computing 8 consecutive hashes, we focus on computing 8 *independent* hashes together.
+
+### Parallel iteration on a packed input
+
+As input to our algorithm, we use the 2-bit *packed* sequence representation as described in @sec-dna-rep.
+Since we want to compute 8 independent hashes, we first split the sequence into 8 chunks and assign each chunk to a dedicated *lane* of a SIMD register.
+Note that the chunks overlap by $k - 1$ bases so that each each window of size $k$ is processed once.
+
+:::{#fig-packed-iter}
+![](../fig/hashing/packed_iter)
+
+Overview of parallel iteration on a packed sequence, each color correspond a SIMD lane associated to a given chunk.
+Note that while the figure shows $L=4$, we use $L=8$ lanes in practice for 256-bit registers.
+:::
+
+This routine for parallel iteration over packed sequences is available in a Rust library named [packed-seq](https://github.com/rust-seq/packed-seq).
+
+### Vectorized operations and table lookups
