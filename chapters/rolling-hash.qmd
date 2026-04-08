@@ -31,7 +31,7 @@ $$
 By combining these two operations, we can compute the hashes of sliding windows in a text $T$ in $\mathcal{O}(|T|)$ regardless of the window size.
 In the context of bioinformatics, this is especially useful for hashing /kmers, including large ones that would not fit in a native integer.
 
-### Merging and splitting hashes
+### Merging and splitting hashes {#sec-merging-splitting-hashes}
 
 Another useful property is that the hashes of two sequences $u$ and $v$ can be merged in constant time:
 $$
@@ -143,10 +143,6 @@ where $\overline{x_i}$ denotes the complement of $x_i$ and $\operatorname{ror}$ 
 Since we can easily maintain the hash of both a sequence and its reverse-complement, we can add both hash values to obtain a canonical hash: $\widehat{H} = H + \overline{H}$.
 Note that any symmetric operation could work here, but something like a $\min$ would introduce a bias in the high bits.
 
-### Bias for consecutive /kmers
-
-TODO bias of default NtHash, see [this repo](https://github.com/imartayan/pfp-distribution)
-
 ## Vectorized implementation of ntHash
 
 Because it only relies on bitwise operations and has no branches, @lst-nthash is a good candidate for vectorization.
@@ -207,3 +203,30 @@ Throughput of different hashing methods on x86 and ARM using a single thread, be
 
 Overall, our vectorized implementation is 2.3--2.6× faster than the existing ntHash implementation, and is the fastest option among evaluated methods.
 We can also notice that using a packed input also benefits non-rolling hashes since the input 4× smaller.
+
+## Breaking ntHash
+
+While ntHash is clearly not meant to be a cryptographic hash, it still has some flaws that can also happen in non-adversarial use cases.
+
+### Forging and propagating collisions
+
+The first observation we can make is that it's very easy to create collisions when the window size $k$ is larger than the number of bits in the hash (which is not so surprising because the function cannot be injective in this case).
+Assuming we are still using 32-bit hashes, any pair of bases that are 32 (or any multiple of 32) positions apart will end up with the same rotation (since rotating by 32 is equivalent to not rotating at all).
+Therefore, for any $\alpha, \beta \in \Sigma$ and $u \in \Sigma^{31}$,
+$$
+H(\alpha \cdot u \cdot \beta) = H(\beta \cdot u \cdot \alpha)
+$$
+and similarly
+$$
+H(\alpha \cdot u \cdot \alpha) = H(\beta \cdot u \cdot \beta) = \operatorname{rol}(H(u))
+$$
+
+Something more problematic is that, because of the merging property (described in @sec-merging-splitting-hashes), if for any word size $n$ we have a collision for $u \ne v \in \Sigma^n$, it will create $\Sigma^{k-n}$ collisions for any word size $k \ge n$:
+$$
+\forall u, v \in \Sigma^n, \forall x, y \in \Sigma^*,
+H(u) = H(v) \implies H(x \cdot u \cdot y) = H(x \cdot v \cdot y)
+$$
+
+Therefore, it is especially important to avoid collisions for small words.
+Ragnar Groot Koerkamp described on his website^[<https://curiouscoding.nl/posts/nthash/>] a method to select the seed values $h(x_i)$ to avoid collisions in 64-bit hashes for $k \le 32$.
+His solution is essentially to define $h(\texttt{T})$ as $h(\texttt{A}) \oplus h(\texttt{C}) \oplus h(\texttt{G})$ and to adjust the other three values to obtain an invertible system.
