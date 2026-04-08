@@ -223,7 +223,7 @@ $$
 This issue is discussed in ntHash2 [@nthash2], where the authors suggest to replace the $\operatorname{rol}$ operation with $\operatorname{srol}$, which divides the 64-bit hash into a 31-bit and a 33-bit part and rotates them independently.
 While this operation is more expensive to compute, it has a period of 1023 instead of 32, thus limiting these specific collisions to $k \ge 1024$.
 
-Something more problematic is that, because of the merging property (described in @sec-merging-splitting-hashes), if for any word size $n$ we have a collision for $u \ne v \in \Sigma^n$, it will create $\Sigma^{k-n}$ collisions for any word size $k \ge n$:
+Something more problematic is that, because of the merging property (described in @sec-merging-splitting-hashes), if for some word size $n$ we have a collision for $u \ne v \in \Sigma^n$, it will create $\Sigma^{k-n}$ collisions for each word size $k \ge n$:
 $$
 \forall u, v \in \Sigma^n, \forall x, y \in \Sigma^*,
 H(u) = H(v) \implies H(x \cdot u \cdot y) = H(x \cdot v \cdot y)
