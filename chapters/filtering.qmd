@@ -169,13 +169,13 @@ As shown in [@fig-bench-time;@fig-bench-memory], we benchmarked these tools on 2
 ![Running time with 8 threads.](../fig/filtering/plot_time_k31_t8){#fig-bench-time-8}
 
 Running time of state-of-the-art tools when filtering 2.6 Gbp of PacBio HiFi reads from HG002 (`m54328_180928_230446`) with an increasing number of queried /kmers
-for *k*=31. Positive /kmers are extracted from the reads while negative /kmers are random sequences.
+for *k* = 31. Positive /kmers are extracted from the reads while negative /kmers are random sequences.
 :::
 
 :::{#fig-bench-memory}
 ![](../fig/filtering/plot_memory_k31_t8)
 
-Memory usage of state-of-the-art tools when filtering 2.6 Gbp of PacBio HiFi reads from HG002 (`m54328_180928_230446`) with an increasing number of queried /kmers for *k*=31. Positive /kmers are extracted from the reads while negative /kmers are random sequences.
+Memory usage of state-of-the-art tools when filtering 2.6 Gbp of PacBio HiFi reads from HG002 (`m54328_180928_230446`) with an increasing number of queried /kmers for *k* = 31. Positive /kmers are extracted from the reads while negative /kmers are random sequences.
 :::
 
 The results separate the tested methods into two broad groups.
@@ -220,7 +220,7 @@ The results are shown in [@fig-bench-threads;@fig-bench-k].
 
 ![Memory usage versus number of threads.](../fig/filtering/plot_memory_vs_t_k31_1M){#fig-bench-memory-vs-threads}
 
-Influence of the number of threads when filtering 2.6 Gbp of reads with 1M patterns of size *k*=31.
+Influence of the number of threads when filtering 2.6 Gbp of reads with 1M patterns of size *k* = 31.
 :::
 
 :::{#fig-bench-k layout-ncol=2}
@@ -248,7 +248,7 @@ Deacon grows roughly linearly from about 15 MB on one thread to around 180 MB on
 Therefore, among the tested methods, K2Rmini combines the best running time with the smallest and most stable memory usage in the multithreaded setting.
 
 We also evaluated the effect of the /kmer size with a single thread and 1M queried patterns.
-As *k* increases, K2Rmini becomes slightly faster, decreasing from about 4 seconds at *k*=31 to about 2.3 seconds for the largest tested values.
+As *k* increases, K2Rmini becomes slightly faster, decreasing from about 4 seconds at *k* = 31 to about 2.3 seconds for the largest tested values.
 This trend is consistent with our minimizer-based design.
 Keeping the minimizer size fixed while increasing *k* enlarges the minimizer window, reducing minimizer density, and therefore decreasing the number of lookups required during the first filtering pass.
 Deacon exhibits a similar, though less pronounced, decrease in running time.
