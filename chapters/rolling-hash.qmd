@@ -232,3 +232,68 @@ $$
 Therefore, it is especially important to avoid collisions for small words.
 Ragnar Groot Koerkamp described on his website^[<https://curiouscoding.nl/posts/nthash/>] a method to select the seed values $h(x_i)$ to avoid collisions in 64-bit hashes for $k \le 32$.
 His solution is essentially to define $h(\texttt{T})$ as $h(\texttt{A}) \oplus h(\texttt{C}) \oplus h(\texttt{G})$ and to adjust the other three values to obtain an invertible system.
+
+### Bias on the leading zeros
+
+A very common use case of rolling hashes in bioinformatics is to hash every /kmer and select those with "small" hashes as representatives.
+For instance, this is extensively used in MinHash-based sketching techniques or in random minimizers (which we will discuss in more detail in the next chapter).
+
+These techniques generally assume that the hash values are independent and uniformly distributed.
+Under these assumptions, every /kmer has a probability $2^{-n}$ that its hash starts with at least $n$ zeros.
+So if define "small" as starting with $n$ zeros, the distance between "small" /kmers roughly follows a geometric distribution (this is not exactly true because of repeated /kmers, though this is negligible for a large *k*).
+
+Unfortunately, I noticed that the empirical distribution I had in my experiments^[documented at <https://github.com/imartayan/pfp-distribution>] was not quite geometric, and that the repartition of "small" /kmers was skewed.
+I observed in particular that the number leading zeros for a given /kmer was very correlated with the number of leading zeros of the neighboring /kmers, thus invalidating both independence and uniformity assumptions.
+
+To document this behavior, I computed the number of leading zeros for every /kmer hash in a large random sequence (4 billion bases), and measured the probability to go transition from a one number of leading zeros to another for consecutive /kmers.
+These experiment scripts are available at <https://github.com/imartayan/nthash-bias>.
+
+@fig-bias-R1 contains two visualizations of this transition probability.
+The first one (@fig-bias-R1-abs) shows the raw probability of each transition: each line correspond to the current number of leading zeros, while each column correspond to the next value, and the probabil.
+The second one (@fig-bias-R1-rel) shows the ratio between this probability and the expected probability for a geometric distribution: blue when less than expected, white when matching the expectation and red when more than expected.
+
+:::{#fig-bias-R1 layout-ncol=2}
+
+![Leading-zero transition for *R* = 1.](../fig/hashing/plot-bias-R1-k31-abs){#fig-bias-R1-abs}
+
+![Bias relative to a geometric distribution for *R* = 1.](../fig/hashing/plot-bias-R1-k31-rel){#fig-bias-R1-rel}
+
+Leading-zero bias with *R* = 1 on a random sequence using *k* = 31.
+:::
+
+The first thing that we can notice in @fig-bias-R1-abs is that many of the cells are actually empty, meaning that the corresponding transition is simply not observed.
+While this is not very surprising for the bottom-right half of the matrix simply because of sample size (remember that a transition from $i$ to $j$ has a probability proportional to $2^{-(i+j)}$ in theory), it is much more surprising to see empty rows or columns interleaved with non-empty ones (in particular columns 3, 5, 6 and rows 4, 6, 7).
+In particular, this implies that after observing a hash with exactly 4 leading zeros, the hash next to it will have at most 3 leading zeros.
+Conversely, a hash with exactly 3 leading zeros can only be observed after at most 4 leading zeros.
+@fig-bias-R1-rel allows us to put these probabilities into perspective with the expected ones.
+While the first rows and columns mostly match the expectations, the missing transitions in blue are compensated by overrepresented ones in red.
+In particular, after observing a hash with at least 9 leading zeros, the probability of having exactly 7 leading zeros next to it is 16× higher.
+This creates an interesting dynamic where small hashes with at least 9 leading zeros are likely followed by 7 leading zeros, which are then followed by at most 6 leading zeros.
+
+Even though this phenomenon is difficult to explain, the offset of one between the missing rows and columns made me conjecture that it is related the 1-bit rotations performed at each step.
+To verify this hypothesis, I introduced variations of ntHash where the 1-bit rotations are replaced by *R*-bit rotations.
+This does not cause any problem as long as *R* is odd (since *R* and 32 need to be coprime) and does not affect the performances, but simply shuffles the rotation offsets at each step.
+@fig-bias-R7 shows the results obtained for *R* = 7 while @fig-bias-R13 shows the results for *R* = 13.
+
+:::{#fig-bias-R7 layout-ncol=2}
+
+![Leading-zero transition for *R* = 7.](../fig/hashing/plot-bias-R7-k31-abs){#fig-bias-R7-abs}
+
+![Bias relative to a geometric distribution for *R* = 7.](../fig/hashing/plot-bias-R7-k31-rel){#fig-bias-R7-rel}
+
+Leading-zero bias with *R* = 7 on a random sequence using *k* = 31.
+:::
+
+:::{#fig-bias-R13 layout-ncol=2}
+
+![Leading-zero transition for *R* = 13.](../fig/hashing/plot-bias-R13-k31-abs){#fig-bias-R13-abs}
+
+![Bias relative to a geometric distribution for *R* = 13.](../fig/hashing/plot-bias-R13-k31-rel){#fig-bias-R13-rel}
+
+Leading-zero bias with *R* = 13 on a random sequence using *k* = 31.
+:::
+
+Interestingly, *R* does have an impact on the offset between biased rows and columns:
+in @fig-bias-R7-rel we observe a pattern starting at $(i, j) = (8, 1)$, while in @fig-bias-R13-rel we observe two patterns starting at $(i, j) = (14, 1)$ and $(i, j) = (0, 19)$ respectively (note that $19 = -13 \mod 32$).
+One practical benefit of shifting the biased rows and columns is that their probability drastically drops, making them less concerning in practice and leading to a more regular transition matrix in practice, as illustrated in @fig-bias-R7-abs and @fig-bias-R13-abs.
+As a result, I recommend using *R* = 13 or 15 by default to reduce the bias (and we implemented a similar fix in `seq-hash`).
