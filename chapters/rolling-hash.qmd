@@ -204,3 +204,6 @@ Note that enabling the most aggressive compiler optimizations (`lto="fat"` and `
 
 Throughput of different hashing methods on x86 and ARM using a single thread, best in bold.
 :::
+
+Overall, our vectorized implementation is 2.3--2.6× faster than the existing ntHash implementation, and is the fastest option among evaluated methods.
+We can also notice that using a packed input also benefits non-rolling hashes since the input 4× smaller.
