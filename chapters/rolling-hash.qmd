@@ -181,4 +181,26 @@ Our vectorized implementation of ntHash and MulHash, built on top of [packed-seq
 
 ### Performance
 
-TODO add a small benchmark for throughput
+To evaluate the performance gain brought by vectorization, we measured the throughput of different hashing methods on x86 and ARM.
+We benchmarked 5 hashing methods in Rust (script available at <https://github.com/imartayan/nthash-bias/blob/main/src/bin/throughput.rs>):
+
+- iterating over ASCII-encoded /kmers (slice of 31 bytes) and hashing them with `rapidhash`^[<https://docs.rs/rapidhash/latest/rapidhash/>] v4.4.1 (which is one of the fastest hash for slices of bytes)
+- iterating over bitpacked /kmers (stored in a `u64`) with `packed-seq` and hashing them `fxhash`^[<https://docs.rs/rustc-hash/latest/rustc_hash/>] v2.1.2 (which is one the fastest hash for native integers)
+- ntHash implementation from the `nthash`^[<https://docs.rs/nthash/latest/nthash/>, not to be confused with `nthash-rs` which is much slower] crate v0.5.1
+- our implementation of ntHash (`seq-hash` v0.1.2)
+- our implementation of mulHash (`seq-hash` v0.1.2)
+
+The results are reported in @tbl-hash-throughput.
+Note that enabling the most aggressive compiler optimizations (`lto="fat"` and `codegen-units=1`) has a big impact on the throughput, especially for the `nthash` crate.
+
+:::{#tbl-hash-throughput .large-table}
+| Implementation | Throughput on Xeon Gold 6430 (x86) | Throughput on Apple M1 (ARM) |
+|---|---|---|
+| ASCII seq + `rapidhash` | 0.47 GB/s | 0.65 GB/s |
+| `packed-seq` + `fxhash` | 0.71 GB/s | 1.25 GB/s |
+| `nthash` crate | 1.03 GB/s | 1.00 GB/s |
+| `seq-hash` ntHash | **2.65 GB/s** | 2.28 GB/s |
+| `seq-hash` MulHash | 2.39 GB/s | **2.30 GB/s** |
+
+Throughput of different hashing methods on x86 and ARM using a single thread, best in bold.
+:::
