@@ -262,12 +262,12 @@ Leading-zero bias with *R* = 1 on a random sequence using *k* = 31.
 :::
 
 The first thing that we can notice in @fig-bias-R1-abs is that many of the cells are actually empty, meaning that the corresponding transition is simply not observed.
-While this is not very surprising for the bottom-right half of the matrix simply because of sample size (remember that a transition from $i$ to $j$ has a probability proportional to $2^{-(i+j)}$ in theory), it is much more surprising to see empty rows or columns interleaved with non-empty ones (in particular columns 3, 5, 6 and rows 4, 6, 7).
-In particular, this implies that after observing a hash with exactly 4 leading zeros, the hash next to it will have at most 3 leading zeros.
+While this is not very surprising for the bottom-right half of the matrix simply because of sample size (remember that a transition from $i$ to $j$ has a probability proportional to $2^{-(i+j)}$ in theory), it is much more surprising to see empty rows or columns interleaved with non-empty ones (see columns 3, 5, 6 and rows 4, 6, 7).
+In particular, this implies that after observing a hash with exactly 4 leading zeros, the hash next to it will always have at most 3 leading zeros.
 Conversely, a hash with exactly 3 leading zeros can only be observed after at most 4 leading zeros.
 @fig-bias-R1-rel allows us to put these probabilities into perspective with the expected ones.
 While the first rows and columns mostly match the expectations, the missing transitions in blue are compensated by overrepresented ones in red.
-In particular, after observing a hash with at least 9 leading zeros, the probability of having exactly 7 leading zeros next to it is 16× higher.
+Notably, after observing a hash with at least 9 leading zeros, the probability of having exactly 7 leading zeros next to it is 16× higher.
 This creates an interesting dynamic where small hashes with at least 9 leading zeros are likely followed by 7 leading zeros, which are then followed by at most 6 leading zeros.
 
 Even though this phenomenon is difficult to explain, the offset of one between the missing rows and columns made me conjecture that it is related the 1-bit rotations performed at each step.
