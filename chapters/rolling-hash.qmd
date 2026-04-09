@@ -294,6 +294,6 @@ Leading-zero bias with *R* = 13 on a random sequence using *k* = 31.
 :::
 
 Interestingly, *R* does have an impact on the offset between biased rows and columns:
-in @fig-bias-R7-rel we observe a pattern starting at $(i, j) = (8, 1)$, while in @fig-bias-R13-rel we observe two patterns starting at $(i, j) = (14, 1)$ and $(i, j) = (0, 19)$ respectively (note that $19 = -13 \mod 32$).
-One practical benefit of shifting the biased rows and columns is that their probability drastically drops, making them less concerning in practice and leading to a more regular transition matrix in practice, as illustrated in @fig-bias-R7-abs and @fig-bias-R13-abs.
+in @fig-bias-R7-rel we observe a pattern starting at $(i, j) = (8, 1)$ while in @fig-bias-R13-rel we observe two patterns starting at $(i, j) = (14, 1)$ and $(i, j) = (0, 19)$ respectively (note that $19 = -13 \mod 32$), which confirms the $i - j = R$ conjecture.
+One practical benefit of shifting the biased rows and columns is that their probability drastically drops, making them less concerning in practice and leading to a more regular transition matrix, as illustrated in @fig-bias-R7-abs and @fig-bias-R13-abs.
 As a result, I recommend using *R* = 13 or 15 by default to reduce the bias (and we implemented a similar fix in `seq-hash`).
