@@ -236,20 +236,20 @@ His solution is essentially to define $h(\texttt{T})$ as $h(\texttt{A}) \oplus h
 ### Bias on the leading zeros
 
 A very common use case of rolling hashes in bioinformatics is to hash every /kmer and select those with "small" hashes as representatives.
-For instance, this is extensively used in MinHash-based sketching techniques or in random minimizers (which we will discuss in more detail in the next chapter).
+For instance, this is extensively used in MinHash-based sketching techniques (presented in @sec-intro-sketching) or in random minimizers (presented in @sec-intro-minimizers), which we will discuss in more detail in the next chapter.
 
 These techniques generally assume that the hash values are independent and uniformly distributed.
 Under these assumptions, every /kmer has a probability $2^{-n}$ that its hash starts with at least $n$ zeros.
-So if define "small" as starting with $n$ zeros, the distance between "small" /kmers roughly follows a geometric distribution (this is not exactly true because of repeated /kmers, though this is negligible for a large *k*).
+So if we define "small" as starting with $n$ zeros, the distance between "small" /kmers roughly follows a geometric distribution (this is not exactly true because of repeated /kmers, though this is negligible for a large *k*).
 
 Unfortunately, I noticed that the empirical distribution I had in my experiments^[documented at <https://github.com/imartayan/pfp-distribution>] was not quite geometric, and that the repartition of "small" /kmers was skewed.
 I observed in particular that the number leading zeros for a given /kmer was very correlated with the number of leading zeros of the neighboring /kmers, thus invalidating both independence and uniformity assumptions.
 
-To document this behavior, I computed the number of leading zeros for every /kmer hash in a large random sequence (4 billion bases), and measured the probability to go transition from a one number of leading zeros to another for consecutive /kmers.
+To document this behavior, I computed the number of leading zeros for every /kmer hash in a large random sequence (4 billion bases), and measured the probability that two consecutive /kmers transition from $i$ leading zeros to $j$ leading zeros.
 These experiment scripts are available at <https://github.com/imartayan/nthash-bias>.
 
 @fig-bias-R1 contains two visualizations of this transition probability.
-The first one (@fig-bias-R1-abs) shows the raw probability of each transition: each line correspond to the current number of leading zeros, while each column correspond to the next value.
+The first one (@fig-bias-R1-abs) shows the raw probability of each transition: each line corresponds to the current number of leading zeros, while each column corresponds to the next value.
 The second one (@fig-bias-R1-rel) shows the ratio between this probability and the expected probability for a geometric distribution: blue when less than expected, white when matching the expectation and red when more than expected.
 
 :::{#fig-bias-R1 layout-ncol=2}

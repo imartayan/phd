@@ -1,4 +1,4 @@
-# Sampling with minimizers
+# Sampling with minimizers {#sec-intro-minimizers}
 
 TBA
 

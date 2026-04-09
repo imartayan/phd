@@ -1,4 +1,4 @@
-# Sketching sequences
+# Sketching sequences {#sec-intro-sketching}
 
 TBA
 
