@@ -154,7 +154,7 @@ Therefore, instead of computing 8 consecutive hashes, we focus on computing 8 *i
 
 As input to our algorithm, we use the 2-bit *packed* sequence representation as described in @sec-dna-rep.
 Since we want to compute 8 independent hashes, we first split the sequence into 8 chunks and assign each chunk to a dedicated *lane* of a SIMD register.
-Note that the chunks overlap by $k - 1$ bases so that each each window of size $k$ is processed once.
+Note that the chunks overlap by $k - 1$ bases so that each window of size $k$ is processed once.
 In order to have the content of each chunk available in separate lanes, we load one 256-bit register per chunk and perform a *transpose* operation^[<https://stackoverflow.com/questions/25622745>].
 Once each chunk is loaded in a separate lane, we can iterate over the bases of each chunk simultaneously by shifting and masking the bottom 2 bits of each lane.
 The entire iteration pipeline is illustrated in @fig-packed-iter.
@@ -181,7 +181,7 @@ To evaluate the performance gain brought by vectorization, we measured the throu
 We benchmarked 5 hashing methods in Rust (script available at <https://github.com/imartayan/nthash-bias/blob/main/src/bin/throughput.rs>):
 
 - iterating over ASCII-encoded /kmers (slice of 31 bytes) and hashing them with `rapidhash`^[<https://docs.rs/rapidhash/latest/rapidhash/>] v4.4.1 (which is one of the fastest hash for slices of bytes)
-- iterating over bitpacked /kmers (stored in a `u64`) with `packed-seq` and hashing them `fxhash`^[<https://docs.rs/rustc-hash/latest/rustc_hash/>] v2.1.2 (which is one the fastest hash for native integers)
+- iterating over bitpacked /kmers (stored in a `u64`) with `packed-seq` and hashing them `fxhash`^[<https://docs.rs/rustc-hash/latest/rustc_hash/>] v2.1.2 (which is one of the fastest hash for native integers)
 - ntHash implementation from the `nthash`^[<https://docs.rs/nthash/latest/nthash/>, not to be confused with `nthash-rs` which is much slower] crate v0.5.1
 - our implementation of ntHash (`seq-hash` v0.1.2)
 - our implementation of mulHash (`seq-hash` v0.1.2)
@@ -249,7 +249,7 @@ To document this behavior, I computed the number of leading zeros for every /kme
 These experiment scripts are available at <https://github.com/imartayan/nthash-bias>.
 
 @fig-bias-R1 contains two visualizations of this transition probability.
-The first one (@fig-bias-R1-abs) shows the raw probability of each transition: each line correspond to the current number of leading zeros, while each column correspond to the next value, and the probabil.
+The first one (@fig-bias-R1-abs) shows the raw probability of each transition: each line correspond to the current number of leading zeros, while each column correspond to the next value.
 The second one (@fig-bias-R1-rel) shows the ratio between this probability and the expected probability for a geometric distribution: blue when less than expected, white when matching the expectation and red when more than expected.
 
 :::{#fig-bias-R1 layout-ncol=2}

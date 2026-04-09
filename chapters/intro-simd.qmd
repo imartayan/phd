@@ -3,7 +3,7 @@
 TBA
 
 - brief history of modern CPU optimizations [@cray1]
-- motivation: doing repeted operations, faster
+- motivation: doing repeated operations, faster
 - operations on wide registers
 - new constraints: no cross-lane operations, no branches
 - two classic examples: prefix sums and `memchr`
