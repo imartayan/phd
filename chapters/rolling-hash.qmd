@@ -192,11 +192,11 @@ Note that enabling the most aggressive compiler optimizations (`lto="fat"` and `
 :::{#tbl-hash-throughput .large-table}
 | Implementation | Throughput on Xeon Gold 6430 (x86) | Throughput on Apple M1 (ARM) |
 |---|---|---|
-| ASCII seq + `rapidhash` | 0.47 GB/s | 0.65 GB/s |
-| `packed-seq` + `fxhash` | 0.71 GB/s | 1.25 GB/s |
-| `nthash` crate | 1.03 GB/s | 1.00 GB/s |
-| `seq-hash` ntHash | **2.65 GB/s** | 2.28 GB/s |
-| `seq-hash` MulHash | 2.39 GB/s | **2.30 GB/s** |
+| ASCII seq + `rapidhash` | 0.47 Gbp/s | 0.65 Gbp/s |
+| `packed-seq` + `fxhash` | 0.71 Gbp/s | 1.25 Gbp/s |
+| `nthash` crate | 1.03 Gbp/s | 1.00 Gbp/s |
+| `seq-hash` ntHash | **2.65 Gbp/s** | 2.28 Gbp/s |
+| `seq-hash` MulHash | 2.39 Gbp/s | **2.30 Gbp/s** |
 
 Throughput of different hashing methods on x86 and ARM using a single thread, best in bold.
 :::
