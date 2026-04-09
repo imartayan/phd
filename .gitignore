@@ -1,9 +1,5 @@
 /.quarto/
 /_book/
-.luarc.json
-.brename_detail.txt
-.DS_Store
-
 **/*.quarto_ipynb
 
 *.aux
@@ -21,3 +17,10 @@ index.tex
 index.pdf
 thesis.tex
 thesis.pdf
+
+.luarc.json
+.brename_detail.txt
+.cspell.json
+.cspell_words.txt
+.vale.ini
+.DS_Store
