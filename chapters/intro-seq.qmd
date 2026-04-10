@@ -1,8 +1,6 @@
-# Comparing genomic sequences
+# Comparing genomic sequences {#sec-intro-seq}
 
-TBA
-
-- what is sequencing?
+- what is DNA sequencing?
 - what is it used for?
 - sequencing archives (SRA, ENA, GenBank...)
 - main formats currently used (esp. FASTA, FASTQ...)

@@ -7,3 +7,37 @@ TBA
 - operations on wide registers
 - new constraints: no cross-lane operations, no branches
 - two classic examples: prefix sums and `memchr`
+
+## Major SIMD instruction sets
+
+@tbl-simd-x86 and @tbl-simd-arm summarize the main SIMD instruction set extensions available on modern CPUs.
+
+:::{#tbl-simd-x86}
+| Extension | Year | Width | Key operations | Adoption |
+|:----------|:----:|------:|:---------------|:----------------------:|
+| SSE | 1999 | 128 bits | Packed single-precision float | ~100% |
+| SSE2 | 2001 | 128 bits | Packed double-precision float + integers | 98.09% |
+| SSE3 | 2004 | 128 bits | Horizontal add, duplicate loads | 98.09% |
+| SSSE3 | 2007 | 128 bits | Byte shuffle (`pshufb`), abs, sign | 98.01% |
+| SSE4.1 | 2007 | 128 bits | Blend, `pmulld`, dot product | 97.97% |
+| SSE4.2 | 2008 | 128 bits | String compare (`pcmpestri`), CRC32, `popcnt` | 97.93% |
+| AVX | 2011 | 256 bits | 256-bit SP/DP float | 96.93% |
+| AVX2 | 2013 | 256 bits | 256-bit integers, gather loads, permute | 94.84% |
+| AVX-512 [^simd-avx512-subext] | 2016 [^simd-avx512-year] | 512 bits | 512-bit float + int, mask registers, scatter | 21.89% |
+
+x86 SIMD instruction set extensions. Operations per [@intel-sdm]. Desktop adoption from the Steam Hardware & Software Survey [@steam-hwsurvey-2026] (March 2026, gaming PCs).
+:::
+
+:::{#tbl-simd-arm}
+| Extension | Year | Width | Key operations | Adoption |
+|:----------|:----:|------:|:---------------|:--------:|
+| NEON | 2007 | 128 bits | Packed int + SP float | mandatory in AArch64 |
+| SVE | 2016 | 128–2048 bits | Scalable vectors, predicated | HPC/server |
+| SVE2 | 2019 | 128–2048 bits | Full-featured scalable vectors | HPC/server |
+
+ARM SIMD instruction set extensions. Operations per [@arm-arm].
+:::
+
+[^simd-avx512-subext]: AVX-512 is a family of sub-extensions. All modern implementations ship F (foundation), BW (byte/word operations), DQ (doubleword/quadword), and VL (128/256-bit variants of AVX-512 instructions) together. The Steam survey confirms identical adoption across all four.
+
+[^simd-avx512-year]: First implemented in 2016 for servers and 2017 for desktop, then removed from Intel desktop processors in 2022 (Alder Lake and its successors). AMD implemented it in 2022 (Zen 4).

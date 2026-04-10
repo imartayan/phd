@@ -1,4 +1,4 @@
-# Comparing using k-mers
+# Comparing using k-mers {#sec-intro-kmers}
 
 TBA
 
