@@ -6,7 +6,7 @@ The main trend over the last decades has been to focus on handling more operatio
 In particular, many applications benefit especially from data-level parallelism, where the same operation is applied *independently on multiple data* [@computer-architecture]: scientific computing, signal processing, regex engines [@hyperscan]...
 In this chapter, we will present how vectorized instructions can speed up these use cases.
 
-## A quick history of vectorized extensions
+## A brief history of vectorized extensions
 
 The concept of applying a single instruction to multiple data elements simultaneously (formally known as SIMD) predates the personal computer era.
 The Cray-1 [@cray1], designed by Seymour Cray and introduced in 1976, was one of the first successful vector processors.
@@ -27,7 +27,7 @@ The main SIMD instruction set extensions available on modern x86 and ARM CPUs ar
 | SSE4.2 | 2008 | 128 bits | String compare, `popcnt`, `lzcnt` | 97.93% |
 | AVX | 2011 | 256 bits | 256-bit float operations | 96.93% |
 | AVX2 | 2013 | 256 bits | 256-bit integers, permute, gather | 94.84% |
-| AVX-512 [^simd-avx512-subext] | 2016 [^simd-avx512-year] | 512 bits | 512-bit float + int, mask registers, scatter | 21.89%[^simd-avx512-adoption] |
+| AVX-512[^simd-avx512-subext] | 2016[^simd-avx512-year] | 512 bits | 512-bit float + int, mask registers, scatter | 21.89%[^simd-avx512-adoption] |
 
 Main x86 SIMD instruction set extensions [@intel-manual], with desktop adoption from the Steam Hardware Survey [@steam-hwsurvey-2026]^[I was not expecting to cite Steam in my thesis, but here I am.].
 :::
