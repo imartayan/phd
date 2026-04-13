@@ -48,10 +48,38 @@ Main x86 SIMD instruction set extensions [@intel-manual], with desktop adoption 
 Main ARM SIMD instruction set extensions [@arm-manual].
 :::
 
+## SIMD vectorization in practice
+
+:::{#lst-sum-avx2}
+```rust
+let mut sum = _mm256_setzero_si256();
+for chunk in slice.chunks(8) {
+    let vec = _mm256_loadu_si256(chunk.as_ptr());
+    sum = _mm256_add_epi32(sum, vec);
+}
+let mut res = [0i32; 8];
+_mm256_storeu_si256(res.as_mut_ptr(), sum);
+return res.iter().sum::<i32>();
+```
+
+Sum of `i32`s in AVX2 using 256-bit registers.
+:::
+
+:::{#lst-sum-neon}
+```rust
+let mut sum = vdupq_n_s32(0);
+for chunk in slice.chunks(4) {
+let vec = vld1q_s32(chunk.as_ptr());
+    sum = vaddq_s32(sum, vec);
+}
+return vaddvq_s32(sum);
+```
+
+Sum of `i32`s in NEON using 128-bit registers.
+:::
+
 TBA
 
-- brief history of modern CPU optimizations [@cray1]
-- motivation: doing repeated operations, faster
 - operations on wide registers
 - new constraints: no cross-lane operations, no branches
 - two classic examples: prefix sums and `memchr`
