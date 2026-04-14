@@ -257,7 +257,7 @@ Depending on the type of desired output, we also use the lexing phase to produce
 For the columnar representation, we simply shift each bytes by 5 (resp. 6) positions to move the high (resp. low) bit to the beginning of the byte, which we can then extract using `movemask` as before.
 The packed representation, however, requires different strategies depending on the architecture.
 On x86, since `movemask` can only extract one bit at a time, we essentially reuse the high and low bits from the columnar format and interleave them.
-A simple way to interleave the bits is to use the PDEP instruction available with BMI2.
+A simple way to interleave the bits is to use the `PDEP` instruction available with BMI2.
 However, this instruction is not supported by old CPUs, and has been notoriously slow on AMD CPUs until the Zen3 generation because it was microcoded.
 As a fallback for this kind of hardware, we also provide an alternative implementation that does the interleaving step on the *bytes* before the `movemask` rather than the bits.
 On the other hand, computing packed representations on ARM is much simpler since we can change the `movemask` implementation to extract two bits at a time, thus entirely avoiding the interleaving step.
@@ -293,7 +293,7 @@ Due to these architectural differences, producing a packed representation is sli
     \State $m_\text{hi} \gets \texttt{movemask}(v_\text{hi})$
     \State $m_\text{lo} \gets \texttt{movemask}(v_\text{lo})$
     \State \textbf{return} \texttt{interleave}($m_\text{hi}, m_\text{lo}$)
-    \Comment{interleave one bit of each mask, usually using PDEP}
+    \Comment{interleave one bit of each mask, usually using \texttt{PDEP}}
 \EndFunction
 
 \Function{PackedARM}{$v_\text{data}$}
@@ -429,7 +429,7 @@ Additional plots on short reads are available in @fig-instructions-and-cycles-sh
 These plots provide many interesting insights on the CPU characteristics and how well each parser exploits them.
 First of all, we note that the main factor impacting the number of instructions is the instruction-set supported by each CPU.
 This is especially noticeable when comparing Intel CPUs only supporting SSE (first two Xeon CPUs in @fig-instructions, prior to 2013) to those supporting AVX2 afterwards: since SSE vectors are twice as small as AVX vectors, scanning a given block requires more instructions.
-When focusing on the packed representation, we can also observe the shift from microcoded PDEP instructions (first three Epyc CPUs, prior to 2020), which we avoided in favor of a fallback implementation shown in brown, to native PDEP instructions on AMD CPUs over the years.
+When focusing on the packed representation, we can also observe the shift from microcoded `PDEP` instructions (first three Epyc CPUs, prior to 2020), which we avoided in favor of a fallback implementation shown in brown, to native `PDEP` instructions on AMD CPUs over the years.
 
 Even though the number of instructions is roughly constant for a given instruction-set, the number of cycles spent to execute them is not.
 We observe in @fig-cycles a decrease in the number of cycles over the years, reflecting the continuous improvements of CPU manufacturers.
