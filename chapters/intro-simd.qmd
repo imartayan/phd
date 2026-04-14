@@ -52,6 +52,14 @@ Main ARM SIMD instruction set extensions [@arm-manual].
 
 ## SIMD vectorization in practice
 
+All the SIMD extensions described above (apart from SVE) follow the same design: each wide register is divided into equally-sized *lanes* of 8--64 bits (e.g. 32 lanes of 8 bits packed in a 256-bit register), and each instruction operates independently on every lane in parallel.
+Supported operations include arithmetic (excluding integer division and modulo), bitwise operations and comparisons.
+@lst-sum-avx2 and @lst-sum-neon show an example computing the sum of 32-bit signed integers in AVX2 and NEON respectively.
+
+This paradigm enforces two main constraints on algorithm design.
+First, there is no branching on individual lane values: the usual workaround is to compute a boolean mask for each lane and use it to *blend* the results of two paths.
+Second, instructions that combine values across lanes (known as *cross-lane* operations) are rare: the main ones are horizontal reductions and permutations.
+
 :::{#lst-sum-avx2}
 ```rust
 let mut sum = _mm256_setzero_si256(); // initialize with 0s
