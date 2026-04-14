@@ -52,7 +52,7 @@ Main ARM SIMD instruction set extensions [@arm-manual].
 
 ## SIMD vectorization in practice
 
-All the SIMD extensions described above (apart from SVE) follow the same design: each wide register is divided into equally-sized *lanes* of 8--64 bits (e.g. 32 lanes of 8 bits packed in a 256-bit register), and each instruction operates independently on every lane in parallel.
+All the SIMD extensions described above (apart from SVE/SVE2) follow the same design: each wide register is divided into equally-sized *lanes* of 8--64 bits (e.g. 32 lanes of 8 bits packed in a 256-bit register), and each instruction operates independently on every lane in parallel.
 Supported operations include arithmetic (excluding integer division and modulo), bitwise operations and comparisons.
 @lst-sum-avx2 and @lst-sum-neon show an example computing the sum of 32-bit signed integers in AVX2 and NEON respectively.
 
@@ -88,6 +88,11 @@ return vaddvq_s32(sum); // horizontal sum of the lanes
 Sum of `i32` in NEON using 128-bit registers.
 :::
 
+One of the main drawbacks of hand-written SIMD code as shown in @lst-sum-avx2 and @lst-sum-neon is that it requires a specific implementation for each SIMD extension that we want to support, making it difficult to maintain and not very portable.
+However, trusting the compiler to auto-vectorize our code is not a reliable option either since it can easily break with a minor change, a new compiler version or a different architecture.
+A popular alternative is to use portable SIMD libraries, such as Rust's [portable_simd](https://doc.rust-lang.org/std/simd/index.html) or [wide](https://docs.rs/wide/latest/wide/)^[At the moment, `wide` is less complete than `portable_simd` but has the benefit of being stable.], which provides a unified API that compiles down to the appropriate SIMD extension.
+An example of a portable SIMD implementation (supporting both x86 and ARM CPUs) is given in @lst-sum-portable-simd.
+
 :::{#lst-sum-portable-simd}
 ```rust
 #![feature(portable_simd)]
@@ -101,11 +106,5 @@ for chunk in slice.chunks(8) { // for each chunk of 8 32-bit ints
 return sum.reduce_sum(); // horizontal sum of the lanes
 ```
 
-Sum of `i32` using [portable_simd](https://doc.rust-lang.org/std/simd/index.html).
+Sum of `i32` using `portable_simd`.
 :::
-
-TBA
-
-- operations on wide registers
-- new constraints: no cross-lane operations, no branches
-- two classic examples: prefix sums and `memchr`
