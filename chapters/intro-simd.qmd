@@ -24,7 +24,7 @@ The main SIMD instruction set extensions available on modern x86 and ARM CPUs ar
 | SSE3 | 2004 | 128 bits | Horizontal add, duplicate loads | 98.09% |
 | SSSE3 | 2006 | 128 bits | Byte shuffle, abs, sign | 98.01% |
 | SSE4.1 | 2007 | 128 bits | Blend, dot product | 97.97% |
-| SSE4.2 | 2008 | 128 bits | String compare, `popcnt`, `lzcnt` | 97.93% |
+| SSE4.2 | 2008 | 128 bits | String compare, popcount | 97.93% |
 | AVX | 2011 | 256 bits | 256-bit float operations | 96.93% |
 | AVX2 | 2013 | 256 bits | 256-bit integers, permute, gather | 94.84% |
 | AVX-512[^avx512-subext] | 2016[^avx512-year] | 512 bits | 512-bit float + int, mask registers, scatter | 21.89%[^avx512-adoption] |
@@ -90,7 +90,7 @@ Sum of `i32` in NEON using 128-bit registers.
 
 One of the main drawbacks of hand-written SIMD code as shown in @lst-sum-avx2 and @lst-sum-neon is that it requires a specific implementation for each SIMD extension that we want to support, making it difficult to maintain and not very portable.
 However, trusting the compiler to auto-vectorize our code is not a reliable option either since it can easily break with a minor change, a new compiler version or a different architecture.
-A popular alternative is to use portable SIMD libraries, such as Rust's [portable_simd](https://doc.rust-lang.org/std/simd/index.html) or [wide](https://docs.rs/wide/latest/wide/)^[At the moment, `wide` is less complete than `portable_simd` but has the benefit of being stable.], which provide a unified API that compiles down to the appropriate SIMD extension.
+A popular alternative is to use portable SIMD libraries, such as Rust's [portable_simd](https://doc.rust-lang.org/std/simd/index.html) or [wide](https://docs.rs/wide/latest/wide/)^[At the moment, `wide` is less complete than `portable_simd` but has the benefit of being stable.], which provide a unified API that is compiled to the appropriate SIMD extension.
 An example of a portable SIMD implementation (supporting both x86 and ARM CPUs) is given in @lst-sum-portable-simd.
 
 :::{#lst-sum-portable-simd}
