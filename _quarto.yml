@@ -92,8 +92,14 @@ filters:
   - diagram
 
 crossref:
-  lst-title: Algorithm
-  lst-prefix: Algorithm
+  custom:
+    - kind: float
+      key: alg
+      reference-prefix: "Algorithm"
+      caption-prefix: "Algorithm"
+      caption-location: top
+      latex-env: alg
+      latex-list-of-description: Algorithm
 
 search-replace:
   /kmer: "*k*-mer"

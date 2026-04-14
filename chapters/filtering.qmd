@@ -78,7 +78,7 @@ In that case, we can simply sum them to get a tight upper bound.
 
 ### Minimizer-based filtering algorithm
 
-Our algorithm, detailed in @lst-mini-filtering, works in two passes.
+Our algorithm, detailed in @alg-mini-filtering, works in two passes.
 The first pass computes an upper bound on the number of /kmer matches, as detailed in the previous section, by performing $\mathcal{O}\left(\frac{|S|}{w}\right)$ queries to $\mathcal{T_M}$ (the hash table of minimizers).
 This has two main advantages: not only do we reduce the number of lookups, but querying $\mathcal{T_M}$ is also faster than $\mathcal{T_Q}$ (the hash table of /kmers) because it is roughly $w / 2$ times smaller when /kmers from $\mathcal{Q}$ are consecutive.
 
@@ -87,7 +87,7 @@ In that case, we must count the exact number of /kmer matches to identify true h
 Deacon [@deacon], another tool tailored for decontamination developed by some of the authors, uses a simplified version of the method proposed here.
 In particular, it omits this second pass, reducing computational overhead at the cost of potential false positives.
 
-:::{#lst-mini-filtering}
+:::{#alg-mini-filtering}
 ```pseudocode
 #| html-no-end: true
 #| html-line-number: false

@@ -207,13 +207,13 @@ We now describe its concrete implementation in the lexing phase as a *classifier
 
 The first step of the lexing phase is to load the input block into a SIMD register, and to compute bitmasks for specific characters: `\n` for FASTQ, and both `\n` and `>` for FASTA.
 Additionally, we may want to detect non-ACTG bases to split the sequence or mark their positions.
-Both of these steps are described in @lst-bitmask and rely essentially on vectorized byte-wise comparisons followed by a `movemask`.
+Both of these steps are described in @alg-bitmask and rely essentially on vectorized byte-wise comparisons followed by a `movemask`.
 The `movemask` instruction, natively supported on x86 since SSE, extracts the most significant bit of each byte in a SIMD register into a scalar bitmask.
 However, this instruction is not available on ARM CPUs, so we have to implement it manually using multiple intrinsics, making it more expensive than on x86.
 A relatively efficient method to implement it on ARM is to make use of NEON's interleaved layout and byte-wise packing^[<https://stackoverflow.com/questions/74722950>].
 One benefit of having a manual implementation is that we can easily adapt it to extract multiple bits from each byte instead of a single one, which will turn out to be useful for the packed representation.
 
-:::{#lst-bitmask}
+:::{#alg-bitmask}
 ```pseudocode
 #| html-no-end: true
 #| html-line-number: false
@@ -253,7 +253,7 @@ One benefit of having a manual implementation is that we can easily adapt it to 
 Pseudocode to detect newlines and non-ACTG characters.
 :::
 
-Depending on the type of desired output, we also use the lexing phase to produce a stream of columnar or packed sequences, both described in @lst-columnar-packed.
+Depending on the type of desired output, we also use the lexing phase to produce a stream of columnar or packed sequences, both described in @alg-columnar-packed.
 For the columnar representation, we simply shift each bytes by 5 (resp. 6) positions to move the high (resp. low) bit to the beginning of the byte, which we can then extract using `movemask` as before.
 The packed representation, however, requires different strategies depending on the architecture.
 On x86, since `movemask` can only extract one bit at a time, we essentially reuse the high and low bits from the columnar format and interleave them.
@@ -263,7 +263,7 @@ As a fallback for this kind of hardware, we also provide an alternative implemen
 On the other hand, computing packed representations on ARM is much simpler since we can change the `movemask` implementation to extract two bits at a time, thus entirely avoiding the interleaving step.
 Due to these architectural differences, producing a packed representation is slightly more expensive than a columnar one on x86.
 
-:::{#lst-columnar-packed}
+:::{#alg-columnar-packed}
 ```pseudocode
 #| html-no-end: true
 #| html-line-number: false

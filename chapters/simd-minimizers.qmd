@@ -7,7 +7,7 @@ This chapter is adapted from [@simd-minimizers].
 Branchless computation of the minimum in a sliding window of size $w$
 (in practice $w$ /kmer hashes)
 
-::: {#lst-sliding-min}
+::: {#alg-sliding-min}
 
 ```pseudocode
 #| html-line-number: false
