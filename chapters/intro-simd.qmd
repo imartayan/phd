@@ -3,7 +3,7 @@
 CPU performance scaled remarkably through the late 20^th^ century, driven by increasing transistor counts (roughly following the famous *Moore's law*) and rising clock frequencies.
 However, as the clock frequencies started facing physical limits, CPU manufacturers invested in new solutions to keep improving the computation throughput.
 The main trend over the last decades has been to focus on handling more operations in parallel, either by adding more CPU cores (*task-level* parallelism), or by increasing the amount of operations done by each core (*instruction-level* and *data-level* parallelism).
-In particular, many applications benefit especially from data-level parallelism, where the same operation is applied *independently on multiple data* [@computer-architecture]: scientific computing, signal processing, regex engines [@hyperscan]...
+In particular, many applications such as scientific computing, signal processing or regex engines benefit especially from data-level parallelism, where the same operation is applied *independently on multiple data* [@computer-architecture].
 In this chapter, we will present how vectorized instructions can speed up these use cases.
 
 ## A brief history of vectorized extensions
@@ -27,26 +27,28 @@ The main SIMD instruction set extensions available on modern x86 and ARM CPUs ar
 | SSE4.2 | 2008 | 128 bits | String compare, `popcnt`, `lzcnt` | 97.93% |
 | AVX | 2011 | 256 bits | 256-bit float operations | 96.93% |
 | AVX2 | 2013 | 256 bits | 256-bit integers, permute, gather | 94.84% |
-| AVX-512[^simd-avx512-subext] | 2016[^simd-avx512-year] | 512 bits | 512-bit float + int, mask registers, scatter | 21.89%[^simd-avx512-adoption] |
+| AVX-512[^avx512-subext] | 2016[^avx512-year] | 512 bits | 512-bit float + int, mask registers, scatter | 21.89%[^avx512-adoption] |
 
 Main x86 SIMD instruction set extensions [@intel-manual], with desktop adoption from the Steam Hardware Survey [@steam-hwsurvey-2026]^[I was not expecting to cite Steam in my thesis, but here I am.].
 :::
 
-[^simd-avx512-subext]: AVX-512 is a family of sub-extensions. All modern implementations ship F (foundation), BW (byte/word operations), DQ (doubleword/quadword), and VL (128/256-bit variants of AVX-512 instructions) together. The Steam survey confirms identical adoption across all four.
+[^avx512-subext]: AVX-512 is a family of sub-extensions. All modern implementations ship F (foundation), BW (byte/word operations), DQ (doubleword/quadword), and VL (128/256-bit variants of AVX-512 instructions) together. The Steam survey confirms identical adoption across all four.
 
-[^simd-avx512-year]: First implemented in 2016 for servers and 2017 for desktop, then completely removed from Intel desktop processors in 2022 (Alder Lake and its successors). AMD implemented it in 2022 (Zen 4).
+[^avx512-year]: First implemented in 2016 for servers and 2017 for desktop, then completely removed from Intel desktop processors in 2022 (Alder Lake and its successors). AMD implemented it in 2022 (Zen 4).
 
-[^simd-avx512-adoption]: Apart from recent AMD CPUs, AVX-512 is only available for servers, thus explaining the low adoption for consumer CPUs.
+[^avx512-adoption]: Apart from recent AMD CPUs, AVX-512 is only available for servers, thus explaining the low adoption for consumer CPUs.
 
 :::{#tbl-simd-arm .large-table}
 | Extension | Year | Width | Key operations | Adoption |
 |:--:|:--:|:----:|:----------:|:---:|
 | NEON | 2007 | 128 bits | Packed float + integers | All |
-| SVE | 2016 | 128–2048 bits | Scalable vectors, predicated | HPC/server |
+| SVE | 2016 | 128–2048 bits[^sve-width] | Scalable vectors, predicated | HPC/server |
 | SVE2 | 2019 | 128–2048 bits | Full-featured scalable vectors | HPC/server |
 
 Main ARM SIMD instruction set extensions [@arm-manual].
 :::
+
+[^sve-width]: While the SVE specification supports up to 2048 bits in theory, it has only been implemented for up to 512 bits as of today.
 
 ## SIMD vectorization in practice
 
@@ -62,7 +64,7 @@ _mm256_storeu_si256(res.as_mut_ptr(), sum);
 return res.iter().sum::<i32>();
 ```
 
-Sum of `i32`s in AVX2 using 256-bit registers.
+Sum of `i32` in AVX2 using 256-bit registers.
 :::
 
 :::{#lst-sum-neon}
@@ -75,7 +77,7 @@ let vec = vld1q_s32(chunk.as_ptr());
 return vaddvq_s32(sum);
 ```
 
-Sum of `i32`s in NEON using 128-bit registers.
+Sum of `i32` in NEON using 128-bit registers.
 :::
 
 TBA
