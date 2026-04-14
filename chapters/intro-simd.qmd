@@ -147,7 +147,7 @@ fn memchr_avx2(buf: &[u8], needle: u8) -> Option<usize> {
         i += 32;
     }
     // handle the <32 remaining bytes manually
-    buf[i..].iter().position(|&b| b == needle).map(|j| i + j)
+    return buf[i..].iter().position(|&b| b == needle).map(|j| i + j);
 }
 ```
 
