@@ -12,7 +12,7 @@ The concept of applying a single instruction to multiple data elements simultane
 The Cray-1 [@cray1], designed by Seymour Cray and introduced in 1976, was one of the first successful vector processors.
 It exposed 8 vector registers of 64 double-precision floats each, with dedicated pipelined units that could operate on entire registers in a single instruction.
 This made it particularly well-suited to the dense numerical workloads of scientific computing, but its vector model stayed confined to high-performance computing for the following decades.
-The landscape shifted in 1996 when Intel introduced the MMX extension to consumer CPUs, motivated by the growing demands of multimedia workloads.
+The landscape shifted in 1997 when Intel introduced the MMX extension to consumer CPUs, motivated by the growing demands of multimedia workloads.
 MMX exposed 64-bit registers holding multiple packed integers, establishing the template of the extensions that followed.
 The main SIMD instruction set extensions available on modern x86 and ARM CPUs are summarized in @tbl-simd-x86 and @tbl-simd-arm respectively.
 
@@ -88,7 +88,7 @@ return vaddvq_s32(sum); // horizontal sum of the lanes
 Sum of `i32` in NEON using 128-bit registers.
 :::
 
-One of the main drawbacks of hand-written SIMD code as shown in @lst-sum-avx2 and @lst-sum-neon is that it requires a specific implementation for each SIMD extension that we want to support, making it difficult to maintain and not very portable.
+One of the main drawbacks of hand-written SIMD code as shown in @lst-sum-avx2 and @lst-sum-neon is that it requires a specific implementation for each SIMD extension that we want to support, making it difficult to maintain and reducing portability.
 However, trusting the compiler to auto-vectorize our code is not a reliable option either since it can easily break with a minor change, a new compiler version or a different architecture.
 A popular alternative is to use portable SIMD libraries, such as Rust's [portable_simd](https://doc.rust-lang.org/std/simd/index.html) or [wide](https://docs.rs/wide/latest/wide/)^[At the moment, `wide` is less complete than `portable_simd` but has the benefit of being stable.], which provide a unified API that is compiled to the appropriate SIMD extension.
 An example of a portable SIMD implementation (supporting both x86 and ARM CPUs) is given in @lst-sum-portable-simd.
@@ -108,3 +108,54 @@ return sum.reduce_sum(); // horizontal sum of the lanes
 
 Sum of `i32` using `portable_simd`.
 :::
+
+## The example of memchr
+
+Another instructive example is `memchr`, which finds the first occurrence of a given byte in a buffer.
+A naive scalar implementation, detailed in @lst-memchr-scalar, reads one byte per iteration, giving a throughput of one byte per cycle at best.
+
+:::{#lst-memchr-scalar}
+```rust
+fn memchr_scalar(buf: &[u8], needle: u8) -> Option<usize> {
+    for (i, &byte) in buf.iter().enumerate() {
+        if byte == needle { return Some(i); }
+    }
+    return None;
+}
+```
+
+Scalar implementation of `memchr`.
+:::
+
+On the other hand, an AVX2 implementation, detailed in @lst-memchr-avx2, processes 32 bytes per iteration, following a three-step pattern that recurs in many applications.
+First, the needle byte is broadcast across all 32 lanes of a 256-bit register.
+Second, 32 bytes are loaded from the buffer and compared against the broadcast register in a single instruction, producing a boolean mask for equality.
+Third, the mask is collapsed to a 32-bit integer (i.e. one bit per lane) using `movemask` and the position of the first match is found by counting trailing zeros in a single instruction.
+
+:::{#lst-memchr-avx2}
+```rust
+fn memchr_avx2(buf: &[u8], needle: u8) -> Option<usize> {
+    let needles = _mm256_set1_epi8(needle); // broadcast to all 32 lanes
+    let mut i = 0;
+    while i + 32 <= buf.len() {
+        let chunk = _mm256_loadu_si256(buf.as_ptr().add(i));
+        let cmp   = _mm256_cmpeq_epi8(chunk, needles); // compare all 32 lanes
+        let mask  = _mm256_movemask_epi8(cmp);  // 1 bit per matching lane
+        if mask != 0 {
+            return Some(i + mask.trailing_zeros()); // index of first match
+        }
+        i += 32;
+    }
+    // handle the <32 remaining bytes manually
+    buf[i..].iter().position(|&b| b == needle).map(|j| i + j)
+}
+```
+
+AVX2 implementation of `memchr`^[I removed some type conversion and `unsafe` keywords for clarity.].
+:::
+
+The performance difference is substantial, approaching a 32× speedup on long strings.
+This is precisely why vectorized primitives should be preferred over a hand-written loop.
+
+The broadcast-compare-scan pattern illustrated here is not specific to `memchr`.
+It appears whenever we need to locate a particular value in a stream of data, which we will extensively use for parsing in the next chapter.
