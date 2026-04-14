@@ -71,13 +71,29 @@ Sum of `i32` in AVX2 using 256-bit registers.
 ```rust
 let mut sum = vdupq_n_s32(0);
 for chunk in slice.chunks(4) {
-let vec = vld1q_s32(chunk.as_ptr());
+    let vec = vld1q_s32(chunk.as_ptr());
     sum = vaddq_s32(sum, vec);
 }
 return vaddvq_s32(sum);
 ```
 
 Sum of `i32` in NEON using 128-bit registers.
+:::
+
+:::{#lst-sum-neon}
+```rust
+#![feature(portable_simd)]
+use std::simd::Simd;
+
+let mut sum = Simd<i32, 8>::splat(0);
+for chunk in slice.chunks(8) {
+    let vec = Simd<i32, 8>::from_slice(chunk);
+    sum += vec;
+}
+return sum.reduce_sum();
+```
+
+Sum of `i32` using `portable_simd`.
 :::
 
 TBA
