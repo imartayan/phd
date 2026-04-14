@@ -18,7 +18,7 @@ The main SIMD instruction set extensions available on modern x86 and ARM CPUs ar
 
 :::{#tbl-simd-x86 .large-table}
 | Extension | Year | Width | Key operations | Adoption |
-|:--:|:--:|:--:|:----------:|:--:|
+|:--:|:-:|:--:|:----------:|:--:|
 | SSE | 1999 | 128 bits | Packed single-precision float | ~100% |
 | SSE2 | 2001 | 128 bits | Packed double-precision float + integers | 98.09% |
 | SSE3 | 2004 | 128 bits | Horizontal add, duplicate loads | 98.09% |
@@ -40,10 +40,10 @@ Main x86 SIMD instruction set extensions [@intel-manual], with desktop adoption 
 
 :::{#tbl-simd-arm .large-table}
 | Extension | Year | Width | Key operations | Adoption |
-|:--:|:--:|:----:|:----------:|:---:|
+|:--:|:-:|:----:|:----------:|:---:|
 | NEON | 2007 | 128 bits | Packed float + integers | All |
-| SVE | 2016 | 128–2048 bits[^sve-width] | Scalable vectors, predicated | HPC/server |
-| SVE2 | 2019 | 128–2048 bits | Full-featured scalable vectors | HPC/server |
+| SVE | 2016 | 128–2048 bits[^sve-width] | Vector-length agnostic operations, per-element masking, gather/scatter | HPC/server |
+| SVE2 | 2019 | 128–2048 bits | Complex arithmetic, bit deposit/extract | HPC/server |
 
 Main ARM SIMD instruction set extensions [@arm-manual].
 :::
