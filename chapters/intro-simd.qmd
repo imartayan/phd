@@ -42,8 +42,8 @@ Main x86 SIMD instruction set extensions [@intel-manual], with desktop adoption 
 | Extension | Year | Width | Key operations | Adoption |
 |:--:|:-:|:----:|:----------:|:---:|
 | NEON | 2007 | 128 bits | Packed float + integers | All |
-| SVE | 2016 | 128–2048 bits[^sve-width] | Vector-length agnostic operations, per-element masking, gather/scatter | HPC/server |
-| SVE2 | 2019 | 128–2048 bits | Complex arithmetic, bit deposit/extract | HPC/server |
+| SVE | 2016 | 128--2048 bits[^sve-width] | Vector-length agnostic operations, per-element masking, gather/scatter | HPC/server |
+| SVE2 | 2019 | 128--2048 bits | Complex arithmetic, bit deposit/extract | HPC/server |
 
 Main ARM SIMD instruction set extensions [@arm-manual].
 :::
@@ -54,14 +54,14 @@ Main ARM SIMD instruction set extensions [@arm-manual].
 
 :::{#lst-sum-avx2}
 ```rust
-let mut sum = _mm256_setzero_si256();
-for chunk in slice.chunks(8) {
-    let vec = _mm256_loadu_si256(chunk.as_ptr());
-    sum = _mm256_add_epi32(sum, vec);
+let mut sum = _mm256_setzero_si256(); // initialize with 0s
+for chunk in slice.chunks(8) { // for each chunk of 8 32-bit ints
+    let vec = _mm256_loadu_si256(chunk.as_ptr()); // load in a 256-bit register
+    sum = _mm256_add_epi32(sum, vec); // add each lane to the existing sum
 }
 let mut res = [0i32; 8];
 _mm256_storeu_si256(res.as_mut_ptr(), sum);
-return res.iter().sum::<i32>();
+return res.iter().sum::<i32>(); // horizontal sum of the lanes
 ```
 
 Sum of `i32` in AVX2 using 256-bit registers.
@@ -69,31 +69,31 @@ Sum of `i32` in AVX2 using 256-bit registers.
 
 :::{#lst-sum-neon}
 ```rust
-let mut sum = vdupq_n_s32(0);
-for chunk in slice.chunks(4) {
-    let vec = vld1q_s32(chunk.as_ptr());
-    sum = vaddq_s32(sum, vec);
+let mut sum = vdupq_n_s32(0); // initialize with 0s
+for chunk in slice.chunks(4) { // for each chunk of 4 32-bit ints
+    let vec = vld1q_s32(chunk.as_ptr()); // load in a 128-bit register
+    sum = vaddq_s32(sum, vec); // add each lane to the existing sum
 }
-return vaddvq_s32(sum);
+return vaddvq_s32(sum); // horizontal sum of the lanes
 ```
 
 Sum of `i32` in NEON using 128-bit registers.
 :::
 
-:::{#lst-sum-neon}
+:::{#lst-sum-portable-simd}
 ```rust
 #![feature(portable_simd)]
 use std::simd::Simd;
 
-let mut sum = Simd<i32, 8>::splat(0);
-for chunk in slice.chunks(8) {
-    let vec = Simd<i32, 8>::from_slice(chunk);
-    sum += vec;
+let mut sum = Simd<i32, 8>::splat(0); // initialize with 0s
+for chunk in slice.chunks(8) { // for each chunk of 8 32-bit ints
+    let vec = Simd<i32, 8>::from_slice(chunk); // load in SIMD register
+    sum += vec; // add each lane to the existing sum
 }
-return sum.reduce_sum();
+return sum.reduce_sum(); // horizontal sum of the lanes
 ```
 
-Sum of `i32` using `portable_simd`.
+Sum of `i32` using [portable_simd](https://doc.rust-lang.org/std/simd/index.html).
 :::
 
 TBA
