@@ -69,7 +69,7 @@ for chunk in slice.chunks(8) { // for each chunk of 8 32-bit ints
 }
 let mut res = [0i32; 8];
 _mm256_storeu_si256(res.as_mut_ptr(), sum);
-return res.iter().sum::<i32>(); // horizontal sum of the lanes
+return res.iter().sum::<i32>(); // manual horizontal sum of the lanes
 ```
 
 Sum of `i32` in AVX2 using 256-bit registers.
@@ -90,7 +90,7 @@ Sum of `i32` in NEON using 128-bit registers.
 
 One of the main drawbacks of hand-written SIMD code as shown in @lst-sum-avx2 and @lst-sum-neon is that it requires a specific implementation for each SIMD extension that we want to support, making it difficult to maintain and not very portable.
 However, trusting the compiler to auto-vectorize our code is not a reliable option either since it can easily break with a minor change, a new compiler version or a different architecture.
-A popular alternative is to use portable SIMD libraries, such as Rust's [portable_simd](https://doc.rust-lang.org/std/simd/index.html) or [wide](https://docs.rs/wide/latest/wide/)^[At the moment, `wide` is less complete than `portable_simd` but has the benefit of being stable.], which provides a unified API that compiles down to the appropriate SIMD extension.
+A popular alternative is to use portable SIMD libraries, such as Rust's [portable_simd](https://doc.rust-lang.org/std/simd/index.html) or [wide](https://docs.rs/wide/latest/wide/)^[At the moment, `wide` is less complete than `portable_simd` but has the benefit of being stable.], which provide a unified API that compiles down to the appropriate SIMD extension.
 An example of a portable SIMD implementation (supporting both x86 and ARM CPUs) is given in @lst-sum-portable-simd.
 
 :::{#lst-sum-portable-simd}
