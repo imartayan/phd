@@ -216,6 +216,7 @@ One benefit of having a manual implementation is that we can easily adapt it to 
 :::{#alg-bitmask}
 ```pseudocode
 #| html-no-end: true
+#| html-indent-lines: true
 #| html-line-number: false
 #| html-comment-delimiter: "//"
 #| pdf-line-number: false
@@ -266,6 +267,7 @@ Due to these architectural differences, producing a packed representation is sli
 :::{#alg-columnar-packed}
 ```pseudocode
 #| html-no-end: true
+#| html-indent-lines: true
 #| html-line-number: false
 #| html-comment-delimiter: "//"
 #| pdf-line-number: false

@@ -10,14 +10,17 @@ Branchless computation of the minimum in a sliding window of size $w$
 ::: {#alg-sliding-min}
 
 ```pseudocode
-#| html-line-number: false
 #| html-no-end: true
+#| html-indent-lines: true
+#| html-line-number: false
+#| html-comment-delimiter: "//"
 #| pdf-line-number: false
 #| pdf-no-end: true
 #| pdf-indent-lines: true
 #| pdf-italic-comment: true
 #| pdf-right-comment: true
 #| pdf-comment-color: "darkgray"
+#| pdf-comment-delimiter: "//"
 #| pdf-placement: "ht!"
 
 \begin{algorithmic}

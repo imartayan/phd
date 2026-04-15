@@ -90,6 +90,7 @@ In particular, it omits this second pass, reducing computational overhead at the
 :::{#alg-mini-filtering}
 ```pseudocode
 #| html-no-end: true
+#| html-indent-lines: true
 #| html-line-number: false
 #| html-comment-delimiter: "//"
 #| pdf-line-number: false

@@ -86,6 +86,7 @@ This approach is slightly slower than a lookup table for small alphabets, but fa
 :::{#alg-nthash}
 ```pseudocode
 #| html-no-end: true
+#| html-indent-lines: true
 #| html-line-number: false
 #| html-comment-delimiter: "//"
 #| pdf-line-number: false
