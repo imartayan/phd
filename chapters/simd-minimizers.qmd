@@ -19,8 +19,8 @@ A summarized comparison of these three algorithms is given in @tbl-algos-sliding
 
 ### Naive approach
 
-The simplest approach is to simply loop over the $w$ values in each window independently, as described in @alg-sliding-min-naive.
-This takes $O(wn)$ time, but has the benefit of being branchless and can still be quite efficient when $w$ is small by using vectorized instructions.
+The simplest approach is to simply loop over the *w* values in each window independently, as described in @alg-sliding-min-naive.
+This takes $\mathcal{O}(wn)$ time, where $n$ denotes the total number of values, but has the benefit of being branchless and can still be quite efficient when *w* is small by using vectorized instructions.
 
 ::: {#alg-sliding-min-naive}
 
@@ -52,12 +52,12 @@ Naive algorithm for sliding window minimum
 
 ### Monotone queue
 
-A solution with better complexity, detailed in @alg-sliding-min-queue, is to use a *monotone queue*, which stores a non-decreasing subsequence of the $w$ hashes, alongside their positions.
+A solution with better complexity, detailed in @alg-sliding-min-queue, is to use a *monotone queue*, which stores a non-decreasing subsequence of the *w* hashes, alongside their positions.
 For instance, this is the method used in Bifrost [@bifrost].
 Every time the window slides one to the right and we are about to push a new /kmer hash onto the right of the queue, we first
 remove any values larger than it, as they are "shadowed" by the new hash and can never be minimal anymore.
 The minimum of the window is then always the leftmost queue element.
-This data structure guarantees an amortized constant time update, but has many unpredictable branches due to removing between $0$ and $w$ values, which makes it costly in practice.
+This data structure guarantees an amortized constant time update, but has many unpredictable branches due to removing between 0 and *w* values, which makes it costly in practice.
 
 ::: {#alg-sliding-min-queue}
 
