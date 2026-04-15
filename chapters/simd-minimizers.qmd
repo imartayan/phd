@@ -13,7 +13,7 @@ We first focus on computing *forward* minimizers (without taking reverse-complem
 :::{#fig-simd-mini-overview}
 ![](../fig/simd-mini/overview)
 
-High-level view of the main steps to compute random minimizers.
+Overview of the main steps to compute random minimizers, for $k=5$ and $w=4$.
 :::
 
 ## Existing algorithms for random minimizers
