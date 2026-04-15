@@ -6,9 +6,14 @@ This chapter is adapted from [@simd-minimizers].
 
 In this chapter, we focus on computing *random minimizers* as efficiently as possible:
 for each window of *w* consecutive /kmers, we select the smallest /kmer given a pseudo-random order (see @sec-intro-minimizers for a detailed introduction).
-This order is usually given by comparing hash values, and in case of ties the leftmost smallest /kmer is selected.
-In particular, we are interested finding the *positions* of random minimizers in a sequence, from which we can extract the minimizers themselves.
-We first focus on computing *forward* minimizers (without taking reverse-complement into account) for simplicity, and then describe a solution for *canonical* minimizers in @sec-canonical-minimizers.
+This order is usually given by comparing hash values, and selecting the leftmost smallest hash in case of ties.
+More precisely, we are interested finding the *positions* of random minimizers in a sequence, from which we can extract the minimizers themselves.
+We will first focus on computing *forward* minimizers (without taking reverse-complement into account) for simplicity, and later describe a solution for *canonical* minimizers in @sec-canonical-minimizers.
+
+The computation of random minimizers is divided in three main steps, illustrated in @fig-simd-mini-overview.
+First each /kmer of the input string (corresponding to horizontal lines in the figure) is hashed to a 32-bit integer (value above each line) using a rolling hash as presented in @sec-rolling-hash.
+Then, for each window of *w* consecutive /kmers, we find the absolute position of its smallest hash: for instance the fourth window in the figure, highlighted in yellow, has a smallest hash equal to 12 starting at position 5 (zero-based).
+Finally, the resulting minimizers positions are deduplicated.
 
 :::{#fig-simd-mini-overview}
 ![](../fig/simd-mini/overview)
@@ -16,11 +21,11 @@ We first focus on computing *forward* minimizers (without taking reverse-complem
 Overview of the main steps to compute random minimizers, for $k=5$ and $w=4$.
 :::
 
-## Existing algorithms for random minimizers
+## Existing algorithms for sliding window minimum
 
-Assuming that we can easily iterate over /kmer hashes, for instance using a rolling hash as described in @sec-rolling-hash, our problem becomes a *sliding window minimum*.
-Given a sliding window of *w* values (in our case /kmer hashes), we want to output the position of the the smallest value (breaking ties with the leftmost one).
-Many approaches can be used to solve this problem, in this section we will focus on three common ones: the "naive" algorithm, the "rescan" algorithm and the monotone queue algorithm.
+Assuming that we have computed the hash values, our problem becomes a *sliding window minimum*.
+Given a sliding window of *w* values (in our case /kmer hashes), we want to output the position of its smallest value (breaking ties with the leftmost one).
+Many approaches can be used to solve this problem, here we will focus on three common ones: the "naive" algorithm, the "rescan" algorithm and the monotone queue algorithm.
 A summarized comparison of these three algorithms is given in @tbl-algos-sliding-min.
 
 ### Naive approach
