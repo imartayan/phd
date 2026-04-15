@@ -1,4 +1,4 @@
-# Rolling hashes on sequences
+# Rolling hashes on sequences {#sec-rolling-hash}
 
 :::{.callout-note}
 This chapter is partially adapted from [@simd-minimizers].

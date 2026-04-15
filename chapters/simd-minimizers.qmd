@@ -4,15 +4,145 @@
 This chapter is adapted from [@simd-minimizers].
 :::
 
+In this chapter, we focus on computing *random minimizers* as efficiently as possible:
+for each window of *w* consecutive /kmers, we select the smallest /kmer given a pseudo-random order (see @sec-intro-minimizers for a detailed introduction).
+This order is usually given by comparing hash values, and in case of ties the leftmost smallest /kmer is selected.
+In particular, we are interested finding the *positions* of random minimizers in a sequence, from which we can extract the minimizers themselves.
+We first focus on computing *forward* minimizers (without taking reverse-complement into account) for simplicity, and then describe a solution for *canonical* minimizers in @sec-canonical-minimizers.
+
 ## Existing algorithms for random minimizers
+
+Assuming that we can easily iterate over /kmer hashes, for instance using a rolling hash as described in @sec-rolling-hash, our problem becomes a *sliding window minimum*.
+Given a sliding window of *w* values (in our case /kmer hashes), we want to output the position of the the smallest value (breaking ties with the leftmost one).
+Many approaches can be used to solve this problem, in this section we will focus on three common ones: the "naive" algorithm, the "rescan" algorithm and the mononotone queue algorithm.
+A summarized comparison of these three algorithms is given in @tbl-algos-sliding-min.
 
 ### Naive approach
 
+::: {#alg-sliding-min-naive}
+
+```pseudocode
+#| html-no-end: true
+#| html-indent-lines: true
+#| html-line-number: false
+#| html-comment-delimiter: "//"
+#| pdf-line-number: false
+#| pdf-no-end: true
+#| pdf-indent-lines: true
+#| pdf-italic-comment: true
+#| pdf-right-comment: true
+#| pdf-comment-color: "darkgray"
+#| pdf-comment-delimiter: "//"
+#| pdf-placement: "ht!"
+
+\begin{algorithmic}
+\Function{Naive}{$w, \texttt{vals}$}
+    \For{$i$ in $\{0, \ldots, |\texttt{vals}| - w\}$}
+        \State{\textbf{yield} $\arg \min \{\texttt{vals}[i], \ldots, \texttt{vals}[i+w-1]\}$}
+    \EndFor
+\EndFunction
+\end{algorithmic}
+```
+
+Naive algorithm for sliding window minimum
+:::
+
 ### Rescan
+
+::: {#alg-sliding-min-rescan}
+
+```pseudocode
+#| html-no-end: true
+#| html-indent-lines: true
+#| html-line-number: false
+#| html-comment-delimiter: "//"
+#| pdf-line-number: false
+#| pdf-no-end: true
+#| pdf-indent-lines: true
+#| pdf-italic-comment: true
+#| pdf-right-comment: true
+#| pdf-comment-color: "darkgray"
+#| pdf-comment-delimiter: "//"
+#| pdf-placement: "ht!"
+
+\begin{algorithmic}
+\Function{Rescan}{$w, \texttt{vals}$}
+    \State{$\texttt{min\_val} \gets +\infty$}
+    \State{$\texttt{min\_pos} \gets 0$}
+    \For{$i$ in $\{0, \ldots, |\texttt{vals}| - 1\}$}
+        \If{$\texttt{vals}[i] < \texttt{min\_val}$}
+            \State{$\texttt{min\_val} \gets \texttt{vals}[i]$}
+            \State{$\texttt{min\_pos} \gets i$}
+        \EndIf
+        \If{$\texttt{min\_pos} + w \leq i$}
+            \State{$\texttt{min\_pos} \gets \arg \min \{\texttt{vals}[i-w+1], \ldots, \texttt{vals}[i]\}$}
+            \State{$\texttt{min\_val} \gets \texttt{vals}[\texttt{min\_pos}]$}
+        \EndIf
+        \If{$i \geq w-1$}
+            \State{\textbf{yield} $\texttt{min\_pos}$}
+        \EndIf
+    \EndFor
+\EndFunction
+\end{algorithmic}
+```
+
+Rescan algorithm for sliding window minimum
+:::
 
 ### Monotone queue
 
+::: {#alg-sliding-min-queue}
+
+```pseudocode
+#| html-no-end: true
+#| html-indent-lines: true
+#| html-line-number: false
+#| html-comment-delimiter: "//"
+#| pdf-line-number: false
+#| pdf-no-end: true
+#| pdf-indent-lines: true
+#| pdf-italic-comment: true
+#| pdf-right-comment: true
+#| pdf-comment-color: "darkgray"
+#| pdf-comment-delimiter: "//"
+#| pdf-placement: "ht!"
+
+\begin{algorithmic}
+\Function{Queue}{$w, \texttt{vals}$}
+    \State{$\texttt{queue} \gets$ empty \textsc{DoubleEndedQueue}}
+    \For{$i$ in $\{0, \ldots, |\texttt{vals}| - 1\}$}
+        \If{$\texttt{queue.front().pos} + w \leq i$}
+            \State{\texttt{queue.pop\_front()}}
+        \EndIf
+        \While{$\texttt{queue.back.val} > \texttt{vals}[i]$}
+            \State{\texttt{queue.pop\_back()}}
+        \EndWhile
+        \State{$\texttt{queue.push\_back}(\texttt{val}
+            \gets  \texttt{vals}[i], \texttt{pos} \gets i)$}
+        \If{$i \geq w-1$}
+            \State{\textbf{yield} $\texttt{queue.front().pos}$}
+        \EndIf
+    \EndFor
+\EndFunction
+\end{algorithmic}
+```
+
+Monotone queue algorithm for sliding window minimum
+:::
+
+:::{#tbl-algos-sliding-min .large-table}
+| Algorithm | Time complexity | Branches |
+|:---:|:---:|:---:|
+| Naive | $\mathcal{O}(nw)$ (always) | branchless |
+| Rescan | $\mathcal{O}(n)$ on average | branch for each rescan |
+| Monotone queue | $\mathcal{O}(n)$ worst-case | branch for each update |
+
+Comparison of the naive, rescan and monotone queue sliding window minimum algorithms.
+:::
+
 ## A branchless linear algorithm using two stacks
+
+## Computing canonical minimizers {#sec-canonical-minimizers}
 
 ## Vectorized implementation
 
