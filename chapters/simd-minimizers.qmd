@@ -4,6 +4,18 @@
 This chapter is adapted from [@simd-minimizers].
 :::
 
+## Existing algorithms for random minimizers
+
+### Naive approach
+
+### Rescan
+
+### Monotone queue
+
+## A branchless linear algorithm using two stacks
+
+## Vectorized implementation
+
 Branchless computation of the minimum in a sliding window of size $w$
 (in practice $w$ /kmer hashes)
 
@@ -63,3 +75,5 @@ Branchless computation of the minimum in a sliding window of size $w$
 
 Sliding min using two stacks
 :::
+
+## Variations and practical use
