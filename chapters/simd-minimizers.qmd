@@ -10,6 +10,12 @@ This order is usually given by comparing hash values, and in case of ties the le
 In particular, we are interested finding the *positions* of random minimizers in a sequence, from which we can extract the minimizers themselves.
 We first focus on computing *forward* minimizers (without taking reverse-complement into account) for simplicity, and then describe a solution for *canonical* minimizers in @sec-canonical-minimizers.
 
+:::{#fig-simd-mini-overview}
+![](../fig/simd-mini/overview)
+
+High-level view of the main steps to compute random minimizers.
+:::
+
 ## Existing algorithms for random minimizers
 
 Assuming that we can easily iterate over /kmer hashes, for instance using a rolling hash as described in @sec-rolling-hash, our problem becomes a *sliding window minimum*.
