@@ -12,7 +12,7 @@ The concept of applying a single instruction to multiple data elements simultane
 The Cray-1 [@cray1], designed by Seymour Cray and introduced in 1976, was one of the first successful vector processors.
 It exposed 8 vector registers of 64 double-precision floats each, with dedicated pipelined units that could operate on entire registers in a single instruction.
 This made it particularly well-suited to the dense numerical workloads of scientific computing, but its vector model stayed confined to high-performance computing for the following decades.
-The landscape shifted in 1997 when Intel introduced the MMX extension to consumer CPUs, motivated by the growing demands of multimedia workloads.
+The landscape shifted in 1997 when Intel introduced the MMX extension to consumer CPUs, motivated by the growing demands of multimedia workloads [@intel-mmx].
 MMX exposed 64-bit registers holding multiple packed integers, establishing the template of the extensions that followed.
 The main SIMD instruction set extensions available on modern x86 and ARM CPUs are summarized in @tbl-simd-x86 and @tbl-simd-arm respectively.
 
