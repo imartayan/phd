@@ -312,7 +312,7 @@ One small drawback of this scheme is that it is not *forward*, i.e. the selected
 Suppose for instance that a long window has many occurrences of the smallest minimizer, and that shifting the window one position changes its canonical strand.
 In that case, the position of the sampled minimizer could jump backwards: from sampling the rightmost minimizer to sampling the leftmost minimizer.
 In practice, this does not seem to be a major limitation, both because it is rare and because downstream methods usually work fine on non-forward schemes anyway.
-Another (slower) selection method for canonical minimizers that preserves the forward property is described @sec-appendix-forward-canonical.
+Another (slower) scheme for canonical minimizers preserving the forward property is described @sec-appendix-forward-canonical.
 
 ## Vectorized implementation
 
