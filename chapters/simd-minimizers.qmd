@@ -5,9 +5,9 @@ This chapter is adapted from [@simd-minimizers].
 :::
 
 In this chapter, we focus on computing *random minimizers* as efficiently as possible:
-for each window of *w* consecutive /kmers, we select the smallest /kmer given a pseudo-random order (see @sec-intro-minimizers for a detailed introduction).
+for each window of *w* consecutive /kmers, we select the smallest /kmer given a pseudo-random order (see @sec-intro-minimizers for a broader introduction).
 This order is usually given by comparing hash values, and selecting the leftmost smallest hash in case of ties.
-More precisely, we are interested finding the *positions* of random minimizers in a sequence, from which we can extract the minimizers themselves.
+More precisely, we are interested finding the *starting positions* of random minimizers in a sequence, from which we can extract the minimizers themselves.
 We will first focus on computing *forward* minimizers (without taking reverse-complement into account) for simplicity, and later describe a solution for *canonical* minimizers in @sec-canonical-minimizers.
 
 The computation of random minimizers is divided in three main steps, illustrated in @fig-simd-mini-overview.
