@@ -58,7 +58,7 @@ This takes $\mathcal{O}(wn)$ time, where $n$ denotes the total number of values,
 \end{algorithmic}
 ```
 
-Naive algorithm for sliding window minimum
+Naive algorithm for sliding window minimum.
 :::
 
 ### Monotone queue
@@ -106,7 +106,7 @@ This data structure guarantees an amortized constant time update, but has many u
 \end{algorithmic}
 ```
 
-Monotone queue algorithm for sliding window minimum
+Monotone queue algorithm for sliding window minimum.
 :::
 
 ### Rescan
@@ -153,27 +153,43 @@ This makes it more efficient in practice, especially since minimizers typically 
 \end{algorithmic}
 ```
 
-Rescan algorithm for sliding window minimum
+Rescan algorithm for sliding window minimum.
 :::
 
 :::{#tbl-algos-sliding-min .large-table}
 | Algorithm | Time complexity | Branches |
 |:---:|:-------:|:----:|
-| Naive | $\mathcal{O}(nw)$ worst-case | branchless |
+| Naive | $\mathcal{O}(nw)$ worst-case | [branchless]{.mark} |
 | Rescan | $\mathcal{O}(nw)$ worst-case, $\mathcal{O}(n)$ on average | branch for each rescan |
-| Monotone queue | $\mathcal{O}(n)$ worst-case | branch for each update |
+| Monotone queue | [$\mathcal{O}(n)$ worst-case]{.mark} | branch for each update |
 
 Comparison of the naive, rescan and monotone queue sliding window minimum algorithms.
 :::
 
 ## A branchless linear algorithm using two stacks
 
-## Computing canonical minimizers {#sec-canonical-minimizers}
+### The two-stacks algorithm
 
-## Vectorized implementation
+Ideally, we would like to design an algorithm that has both a $\mathcal{O}(n)$ worst-case complexity (like the monotone queue) and no unpredictable branches (like the naive approach).
+The *two-stacks* method [@sliding-window-aggregation;@streaming-window-aggregation], well-known in the competitive programming community^[<https://codeforces.com/blog/entry/71687>], allows us to compute *online* sliding minima where elements may be added and removed at varying rates.
+Here, we only discuss a version where the number of elements remains constant at $w$.
 
-Branchless computation of the minimum in a sliding window of size $w$
-(in practice $w$ /kmer hashes)
+Conceptually, we first split the sequence of input /kmer hashes into blocks of size $w$, as shown in @fig-sliding-window-min.
+Then, we can compute both prefix minima and suffix minima of each block in $\mathcal{O}(w)$ per block, or $\mathcal{O}(1)$ amortized per input hash.
+Now, any window of size $w$ can be split into a suffix of the previous block and a prefix of the current block (as highlighted in yellow in @fig-sliding-window-min), and we can return the minimum of the two corresponding suffix/prefix minima.
+When the window exactly coincides with a block (as shown on the right), the suffix and prefix minimum are equal.
+
+:::{#fig-sliding-window-min}
+![](../fig/simd-mini/sliding-window-min)
+
+An example showing how sliding-window minima can be computed for windows of size $w=4$.
+The first window highlighted in yellow overlap two blocks and has 5 as suffix minimum and 1 as prefix minimum.
+The second highlighted window coincides with a block and has 3 as suffix and prefix minimum.
+:::
+
+In the implementation, detailed in @alg-sliding-min, the prefix minima are simply computed incrementally, while the suffix-minima are computed in batches after every block of $w$ hashes has been filled.
+This way, a single buffer of size $w$ is needed and the two cases above are unified.
+The only branch in the algorithm triggers exactly every $w$ iterations, and is thus completely data-independent and predictable.
 
 ::: {#alg-sliding-min}
 
@@ -192,7 +208,60 @@ Branchless computation of the minimum in a sliding window of size $w$
 #| pdf-placement: "ht!"
 
 \begin{algorithmic}
-\Function{SlidingMin}{$w, \texttt{hash\_it}$}
+\Function{TwoStacks}{$w, \texttt{vals}$}
+    \State{$\texttt{prefix\_min} \gets \texttt{MAXINT}$}
+    \State{$\texttt{suffix\_min} \gets$ buffer of size $w$ filled with $\texttt{MAXINT}$}
+    \State{$j \gets 0$}
+    \Comment{Current index in the buffer.}
+    \For{$i$ in $\{0, \ldots, |\texttt{vals}| - 1\}$}
+        \State{$\texttt{prefix\_min} \gets \min(\texttt{prefix\_min}, \texttt{vals}[i])$}
+        \State{$\texttt{suffix\_min}[j] \gets \texttt{vals}[i]$}
+        \Comment{Write the current value into the buffer.}
+        \State{$j \gets j + 1$}
+        \If{$j = w$}
+        \Comment{When the buffer is full, recompute suffix minima.}
+            \State{$j \gets 0$}
+            \State{$\texttt{prefix\_min} \gets \texttt{MAXINT}$}
+            \For{$k$ in $\{w-2, w-3, \ldots, 0\}$}
+                \State{$\texttt{suffix\_min}[k] \gets \min(\texttt{suffix\_min}[k], \texttt{suffix\_min}[k+1])$}
+            \EndFor
+        \EndIf
+        \If{$i \ge w-1$}
+        \Comment{Skip the first $w-1$ incomplete windows.}
+            \State{\textbf{yield} $\min(\texttt{prefix\_min}, \texttt{suffix\_min}[j])$}
+        \EndIf
+    \EndFor
+\EndFunction
+\end{algorithmic}
+```
+
+Two-stacks algorithm for sliding window minimum.
+:::
+
+### Combining hashes and positions
+
+## Computing canonical minimizers {#sec-canonical-minimizers}
+
+## Vectorized implementation
+
+::: {#alg-simd-sliding-min}
+
+```pseudocode
+#| html-no-end: true
+#| html-indent-lines: true
+#| html-line-number: false
+#| html-comment-delimiter: "//"
+#| pdf-line-number: false
+#| pdf-no-end: true
+#| pdf-indent-lines: true
+#| pdf-italic-comment: true
+#| pdf-right-comment: true
+#| pdf-comment-color: "darkgray"
+#| pdf-comment-delimiter: "//"
+#| pdf-placement: "ht!"
+
+\begin{algorithmic}
+\Function{SimdSlidingMin}{$w, \texttt{hash\_it}$}
     \Comment{\texttt{hash\_it} iterates over 32-bit hashes of each k-mer.}
     \State{$\texttt{val\_mask} \gets \texttt{0xffff0000}$}
     \Comment{Use high 16 bits of each value.}
@@ -205,8 +274,9 @@ Branchless computation of the minimum in a sliding window of size $w$
     \State{$i \gets \texttt{LANE\_IDX} \times n$}
     \Comment{Current position of the lane.}
     \State{$j \gets 0$}
+    \Comment{Current index in the buffer.}
     \For{$h$ in $\texttt{hash\_it}$}
-        \State{$\texttt{val} \gets (h \texttt{ \& val\_mask}) \texttt{ | i}$}
+        \State{$\texttt{val} \gets (h \texttt{ \& val\_mask}) \texttt{ | } i$}
         \State{$\texttt{prefix\_min} \gets \min(\texttt{prefix\_min}, \texttt{val})$}
         \State{$\texttt{suffix\_min}[j] \gets \texttt{val}$}
         \Comment{Write the current value into the buffer.}
@@ -229,7 +299,7 @@ Branchless computation of the minimum in a sliding window of size $w$
 \end{algorithmic}
 ```
 
-Sliding min using two stacks
+SIMD two-stacks algorithm for sliding window minimum, with leftmost tie-breaks.
 :::
 
 ## Variations and practical use
