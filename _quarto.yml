@@ -47,6 +47,7 @@ book:
     - references.qmd
   appendices:
     - appendix/simd-parsing.qmd
+    - appendix/forward-canonical.qmd
   draft-mode: gone
 
 bibliography: references.bib
