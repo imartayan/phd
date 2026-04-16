@@ -31,7 +31,7 @@ A summarized comparison of these three algorithms is given in @tbl-algos-sliding
 ### Naive approach
 
 The simplest approach is to simply loop over the *w* values in each window independently, as described in @alg-sliding-min-naive.
-This takes $\mathcal{O}(wn)$ time, where $n$ denotes the total number of values, but has the benefit of being branchless and can still be quite efficient when *w* is small by using vectorized instructions.
+This takes $\mathcal{O}(nw)$ time, where $n$ denotes the total number of values, but has the benefit of being branchless and can still be quite efficient when *w* is small by using vectorized instructions.
 
 ::: {#alg-sliding-min-naive}
 
@@ -240,7 +240,78 @@ Two-stacks algorithm for sliding window minimum.
 
 ### Combining hashes and positions
 
+Since we want to return the leftmost position of the minimum and not the minimum itself, we need to keep track of the positions alongside values.
+While we could simply store value-position tuples in the buffer, what we do in practice is that we only use the upper 16 bits of each hash value and store the position in the lower 16 bits.
+This way, taking the minimum still prioritize the smallest values and breaks ties in favor of the leftmost occurrence as expected.
+Since the position is stored using 16 bits, strings longer than 2^16^ characters are processed in chunks of 2^16^.
+We note here that while using a 16-bit hash is usually not sufficient for /kmer indexing purposes, this *is* sufficiently good for selecting the minimum of a window when $w \ll 2^{16}$, which is typically the case in bioinformatics applications.
+We intentionally do not expose this hash to the user, and recommend instead to compute a second larger hash for indexing purposes if needed.
+
 ## Computing canonical minimizers {#sec-canonical-minimizers}
+
+The algorithm we described so far does not take reverse-complement into account.
+However, in many applications, we want a sequence and its reverse-complement to output the same result.
+To satisfy this constraint, *canonical minimizers* should return the same set of /kmers regardless of the orientation of the input.
+Specifically, if the canonical minimizer of a window $W$ is at position $p$, then the canonical minimizer of the reverse-complement of $W$ should be at position $|W| - k - p = w-1-p$.
+In practice, canonical minimizers are often overlooked as an implementation detail and most existing methods simply compare canonical /kmers, computed as $\widehat{x} = \min(x, \operatorname{rc}(x))$, which gives a weaker guarantee [@knonical].
+
+The first step is to adapt the hash function so that a /kmer and its reverse-complement are always hashed to the same value.
+For rolling hashes, this can easily be achieved using the method described in @sec-canonical-hash.
+
+Following [@pan2024GCcontent], we define the *canonical strand* for each window of length $\ell$ as the strand where the count of `GT` bases^[Any pair of non-complementary bases would work here.] (encoded as `11` and `10` respectively) is the highest, as shown in @alg-canonical.
+This count is in $[0, \ell]$ and when $\ell$ is odd there can be no tie between the two strands.
+In code, we instead compute the more symmetric $\#\texttt{GT} -\#\texttt{AC} = 2\#\texttt{GT} - \ell$, which is in $[-\ell, \ell]$, so that count $>0$ defines the canonical strand.
+Then, we select the leftmost forward minimizer when the window is canonical, and the rightmost reverse-complement minimizer when the window is not canonical.
+
+::: {#alg-canonical}
+
+```pseudocode
+#| html-no-end: true
+#| html-indent-lines: true
+#| html-line-number: false
+#| html-comment-delimiter: "//"
+#| pdf-line-number: false
+#| pdf-no-end: true
+#| pdf-indent-lines: true
+#| pdf-italic-comment: true
+#| pdf-right-comment: true
+#| pdf-comment-color: "darkgray"
+#| pdf-comment-delimiter: "//"
+#| pdf-placement: "ht!"
+
+\begin{algorithmic}
+\Function{canonical}{$k, w, \texttt{in\_out}$}
+\Comment{\texttt{in\_out} iterates pairs (last bp, first bp) of each window.}
+    \State{$\ell \gets k - w + 1$}
+    \Comment{Window length, it must be odd to guarantee canonicity.}
+    \State{$c \gets -\ell$}
+    \Comment{Count $\#\texttt{GT} - \#\texttt{AC}$, starting at $-\ell$ and adding/subtracting 2 for each \texttt{G} or \texttt{T}.}
+    \For{$(\texttt{in\_bp}, \texttt{\_})$ in $\texttt{in\_out}[0:\ell-1]$}
+    \Comment{The first $\ell-1$ iterations, there is no \texttt{out\_bp}.}
+        \State{$c \gets c + (\texttt{in\_bp \& 2})$}
+    \EndFor
+    \For{$(\texttt{in\_bp}, \texttt{out\_bp})$ in $\texttt{in\_out}[\ell-1:]$}
+    \Comment{2-bit bp coming in and out of each window.}
+        \State{$c \gets c + (\texttt{in\_bp \& 2})$}
+        \State{\textbf{yield} $c > 0$}
+        \Comment{A window is canonical if $\#\texttt{GT} > \#\texttt{AC}$.}
+        \State{$c \gets c - (\texttt{out\_bp \& 2})$}
+    \EndFor
+\EndFunction
+\end{algorithmic}
+```
+
+Counting $\#\texttt{GT} - \#\texttt{AC}$.
+It can never be 0 when $\ell$ is odd, and a window is canonical if this is positive.
+:::
+
+The benefit of this method over, say, determining the strand via the middle character (assuming again that $\ell$ is odd), is that the `GT` count is more stable across consecutive windows, since it varies by $\pm 1$.
+This way, the strandedness and thus the chosen minimizer is less likely to flip between adjacent windows.
+
+One small drawback of this scheme is that it is not *forward*, i.e. the selected positions are not guaranteed to be non-decreasing.
+Suppose for instance that a long window has many occurrences of the smallest minimizer, and that shifting the window one position changes its canonical strand.
+In that case, the position of the sampled minimizer could jump backwards: from sampling the rightmost minimizer to sampling the leftmost minimizer.
+In practice, this does not seem to be a major limitation, both because it is rare and because downstream methods usually work fine on non-forward schemes anyway.
 
 ## Vectorized implementation
 

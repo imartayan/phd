@@ -124,7 +124,7 @@ This approach is slightly slower than a lookup table for small alphabets, but fa
 Scalar pseudocode for ntHash.
 :::
 
-### Reverse-complement and canonical hashing
+### Reverse-complement and canonical hashing {#sec-canonical-hash}
 
 This definition of rolling hashes is also convenient to hash the reverse-complement of a sequence.
 Since we process the values in a reverse order, we can simply change the direction of rotation:
