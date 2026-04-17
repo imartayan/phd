@@ -1,3 +1,4 @@
 great-tables
+jupyter
 pandas
-yaml
+pyyaml
