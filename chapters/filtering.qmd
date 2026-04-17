@@ -286,24 +286,119 @@ More generally, negative queries tend to benefit more from K2Rmini than positive
 Overall, K2Rmini consistently outperforms BackToSequences across all tested datasets, with the strongest improvements on long reads and on negative queries.
 
 :::{#tbl-k2r-bts-perf .large-table}
-| | | CPU time (s) | | | Elapsed time (s) | |
-|:-|:-:|:--:|:-:|:-:|:--:|:-:|
-| **Experiment** | **K2Rmini** | **BTS** | **Speedup** | **K2Rmini** | **BTS** | **Speedup** |
-| ONT +      | 1850.65 | 19529.04 | ×10.55 |  531.83 | 2626.34 | ×4.94  |
-| ONT -      |  959.72 | 17021.16 | ×17.74 |  125.13 | 2013.64 | ×16.09 |
-| HiFi +     |  279.46 |  7527.53 | ×26.94 |   33.11 |  907.56 | ×27.41 |
-| HiFi -     |  273.75 |  4716.76 | ×17.23 |   33.70 |  557.88 | ×16.55 |
-| Illumina + |  278.24 |  1537.61 | ×5.53  |   43.56 |  173.02 | ×3.97  |
-| Illumina - |  267.35 |  1597.82 | ×5.98  |   40.41 |  180.89 | ×4.48  |
-| T2T +      |   55.85 |   223.67 | ×4.00  |    8.88 |   37.19 | ×4.19  |
-| T2T -      |    9.81 |   148.98 | ×15.19 |    2.31 |   25.63 | ×11.10 |
-| Contigs +  |   14.05 |   102.10 | ×7.27  |    2.18 |   12.66 | ×5.81  |
-| Contigs -  |   13.83 |   102.29 | ×7.40  |    2.15 |   12.70 | ×5.91  |
-| Unitigs +  |   76.56 |   191.45 | ×2.50  |   13.87 |   26.49 | ×1.91  |
-| Unitigs -  |   75.29 |   192.07 | ×2.55  |   14.07 |   26.65 | ×1.89  |
+
+```{python}
+#| echo: false
+from great_tables import GT, style, loc, md
+import pandas as pd
+
+df = pd.DataFrame(
+    {
+        "Experiment": [
+            "ONT +",
+            "ONT −",
+            "HiFi +",
+            "HiFi −",
+            "Illumina +",
+            "Illumina −",
+            "T2T +",
+            "T2T −",
+            "Contigs +",
+            "Contigs −",
+            "Unitigs +",
+            "Unitigs −",
+        ],
+        "cpu_k2r": [
+            1850.65,
+            959.72,
+            279.46,
+            273.75,
+            278.24,
+            267.35,
+            55.85,
+            9.81,
+            14.05,
+            13.83,
+            76.56,
+            75.29,
+        ],
+        "cpu_bts": [
+            19529.04,
+            17021.16,
+            7527.53,
+            4716.76,
+            1537.61,
+            1597.82,
+            223.67,
+            148.98,
+            102.10,
+            102.29,
+            191.45,
+            192.07,
+        ],
+        "ela_k2r": [
+            531.83,
+            125.13,
+            33.11,
+            33.70,
+            43.56,
+            40.41,
+            8.88,
+            2.31,
+            2.18,
+            2.15,
+            13.87,
+            14.07,
+        ],
+        "ela_bts": [
+            2626.34,
+            2013.64,
+            907.56,
+            557.88,
+            173.02,
+            180.89,
+            37.19,
+            25.63,
+            12.66,
+            12.70,
+            26.49,
+            26.65,
+        ],
+    }
+)
+
+df["cpu_speedup"] = df["cpu_bts"] / df["cpu_k2r"]
+df["ela_speedup"] = df["ela_bts"] / df["ela_k2r"]
+
+numeric_cols = ["cpu_k2r", "cpu_bts", "ela_k2r", "ela_bts"]
+
+(
+    GT(df)
+    .tab_spanner(
+        label=md("**CPU time (s)**"), columns=["cpu_k2r", "cpu_bts", "cpu_speedup"]
+    )
+    .tab_spanner(
+        label=md("**Elapsed time (s)**"), columns=["ela_k2r", "ela_bts", "ela_speedup"]
+    )
+    .cols_label(
+        Experiment="Experiment",
+        cpu_k2r="K2Rmini",
+        cpu_bts="BTS",
+        cpu_speedup="Speedup",
+        ela_k2r="K2Rmini",
+        ela_bts="BTS",
+        ela_speedup="Speedup",
+    )
+    .fmt_number(columns=numeric_cols, decimals=2)
+    .fmt_number(columns=["cpu_speedup", "ela_speedup"], decimals=2, pattern="×{x}")
+    .cols_align("right", columns=numeric_cols + ["cpu_speedup", "ela_speedup"])
+    .cols_align("left", columns="Experiment")
+)
+```
 
 Runtime comparison between K2Rmini and BTS using 8 threads.
-`+` indicates positives queries while `-` indicates negative ones.
+`+` indicates positive queries while `−` indicates negative ones.
+
 :::
 
 ## Discussion

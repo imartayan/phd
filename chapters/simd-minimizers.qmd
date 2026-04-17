@@ -374,4 +374,117 @@ Another (slower) scheme for canonical minimizers preserving the forward property
 SIMD two-stacks algorithm for sliding window minimum, with leftmost tie-breaks.
 :::
 
+## Experimental evaluation
+
+::: {#tbl-minimizer-incremental-time .large-table}
+
+```{python}
+#| echo: false
+from great_tables import GT, style, loc, md
+import pandas as pd
+
+df = pd.DataFrame(
+    {
+        "Step": [
+            "Iterate the bases",
+            "+ collect to vector",
+            "+ iterate the delayed bases",
+            "+ ntHash",
+            "+ sliding window min",
+            "&nbsp;&nbsp;+ collect",
+            "&nbsp;&nbsp;+ dedup",
+            "+ canonical ntHash",
+            "+ canonical strand",
+            "&nbsp;&nbsp;+ collect",
+            "&nbsp;&nbsp;+ dedup",
+        ],
+        "ns/bp": [0.15, 0.30, 0.30, 0.32, 0.90, 1.48, 1.61, 1.04, 1.53, 2.03, 2.20],
+    }
+)
+
+(
+    GT(df)
+    .cols_align("right", columns="ns/bp")
+    .fmt_number(columns=df.columns[1:].tolist(), decimals=2)
+    .tab_style(
+        style=style.borders(sides="top", color="#000000", weight="1px"),
+        locations=loc.body(rows=[3, 7]),
+    )
+    .tab_style(
+        style=style.text(weight="bold"),
+        locations=loc.body(columns="ns/bp", rows=[6, 10]),
+    )
+)
+```
+
+Total time per base taken when incrementally including more steps of the
+implementation, for $(w,k)=(11,21)$.
+
+:::
+
+::: {#tbl-minimizer-impl-comparison}
+
+```{python}
+#| echo: false
+df = pd.DataFrame(
+    {
+        "Method": [
+            "`minimizer-iter`",
+            "Rescan ntHash",
+            "`simd-minimizers` ntHash",
+            "&nbsp;&nbsp;‑ packed input",
+            "&nbsp;&nbsp;‑ on-the-fly packing",
+            "Rescan mulHash",
+            "`simd-minimizers` mulHash",
+            "&nbsp;&nbsp;‑ packed input",
+            "&nbsp;&nbsp;‑ on-the-fly packing",
+            "&nbsp;&nbsp;‑ ASCII input",
+        ],
+        "fwd_5_31": [25.30, 11.65, None, 1.69, 1.92, 11.37, None, 1.85, 2.12, 2.11],
+        "canon_5_31": [32.84, None, None, 2.28, 2.50, None, None, 2.49, 2.70, 2.71],
+        "fwd_11_21": [26.96, 7.41, None, 1.61, 1.84, 6.79, None, 1.74, 2.05, 2.06],
+        "canon_11_21": [33.93, None, None, 2.20, 2.42, None, None, 2.40, 2.62, 2.63],
+        "fwd_19_19": [26.81, 5.61, None, 1.64, 1.91, 5.76, None, 1.78, 2.05, 2.01],
+        "canon_19_19": [34.04, None, None, 2.16, 2.42, None, None, 2.42, 2.65, 2.66],
+    }
+)
+
+gt = (
+    GT(df)
+    .tab_spanner(label=md("(*w*=5, *k*=31)"), columns=["fwd_5_31", "canon_5_31"])
+    .tab_spanner(label=md("(*w*=11, *k*=21)"), columns=["fwd_11_21", "canon_11_21"])
+    .tab_spanner(label=md("(*w*=19, *k*=19)"), columns=["fwd_19_19", "canon_19_19"])
+    .cols_label(
+        fwd_5_31="fwd.",
+        canon_5_31="canon.",
+        fwd_11_21="fwd.",
+        canon_11_21="canon.",
+        fwd_19_19="fwd.",
+        canon_19_19="canon.",
+    )
+    .cols_align("right", columns=df.columns[1:].tolist())
+    .fmt_markdown(columns="Method")
+    .fmt_number(columns=df.columns[1:].tolist(), decimals=2)
+    .tab_style(
+        style=style.borders(sides="top", color="#000000", weight="1px"),
+        locations=loc.body(rows=[5]),
+    )
+)
+
+for col in df.columns[1:].tolist():
+    min_idx = df[col].idxmin()
+    gt = gt.tab_style(
+        style=style.text(weight="bold"),
+        locations=loc.body(columns=col, rows=[min_idx]),
+    )
+
+gt
+```
+
+Comparison of `simd-minimizers` against `minimizer-iter` and a rescan
+implementation. Times in ns/bp for forward and canonical minimizers,
+various $(w,k)$ tuples.
+
+:::
+
 ## Variations and practical use
