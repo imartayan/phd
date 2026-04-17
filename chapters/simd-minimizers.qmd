@@ -481,4 +481,10 @@ Comparison of `simd-minimizers` against `minimizer-iter` and a rescan implementa
 Times in ns/bp for forward and canonical minimizers, with various $(w,k)$ tuples.
 :::
 
+:::{#fig-plot-avx2}
+![](../fig/simd-mini/plot-avx2)
+
+Running time (logarithmic) of `minimizer-iter`, rescan, and `simd-minimizers` for different values of *w* and *k*.
+:::
+
 ## Variations and practical use
