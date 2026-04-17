@@ -144,7 +144,7 @@ where $\overline{x_i}$ denotes the complement of $x_i$ and $\operatorname{ror}$ 
 Since we can easily maintain the hash of both a sequence and its reverse-complement, we can add both hash values to obtain a canonical hash: $\widehat{H} = H + \overline{H}$.
 Note that any symmetric operation could work here, but something like a $\min$ would introduce a bias in the high bits.
 
-## Vectorized implementation of ntHash
+## Vectorized implementation of ntHash {#sec-vectorized-nthash}
 
 Because it only relies on bitwise operations and has no branches, @alg-nthash is a good candidate for vectorization.
 In order to make full use the 256-bit registers available on most x86 CPUs, our goal in this section will be to compute 8 32-bit hashes at the same time.

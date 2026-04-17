@@ -316,6 +316,13 @@ Another (slower) scheme for canonical minimizers preserving the forward property
 
 ## Vectorized implementation
 
+Since computing a sliding window minimum is inherently sequential, we reuse the approach presented in @sec-vectorized-nthash for parallel iteration.
+This way, we iterate over the hashes of $L$ (the number of lanes) independent chunks, and we can compute their sliding window minimum simultaneously.
+The only difference here is that the chunks must overlap by $w + k - 2$ bases (instead of $k - 1$ for hashes alone) since we want to cover all windows of *w* /kmers.
+
+The scalar version of the two-stacks method presented in @alg-sliding-min can easily be adapted to use vectorized instructions.
+@alg-simd-sliding-min shows a vectorized version specialized for 8 lanes of 32-bit hashes.
+
 ::: {#alg-simd-sliding-min}
 
 ```pseudocode
