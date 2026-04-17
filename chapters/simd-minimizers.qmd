@@ -377,7 +377,6 @@ SIMD two-stacks algorithm for sliding window minimum, with leftmost tie-breaks.
 ## Experimental evaluation
 
 ::: {#tbl-minimizer-incremental-time .large-table}
-
 ```{python}
 #| echo: false
 from great_tables import GT, style, loc, md
@@ -417,13 +416,10 @@ df = pd.DataFrame(
 )
 ```
 
-Total time per base taken when incrementally including more steps of the
-implementation, for $(w,k)=(11,21)$.
-
+Total time per base taken after each incremental step, for $(w,k)=(11,21)$.
 :::
 
-::: {#tbl-minimizer-impl-comparison}
-
+::: {#tbl-minimizer-impl-comparison .large-table}
 ```{python}
 #| echo: false
 df = pd.DataFrame(
@@ -481,10 +477,8 @@ for col in df.columns[1:].tolist():
 gt
 ```
 
-Comparison of `simd-minimizers` against `minimizer-iter` and a rescan
-implementation. Times in ns/bp for forward and canonical minimizers,
-various $(w,k)$ tuples.
-
+Comparison of `simd-minimizers` against `minimizer-iter` and a rescan implementation.
+Times in ns/bp for forward and canonical minimizers, with various $(w,k)$ tuples.
 :::
 
 ## Variations and practical use
