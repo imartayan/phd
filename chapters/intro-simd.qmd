@@ -57,7 +57,7 @@ Supported operations include arithmetic (excluding integer division and modulo),
 @lst-sum-avx2 and @lst-sum-neon show an example computing the sum of 32-bit signed integers in AVX2 and NEON respectively.
 
 This paradigm enforces two main constraints on algorithm design.
-First, there is no branching on individual lane values: the usual workaround is to compute a boolean mask for each lane and use it to *blend* the results of two paths.
+First, there is no branching on individual lane values: the usual workaround is to compute a boolean mask for each lane and use it to *blend* the results of two paths^[I recommend reading <https://en.algorithmica.org/hpc/simd/masking/> for a deeper introduction.].
 Second, instructions that combine values across lanes (known as *cross-lane* operations) are rare: the main ones are horizontal reductions and permutations.
 
 :::{#lst-sum-avx2}
