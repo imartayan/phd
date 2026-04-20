@@ -151,7 +151,7 @@ fn memchr_avx2(buf: &[u8], needle: u8) -> Option<usize> {
 }
 ```
 
-AVX2 implementation of `memchr`^[I removed some type conversions and `unsafe` keywords for clarity.].
+AVX2 implementation of `memchr` (type conversions and `unsafe` keywords omitted for clarity).
 :::
 
 The performance difference is substantial, approaching a 32× speedup on long strings, which is precisely why vectorized primitives should be preferred.
