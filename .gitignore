@@ -1,6 +1,8 @@
 /.quarto/
 /_book/
+/.luarc.json
 **/*.quarto_ipynb
+**/.jupyter_cache
 
 *.aux
 *.bbl
@@ -18,7 +20,6 @@ index.pdf
 thesis.tex
 thesis.pdf
 
-.luarc.json
 .brename_detail.txt
 .cspell.json
 .cspell_words.txt
