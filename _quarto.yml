@@ -38,7 +38,7 @@ book:
       - chapters/locality-discussion.qmd
     - part: chapters/sampling.qmd
       chapters:
-      - chapters/minimizers.qmd
+      - chapters/low-density-minimizers.qmd
       - chapters/multimini.qmd
       - chapters/phrases.qmd
       - chapters/lexic.qmd
