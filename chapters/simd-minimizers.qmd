@@ -5,8 +5,8 @@ This chapter is adapted from {{< longcite simd-minimizers >}}.
 :::
 
 In this chapter, we focus on computing *random minimizers* as efficiently as possible:
-for each window of *w* consecutive /kmers, we select the smallest /kmer given a pseudo-random order (see @sec-intro-minimizers for a broader introduction).
-This order is usually given by comparing hash values, and selecting the leftmost smallest hash in case of ties.
+for each window of *w* consecutive /kmers, we select the smallest /kmer given a pseudo-random order.
+This order is usually given by comparing hash values, and selecting the leftmost smallest hash in case of ties (see @sec-intro-minimizers for a broader introduction).
 More precisely, we are interested finding the *starting positions* of random minimizers in a sequence, from which we can extract the minimizers themselves.
 We will first focus on computing *forward* minimizers (without taking reverse-complement into account) for simplicity, and later describe a solution for *canonical* minimizers in @sec-canonical-minimizers.
 
@@ -321,7 +321,7 @@ This way, we iterate over the hashes of $L$ (the number of lanes) independent ch
 The only difference here is that the chunks must overlap by $w + k - 2$ bases (instead of $k - 1$ for hashes alone) since we want to cover all windows of *w* /kmers.
 
 The scalar version of the two-stacks method presented in @alg-sliding-min can easily be adapted to use vectorized instructions.
-@alg-simd-sliding-min shows a vectorized version specialized for 8 lanes of 32-bit hashes.
+@alg-simd-sliding-min shows a vectorized version specialized for 8 lanes of 32-bit hashes, which keeps track of the position in the lower 16 bits.
 
 ::: {#alg-simd-sliding-min}
 
@@ -379,6 +379,27 @@ The scalar version of the two-stacks method presented in @alg-sliding-min can ea
 ```
 
 SIMD two-stacks algorithm for sliding window minimum, with leftmost tie-breaks.
+:::
+
+The last step of the minimizer algorithm is to *deduplicate* the results, since adjacent windows often share the same minimizer position.
+In practice, deduplicating works best when the data to be deduplicated is linear in memory.
+But the output of the vectorized sliding-window minimum gives a `u32x8` containing the position of one minimizer of each chunk.
+Thus, every $L$ iterations we reuse the matrix transpose (discussed in @sec-parallel-iteration) to obtain a `u32x8` for each chunk, containing $L$ consecutive minimizer positions.
+
+We deduplicate each lane using the technique of @lemire-dedup.
+This compares each element to the previous one, and compares the first element to the last minimizer of the window before.
+The distinct elements are then *shuffled* to the front of the SIMD vector using a lookup table and appended to a buffer for each lane, as illustrated in @fig-transpose-dedup.
+We end by concatenating all the per-lane buffers into a single vector of minimizer positions, and make sure to avoid duplicates between the end and start of adjacent lanes.
+
+:::{#fig-transpose-dedup}
+![](../fig/simd-mini/transpose-dedup)
+
+Overview of the reordering and deduplication of minimizer positions.
+Each row on the left corresponds to the minimizer positions outputted by the SIMD sliding window minimum algorithm for $L$ chunks at a time.
+We first transpose this matrix, so that the resulting SIMD vectors each correspond to a single chunk, with values corresponding to the first chunk highlighted in yellow.
+These are then compared with their preceding element (including the previous minimizer position, as shown in grey), and distinct elements are shuffled to the front.
+These positions are accumulated in a separate buffer for each chunk, and these buffers are finally concatenated into a single flat vector.
+Note that while the figure shows $L=4$ lanes, we use $L=8$ lanes in practice for 256-bit registers.
 :::
 
 ## Experimental evaluation
