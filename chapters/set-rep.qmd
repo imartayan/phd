@@ -1,5 +1,5 @@
 # Set representation and operations
 
 :::{.callout-note}
-This chapter is adapted from [@cbl] and [@grimr].
+This chapter is adapted from {{< longcite cbl >}} and {{< longcite grimr >}}.
 :::

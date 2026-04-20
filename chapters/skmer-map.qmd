@@ -1,5 +1,5 @@
 # Super-k-mers maps
 
 :::{.callout-note}
-This chapter is adapted from [@brisk] and [@hyperkmers].
+This chapter is adapted from {{< longcite brisk >}} and {{< longcite hyperkmers >}}.
 :::

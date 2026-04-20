@@ -1,5 +1,5 @@
 # Multiminimizers
 
 :::{.callout-note}
-This chapter is adapted from [@multiminimizers].
+This chapter is adapted from {{< longcite multiminimizers >}}.
 :::

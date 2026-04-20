@@ -1,7 +1,7 @@
 # Vectorized sequence parsing
 
 :::{.callout-note}
-This chapter is adapted from [@helicase].
+This chapter is adapted from {{< longcite helicase >}}.
 :::
 
 Sequence bioinformatics has always been closely tied to stringology and compression theory, but connections to algebraic automata have remained comparatively rare.

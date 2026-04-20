@@ -1,7 +1,7 @@
 # Vectorized computation of minimizers
 
 :::{.callout-note}
-This chapter is adapted from [@simd-minimizers].
+This chapter is adapted from {{< longcite simd-minimizers >}}.
 :::
 
 In this chapter, we focus on computing *random minimizers* as efficiently as possible:

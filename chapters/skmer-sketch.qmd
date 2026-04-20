@@ -1,5 +1,5 @@
 # Sketching super-k-mers
 
 :::{.callout-note}
-This chapter is adapted from [@fhs] and [@fhs-multiset].
+This chapter is adapted from {{< longcite fhs >}} and {{< longcite fhs-multiset >}}.
 :::

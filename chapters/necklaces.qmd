@@ -1,5 +1,5 @@
 # Necklaces and minimizers
 
 :::{.callout-note}
-This chapter is partially adapted from [@cbl].
+This chapter is partially adapted from {{< longcite cbl >}}.
 :::
