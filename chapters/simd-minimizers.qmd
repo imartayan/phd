@@ -316,6 +316,8 @@ Another (slower) scheme for canonical minimizers preserving the forward property
 
 ## Vectorized implementation
 
+### Parallel iteration and sliding window minimum
+
 Since computing a sliding window minimum is inherently sequential, we reuse the approach presented in @sec-vectorized-nthash for parallel iteration.
 This way, we iterate over the hashes of $L$ (the number of lanes) independent chunks, and we can compute their sliding window minimum simultaneously.
 The only difference here is that the chunks must overlap by $w + k - 2$ bases (instead of $k - 1$ for hashes alone) since we want to cover all windows of *w* /kmers.
@@ -381,6 +383,8 @@ The scalar version of the two-stacks method presented in @alg-sliding-min can ea
 SIMD two-stacks algorithm for sliding window minimum, with leftmost tie-breaks.
 :::
 
+### Deduplication {#sec-simd-dedup}
+
 The last step of the minimizer algorithm is to *deduplicate* the results, since adjacent windows often share the same minimizer position.
 In practice, deduplicating works best when the data to be deduplicated is linear in memory.
 But the output of the vectorized sliding-window minimum gives a `u32x8` containing the position of one minimizer of each chunk.
@@ -401,6 +405,39 @@ These are then compared with their preceding element (including the previous min
 These positions are accumulated in a separate buffer for each chunk, and these buffers are finally concatenated into a single flat vector.
 Note that while the figure shows $L=4$ lanes, we use $L=8$ lanes in practice for 256-bit registers.
 :::
+
+## Variations and practical use
+
+While the method we presented so far is designed to compute minimizer positions, we can easily adapt it for different variations of the problem.
+
+### Computing /skmers
+
+One of the most common use case of minimizers is to partition a sequence into /skmers (presented in @sec-intro-minimizers).
+In that case, in addition to the minimizer positions, we also want to keep track of which windows are associated to which minimizers.
+A simple way to encode this information is to record the starting position of the first window with a given minimizer position.
+
+The starting position of /skmers can extracted by amending the deduplication step.
+After comparing adjacent minimizer positions, we obtain a mask that determines the shuffle instruction to apply.
+Normally we shuffle the 32-bit minimizer positions directly.
+Instead, we can mask out the upper 16 bits (previously used to store hashes) and store there the index of its window.
+If we then shuffle those values, we obtain for each minimizer its position in the input text, and the position of the first window where this /kmer became a minimizer.
+This information is sufficient to recover all /skmers, and sequences longer than 2^16^ bp can simply be split-up.
+
+### Computing syncmers
+
+Another frequent use case is to compute open/closed syncmers (also presented in @sec-intro-minimizers).
+For closed syncmers, we want to output windows starting/ending with their minimizer, while for open syncmers, we want to output those with a minimizer in the middle position (assuming $w$ is odd).
+
+Computing syncmers can be implemented as a simple *filter* on top of the *non-deduplicated* minimizer positions.
+For each window at position $i$, we test whether the minimizer position $p$ satisfies the syncmer condition: $p = i$ or $p = i + w - 1$ for closed syncmers, or $p = i + \lfloor w/2 \rfloor$ for open syncmers (assuming $w$ is odd so that the middle element is unique).
+This test can be performed efficiently using vectorized equality comparisons: non-syncmer positions are erased via a *blend* instruction, and the same shuffle-append mechanism used in @sec-simd-dedup efficiently collects the remaining positions.
+Note that the deduplication step is not needed here since syncmer positions are always distinct.
+
+### Other schemes
+
+different order, mod-minimizers [@mod-mini]
+
+### Some practical use cases
 
 ## Experimental evaluation
 
@@ -514,5 +551,3 @@ Times in ns/bp for forward and canonical minimizers, with various $(w,k)$ tuples
 
 Running time (logarithmic) of `minimizer-iter`, rescan, and `simd-minimizers` for different values of *w* and *k*.
 :::
-
-## Variations and practical use
