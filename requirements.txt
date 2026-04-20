@@ -1,4 +1,5 @@
 great-tables
 jupyter
+jupyter-cache
 pandas
 pyyaml

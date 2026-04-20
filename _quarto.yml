@@ -87,6 +87,9 @@ format:
     mathspec: true
     indent: true
 
+execute:
+  cache: true
+
 filters:
   - search-replace
   - pseudocode
