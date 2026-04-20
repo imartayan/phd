@@ -78,6 +78,7 @@ format:
     documentclass: scrreprt
     include-in-header: preamble.tex
     default-image-extension: pdf
+    syntax-highlighting: github
     fontsize: 10pt
     sansfont: "Lato"
     monofont: "DejaVu Sans Mono"
