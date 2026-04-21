@@ -406,7 +406,7 @@ These positions are accumulated in a separate buffer for each chunk, and these b
 Note that while the figure shows $L=4$ lanes, we use $L=8$ lanes in practice for 256-bit registers.
 :::
 
-## Variations and practical use
+## Variations of minimizers
 
 While the method we presented so far is designed to compute minimizer positions, we can easily adapt it for different variations of the problem.
 
@@ -433,11 +433,15 @@ For each window at position $i$, we test whether the minimizer position $p$ sati
 This test can be performed efficiently using vectorized equality comparisons: non-syncmer positions are erased via a *blend* instruction, and the same shuffle-append mechanism used in @sec-simd-dedup efficiently collects the remaining positions.
 Note that the deduplication step is not needed here since syncmer positions are always distinct.
 
-### Other schemes
+### Other minimizer schemes
 
-different order, mod-minimizers [@mod-mini]
+Finally, we can change the implementation of the minimizer scheme itself.
+First, if we want to change the order on /kmers, we can replace the rolling hash by the the function of our choice.
+For instance, we can simply use the identity for a lexicographic order, or flip the first bits for an anti-lexicographic order [@ragnar-thesis].
 
-### Some practical use cases
+Additionally, we can tweak the sliding window scan to implement other low-density schemes (further discussed in @sec-low-density-minimizers).
+The best example is probably mod-minimizers [@mod-mini], which only require applying a modulo $w$ on the position of the minimum as an extra step.
+Note however that applying a modulo on vector registers is quite impractical, meaning that we prefer subtracting and blending results in practice.
 
 ## Experimental evaluation
 
