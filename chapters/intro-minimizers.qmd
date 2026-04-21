@@ -5,4 +5,5 @@ TBA
 - historical context [@schleimer2003winnowing;@roberts2004reducing]
 - random vs lexicographic
 - practical use cases [@minimizers-review]
-- recent results detailed in @sec-minimizers
+- improving conservation [@syncmers;@shaw-conservation;@strobemers;@strobealign]
+- low density schemes detailed in @sec-low-density-minimizers
