@@ -1,4 +1,4 @@
-# Vectorized computation of minimizers
+# Vectorized computation of minimizers {#sec-simd-minimizers}
 
 :::{.callout-note}
 This chapter is adapted from {{< longcite simd-minimizers >}}.
@@ -9,6 +9,7 @@ for each window of *w* consecutive /kmers, we select the smallest /kmer given a 
 This order is usually given by comparing hash values, and selecting the leftmost smallest hash in case of ties (see @sec-intro-minimizers for a broader introduction).
 More precisely, we are interested finding the *starting positions* of random minimizers in a sequence, from which we can extract the minimizers themselves.
 We will first focus on computing *forward* minimizers (without taking reverse-complement into account) for simplicity, and later describe a solution for *canonical* minimizers in @sec-canonical-minimizers.
+Our implementation of the vectorized algorithm discussed in @sec-vectorized-impl-minimizers is available in the [simd-minimizers](https://github.com/rust-seq/simd-minimizers) Rust library.
 
 The computation of random minimizers is divided in three main steps, illustrated in @fig-simd-mini-overview.
 First each /kmer of the input string (corresponding to horizontal lines in the figure) is hashed to a 32-bit integer (value above each line) using a rolling hash as presented in @sec-rolling-hash.
@@ -314,7 +315,7 @@ In that case, the position of the sampled minimizer could jump backwards: from s
 In practice, this does not seem to be a major limitation, both because it is rare and because downstream methods usually work fine on non-forward schemes anyway.
 Another (slower) scheme for canonical minimizers preserving the forward property is described @sec-appendix-forward-canonical.
 
-## Vectorized implementation
+## Vectorized implementation {#sec-vectorized-impl-minimizers}
 
 ### Parallel iteration and sliding window minimum
 
@@ -445,6 +446,14 @@ Note however that applying a modulo on vector registers is quite impractical, me
 
 ## Experimental evaluation
 
+Our vectorized implementation, built on top of [packed-seq](https://github.com/rust-seq/packed-seq) and [seq-hash](https://github.com/rust-seq/seq-hash), is available at <https://github.com/rust-seq/simd-minimizers>.
+This implementation supports canonical minimizers, /skmers and syncmers computation, and works with both AVX2 and NEON.
+The code to reproduce the experiments is available in the `bench` folder of the same repository.
+
+The experiments were run on an Intel Core i7-10750H with AVX2 running at 2.6GHz, and an Apple M1 with NEON running at 3.2GHz.
+As input, we use a fixed random string of 10^8^ bases, encoded either as ASCII or as packed representation depending on the method.
+Reported timings are the median of five runs and shown in nanoseconds per base.
+
 ::: {#tbl-minimizer-incremental-time .large-table}
 ```{python}
 #| echo: false
@@ -466,21 +475,24 @@ df = pd.DataFrame(
             "&nbsp;&nbsp;+ collect",
             "&nbsp;&nbsp;+ dedup",
         ],
-        "ns/bp": [0.15, 0.30, 0.30, 0.32, 0.90, 1.48, 1.61, 1.04, 1.53, 2.03, 2.20],
+        "avx2": [0.15, 0.30, 0.30, 0.32, 0.90, 1.48, 1.61, 1.04, 1.53, 2.03, 2.20],
+        "neon": [0.10, 0.18, 0.19, 0.33, 0.82, 0.95, 1.38, 0.85, 1.16, 1.37, 1.82],
     }
 )
 
 (
     GT(df)
-    .cols_align("right", columns="ns/bp")
-    .fmt_number(columns=df.columns[1:].tolist(), decimals=2)
+    .tab_spanner(label="ns/bp", columns=["avx2", "neon"])
+    .cols_label(avx2="AVX2", neon="NEON")
+    .cols_align("right", columns=["avx2", "neon"])
+    .fmt_number(columns=["avx2", "neon"], decimals=2)
     .tab_style(
         style=style.borders(sides="top", color="#000000", weight="1px"),
         locations=loc.body(rows=[3, 7]),
     )
     .tab_style(
         style=style.text(weight="bold"),
-        locations=loc.body(columns="ns/bp", rows=[6, 10]),
+        locations=loc.body(columns=["avx2", "neon"], rows=[6, 10]),
     )
 )
 ```
@@ -488,10 +500,42 @@ df = pd.DataFrame(
 Total time per base taken after each incremental step, for $(w,k)=(11,21)$.
 :::
 
-::: {#tbl-minimizer-impl-comparison .large-table}
+::: {#tbl-minimizer-impl-comparison layout-ncol=1 .large-table}
+
+::: {#tbl-minimizer-impl-comparison-avx2}
 ```{python}
 #| echo: false
-df = pd.DataFrame(
+def make_impl_comparison_gt(df):
+    gt = (
+        GT(df)
+        .tab_spanner(label=md("(*w*=5, *k*=31)"), columns=["fwd_5_31", "canon_5_31"])
+        .tab_spanner(label=md("(*w*=11, *k*=21)"), columns=["fwd_11_21", "canon_11_21"])
+        .tab_spanner(label=md("(*w*=19, *k*=19)"), columns=["fwd_19_19", "canon_19_19"])
+        .cols_label(
+            fwd_5_31="fwd.",
+            canon_5_31="canon.",
+            fwd_11_21="fwd.",
+            canon_11_21="canon.",
+            fwd_19_19="fwd.",
+            canon_19_19="canon.",
+        )
+        .cols_align("right", columns=df.columns[1:].tolist())
+        .fmt_markdown(columns="Method")
+        .fmt_number(columns=df.columns[1:].tolist(), decimals=2)
+        .tab_style(
+            style=style.borders(sides="top", color="#000000", weight="1px"),
+            locations=loc.body(rows=[5]),
+        )
+    )
+    for col in df.columns[1:].tolist():
+        min_idx = df[col].idxmin()
+        gt = gt.tab_style(
+            style=style.text(weight="bold"),
+            locations=loc.body(columns=col, rows=[min_idx]),
+        )
+    return gt
+
+df_avx2 = pd.DataFrame(
     {
         "Method": [
             "`minimizer-iter`",
@@ -514,44 +558,53 @@ df = pd.DataFrame(
     }
 )
 
-gt = (
-    GT(df)
-    .tab_spanner(label=md("(*w*=5, *k*=31)"), columns=["fwd_5_31", "canon_5_31"])
-    .tab_spanner(label=md("(*w*=11, *k*=21)"), columns=["fwd_11_21", "canon_11_21"])
-    .tab_spanner(label=md("(*w*=19, *k*=19)"), columns=["fwd_19_19", "canon_19_19"])
-    .cols_label(
-        fwd_5_31="fwd.",
-        canon_5_31="canon.",
-        fwd_11_21="fwd.",
-        canon_11_21="canon.",
-        fwd_19_19="fwd.",
-        canon_19_19="canon.",
-    )
-    .cols_align("right", columns=df.columns[1:].tolist())
-    .fmt_markdown(columns="Method")
-    .fmt_number(columns=df.columns[1:].tolist(), decimals=2)
-    .tab_style(
-        style=style.borders(sides="top", color="#000000", weight="1px"),
-        locations=loc.body(rows=[5]),
-    )
+make_impl_comparison_gt(df_avx2)
+```
+
+Comparison on AVX2.
+:::
+
+::: {#tbl-minimizer-impl-comparison-neon}
+```{python}
+#| echo: false
+df_neon = pd.DataFrame(
+    {
+        "Method": [
+            "`minimizer-iter`",
+            "Rescan ntHash",
+            "`simd-minimizers` ntHash",
+            "&nbsp;&nbsp;‑ packed input",
+            "&nbsp;&nbsp;‑ on-the-fly packing",
+            "Rescan mulHash",
+            "`simd-minimizers` mulHash",
+            "&nbsp;&nbsp;‑ packed input",
+            "&nbsp;&nbsp;‑ on-the-fly packing",
+            "&nbsp;&nbsp;‑ ASCII input",
+        ],
+        "fwd_5_31": [12.89, 5.95, None, 1.42, 1.66, 6.94, None, 1.97, 2.11, 2.12],
+        "canon_5_31": [16.60, None, None, 1.85, 2.07, None, None, 4.34, 4.37, 4.39],
+        "fwd_11_21": [14.26, 3.92, None, 1.38, 1.58, 3.93, None, 1.91, 2.04, 2.06],
+        "canon_11_21": [18.08, None, None, 1.82, 1.99, None, None, 4.27, 4.41, 4.44],
+        "fwd_19_19": [14.20, 2.82, None, 1.38, 1.59, 3.42, None, 1.93, 2.03, 2.04],
+        "canon_19_19": [18.04, None, None, 1.83, 2.02, None, None, 4.26, 4.30, 4.29],
+    }
 )
 
-for col in df.columns[1:].tolist():
-    min_idx = df[col].idxmin()
-    gt = gt.tab_style(
-        style=style.text(weight="bold"),
-        locations=loc.body(columns=col, rows=[min_idx]),
-    )
-
-gt
+make_impl_comparison_gt(df_neon)
 ```
+
+Comparison on NEON.
+:::
 
 Comparison of `simd-minimizers` against `minimizer-iter` and a rescan implementation.
 Times in ns/bp for forward and canonical minimizers, with various $(w,k)$ tuples.
 :::
 
-:::{#fig-plot-avx2}
-![](../fig/simd-mini/plot-avx2)
+:::{#fig-plot layout-ncol=1}
+
+![Running time on AVX2.](../fig/simd-mini/plot-avx2){#fig-plot-avx2}
+
+![Running time on NEON.](../fig/simd-mini/plot-neon){#fig-plot-neon}
 
 Running time (logarithmic) of `minimizer-iter`, rescan, and `simd-minimizers` for different values of *w* and *k*.
 :::
