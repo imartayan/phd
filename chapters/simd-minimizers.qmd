@@ -454,6 +454,8 @@ The experiments were run on an Intel Core i7-10750H with AVX2 running at 2.6GHz,
 As input, we use a fixed random string of 10^8^ bases, encoded either as ASCII or as packed representation depending on the method.
 Reported timings are the median of five runs and shown in nanoseconds per base.
 
+In our experiments, we use parameter values for *w* and *k* as used by Kraken2 [@kraken2] (5,31), SSHash [@sshash] (11,21), and minimap2 [@minimap2] (19,19).
+
 ::: {#tbl-minimizer-incremental-time .large-table}
 ```{python}
 #| echo: false
