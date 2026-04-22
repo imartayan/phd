@@ -5,3 +5,15 @@
 
 -- not J. R. R. Tolkien
 :::
+
+```{dot}
+digraph {
+  rankdir=LR
+  node [shape=box style=rounded]
+  Parsing -> Hashing -> Minimizers -> "Downstream application"
+  Parsing [URL="simd-parsing.html"]
+  Hashing [URL="rolling-hash.html"]
+  Minimizers [URL="simd-minimizers.html"]
+  "Downstream application" [URL="filtering.html"]
+}
+```
