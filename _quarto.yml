@@ -94,7 +94,6 @@ execute:
 filters:
   - search-replace
   - pseudocode
-  - diagram
 
 crossref:
   custom:
