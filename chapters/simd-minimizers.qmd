@@ -533,9 +533,15 @@ Results are in @tbl-minimizer-impl-comparison and @fig-minimizer-time.
 def make_impl_comparison_gt(df):
     gt = (
         GT(df)
-        .tab_spanner(label=md("(*w*=5, *k*=31)"), columns=["fwd_5_31", "canon_5_31"])
-        .tab_spanner(label=md("(*w*=11, *k*=21)"), columns=["fwd_11_21", "canon_11_21"])
-        .tab_spanner(label=md("(*w*=19, *k*=19)"), columns=["fwd_19_19", "canon_19_19"])
+        .tab_spanner(
+            label=md("(*w*=5, *k*=31)"), columns=["fwd_5_31", "canon_5_31"], id="s1"
+        )
+        .tab_spanner(
+            label=md("(*w*=11, *k*=21)"), columns=["fwd_11_21", "canon_11_21"], id="s2"
+        )
+        .tab_spanner(
+            label=md("(*w*=19, *k*=19)"), columns=["fwd_19_19", "canon_19_19"], id="s3"
+        )
         .cols_label(
             fwd_5_31="fwd.",
             canon_5_31="canon.",
@@ -544,6 +550,11 @@ def make_impl_comparison_gt(df):
             fwd_19_19="fwd.",
             canon_19_19="canon.",
         )
+        .tab_style(
+            style=style.text(align="center"),
+            locations=loc.spanner_labels(ids=["s1", "s2", "s3"]),
+        )
+        .opt_css(".gt_column_spanner { text-align: center !important; }")
         .cols_align("right", columns=df.columns[1:].tolist())
         .fmt_markdown(columns="Method")
         .fmt_number(columns=df.columns[1:].tolist(), decimals=2)
@@ -559,6 +570,7 @@ def make_impl_comparison_gt(df):
             locations=loc.body(columns=col, rows=[min_idx]),
         )
     return gt
+
 
 df_avx2 = pd.DataFrame(
     {
