@@ -1,5 +1,46 @@
 # Sampling with minimizers {#sec-intro-minimizers}
 
+The sketching methods presented in @sec-intro-sketching compress a sequence into a compact summary, but they treat the sequence as a simple "bag" of /kmers: two sequences with a high Jaccard index are considered similar regardless of *where* the shared /kmers appear.
+
+Many bioinformatics tasks, such as read alignment or index construction, require something stronger: a guarantee that two sequences sharing a long *local* exact match will also share at least one selected /kmer at corresponding positions.
+This *locality* property is what distinguishes minimizers from general sketching, and is the subject of this chapter.
+
+## Definition and basic properties {#sec-minimizer-definition}
+
+### Historical context
+
+### Fundamental properties
+
+### Density
+
+## Orderings {#sec-minimizer-orderings}
+
+### Lexicographic ordering
+
+### Random ordering
+
+## Super-/kmers and sequence partitioning {#sec-skmers}
+
+## Canonical minimizers {#sec-canonical-minimizers-intro}
+
+## Improving conservation {#sec-minimizer-conservation}
+
+### Syncmers
+
+### Strobemers
+
+## Practical applications {#sec-minimizer-applications}
+
+### Read alignment
+
+### Sequence classification and metagenomics
+
+### Partitioning indexes
+
+### Genome assembly
+
+---
+
 TBA
 
 - historical context [@schleimer2003winnowing;@roberts2004reducing]
