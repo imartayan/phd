@@ -91,7 +91,7 @@ This data structure guarantees an amortized constant time update, but has many u
 \Function{MonotoneQueue}{$w, \texttt{vals}$}
     \State{$\texttt{queue} \gets$ empty \textsc{DoubleEndedQueue}}
     \For{$i$ in $\{0, \ldots, |\texttt{vals}| - 1\}$}
-        \If{$\texttt{queue.front().pos} + w \leq i$}
+        \If{$\texttt{queue.front().pos} + w \le i$}
             \State{\texttt{queue.pop\_front()}}
         \EndIf
         \While{$\texttt{queue.back.val} > \texttt{vals}[i]$}
@@ -99,7 +99,7 @@ This data structure guarantees an amortized constant time update, but has many u
         \EndWhile
         \State{$\texttt{queue.push\_back}(\texttt{val}
             \gets  \texttt{vals}[i], \texttt{pos} \gets i)$}
-        \If{$i \geq w-1$}
+        \If{$i \ge w-1$}
             \State{\textbf{yield} $\texttt{queue.front().pos}$}
         \EndIf
     \EndFor
@@ -142,11 +142,11 @@ This makes it more efficient in practice, especially since minimizers typically 
             \State{$\texttt{min\_val} \gets \texttt{vals}[i]$}
             \State{$\texttt{min\_pos} \gets i$}
         \EndIf
-        \If{$\texttt{min\_pos} + w \leq i$}
+        \If{$\texttt{min\_pos} + w \le i$}
             \State{$\texttt{min\_pos} \gets \arg \min \{\texttt{vals}[i-w+1], \ldots, \texttt{vals}[i]\}$}
             \State{$\texttt{min\_val} \gets \texttt{vals}[\texttt{min\_pos}]$}
         \EndIf
-        \If{$i \geq w-1$}
+        \If{$i \ge w-1$}
             \State{\textbf{yield} $\texttt{min\_pos}$}
         \EndIf
     \EndFor
@@ -259,7 +259,7 @@ In practice, canonical minimizers are often overlooked as an implementation deta
 The first step is to adapt the hash function so that a /kmer and its reverse-complement are always hashed to the same value.
 For rolling hashes, this can easily be achieved using the method described in @sec-canonical-hash.
 
-Following [@pan2024GCcontent], we define the *canonical strand* for each window of length $\ell$ as the strand where the count of `GT` bases^[Any pair of non-complementary bases would work here.] (encoded as `11` and `10` respectively) is the highest, as shown in @alg-canonical.
+Following [@pan2024GCcontent], we define the *canonical strand* for each window of length $\ell = w + k - 1$ as the strand where the count of `GT` bases^[Any pair of non-complementary bases would work here.] (encoded as `11` and `10` respectively) is the highest, as shown in @alg-canonical.
 This count is in $[0, \ell]$ and when $\ell$ is odd there can be no tie between the two strands.
 In code, we instead compute the more symmetric $\#\texttt{GT} -\#\texttt{AC} = 2\#\texttt{GT} - \ell$, which is in $[-\ell, \ell]$, so that count $>0$ defines the canonical strand.
 Then, we select the leftmost forward minimizer when the window is canonical, and the rightmost reverse-complement minimizer when the window is not canonical.
@@ -281,9 +281,9 @@ Then, we select the leftmost forward minimizer when the window is canonical, and
 #| pdf-placement: "ht!"
 
 \begin{algorithmic}
-\Function{canonical}{$k, w, \texttt{in\_out}$}
+\Function{canonical}{$w, k, \texttt{in\_out}$}
 \Comment{\texttt{in\_out} iterates pairs (last bp, first bp) of each window.}
-    \State{$\ell \gets k - w + 1$}
+    \State{$\ell \gets w + k - 1$}
     \Comment{Window length, it must be odd to guarantee canonicity.}
     \State{$c \gets -\ell$}
     \Comment{Count $\#\texttt{GT} - \#\texttt{AC}$, starting at $-\ell$ and adding/subtracting 2 for each \texttt{G} or \texttt{T}.}
@@ -450,11 +450,15 @@ Our vectorized implementation, built on top of [packed-seq](https://github.com/r
 This implementation supports canonical minimizers, /skmers and syncmers computation, and works with both AVX2 and NEON.
 The code to reproduce the experiments is available in the `bench` folder of the same repository.
 
-The experiments were run on an Intel Core i7-10750H with AVX2 running at 2.6GHz, and an Apple M1 with NEON running at 3.2GHz.
+The experiments were run on an Intel Core i7-10750H with AVX2 running at 2.6GHz and an Apple M1 with NEON running at 3.2GHz, using Rust nightly 1.88.0.
 As input, we use a fixed random string of 10^8^ bases, encoded either as ASCII or as packed representation depending on the method.
 Reported timings are the median of five runs and shown in nanoseconds per base.
 
-In our experiments, we use parameter values for *w* and *k* as used by Kraken2 [@kraken2] (5,31), SSHash [@sshash] (11,21), and minimap2 [@minimap2] (19,19).
+In our experiments, we use parameter values for *w* and *k* as used by Kraken2 [@kraken2] (5, 31), SSHash [@sshash] (11, 21), and minimap2 [@minimap2] (19, 19).
+
+### Incremental time usage
+
+@tbl-minimizer-incremental-time shows the time usage for various incremental subsets of our method.
 
 ::: {#tbl-minimizer-incremental-time .large-table}
 ```{python}
@@ -502,9 +506,28 @@ df = pd.DataFrame(
 Total time per base taken after each incremental step, for $(w,k)=(11,21)$.
 :::
 
-::: {#tbl-minimizer-impl-comparison layout-ncol=1 .large-table}
+To start with, iterating the 8 chunks of the input and summing all bases takes 0.15 ns/bp (0.10 ns/bp on NEON).
+Appending all `u32x8` SIMD vectors containing the bases to a vector takes 0.30 ns/bp (0.18 ns/bp on NEON), indicating that writing to memory induces some overhead.
+Collecting the second $k-1$-delayed stream of characters that leave the /kmer (by adding them to the non-delayed stream) has no additional overhead.
+Computing ntHash only takes 0.02ns/bp extra on AVX2, but adds 0.15 ns/bp on NEON.
+The sliding window computation nearly triples the total time.
+Collecting the minimizer positions to a linear vector (i.e., transposing matrices and writing output for each of the 8 chunks) again incurs 50% overhead, ad deduplicating them actually again adds some time.
 
-::: {#tbl-minimizer-impl-comparison-avx2}
+Going back a step, using canonical ntHash instead of forward ntHash takes 0.14 ns/bp extra on AVX2 but only 0.03 ns/bp on NEON, and determining the canonical strand (via a third $\ell$-delayed stream and counting `GT` bases) takes another 0.49 ns/bp on AVX2 and 0.31 ns/bp on NEON.
+As before, collecting and deduplicating are slow and add around 0.70ns/bp.
+
+In conclusion, we see that iterating the chunks of the input and determining minimizers is quite fast, but that a lot of time must then be spent to "deinterleave" the output into a linear stream.
+As can be expected, canonical minimizers are slower to compute than forward minimizers, but the overhead is less than 50%, which seems quite low given that the ntHash and sliding window minimum computation are duplicated and a canonical-strand computation is added.
+
+### Full comparison
+
+We compare against the `minimizer-iter` crate v1.2.1^[<https://github.com/rust-seq/minimizer-iter>], which implements a queue-based sliding window minimum using `wyhash`^[<https://github.com/eldruin/wyhash-rs>] and also supports canonical minimizers.
+For an additional comparison, we optimized an implementation of the remap method with ntHash based on a code snippet by Daniel Liu^[<https://gist.github.com/Daniel-Liu-c0deb0t/7078ebca04569068f15507aa856be6e8>].
+Results are in @tbl-minimizer-impl-comparison and @fig-minimizer-time.
+
+::: {#tbl-minimizer-impl-comparison layout-ncol=1}
+
+::: {#tbl-minimizer-impl-comparison-avx2 .large-table}
 ```{python}
 #| echo: false
 def make_impl_comparison_gt(df):
@@ -566,7 +589,7 @@ make_impl_comparison_gt(df_avx2)
 Comparison on AVX2.
 :::
 
-::: {#tbl-minimizer-impl-comparison-neon}
+::: {#tbl-minimizer-impl-comparison-neon .large-table}
 ```{python}
 #| echo: false
 df_neon = pd.DataFrame(
@@ -602,11 +625,52 @@ Comparison of `simd-minimizers` against `minimizer-iter` and a rescan implementa
 Times in ns/bp for forward and canonical minimizers, with various $(w,k)$ tuples.
 :::
 
-:::{#fig-plot layout-ncol=1}
+:::{#fig-minimizer-time layout-ncol=1}
 
-![Running time on AVX2.](../fig/simd-mini/plot-avx2){#fig-plot-avx2}
+![Running time on AVX2.](../fig/simd-mini/plot-avx2){#fig-minimizer-time-avx2}
 
-![Running time on NEON.](../fig/simd-mini/plot-neon){#fig-plot-neon}
+![Running time on NEON.](../fig/simd-mini/plot-neon){#fig-minimizer-time-neon}
 
 Running time (logarithmic) of `minimizer-iter`, rescan, and `simd-minimizers` for different values of *w* and *k*.
 :::
+
+`minimizer-iter` takes around 26 ns/bp for forward and 33 ns/bp for canonical minimizers, and its runtime does not depend much on $w$ and $k$, because the popping from the queue is unpredictable regardless of $w$.
+Rescan starts out at 11.7 ns/bp for $w=5$ and gets significantly faster as $w$ increases, converging to around 5 ns/bp for $w \gg 100$.
+This is explained by the fact that rescan has a branch miss every time the current minimizer falls out of the window, which happens for roughly half the minimizers at a rate of $1/(w+1)$.
+Thus, as $w$ increases, the method becomes more predictable and branch misses go down.
+Our method, `simd-minimizers` runs around 1.61 ns/bp for forward and 2.20 ns/bp for canonical minimizers when given packed input, and therefore is 3.4× to 6.8× faster than the rescan method.
+
+In @fig-minimizer-time, we see that `simd-minimizers` performance is mostly independent of $k$ and $w$ since it is mostly data-independent.
+Only for small $w \le 5$ it is slightly slower due to the larger number of minimizers and hence larger size of the output.
+
+As we use SIMD with 8 lanes, we could in theory expect up to 8× speedup.
+In practice this is hard to reach because of constant overhead and because the overhead to work well with SIMD in the first place.
+In particular for large $w$, rescan benefits from very predictable and simple code and only outputs unique minimizer positions, making it very efficient.
+In SIMD, on the other hand, we use a data-independent algorithm, and output the minimizer position for every single window, which then has to be deduplicated.
+Thus, it is nice to see that even for large $w$, our method is over 3× faster, despite this overhead.
+
+#### ASCII input and mulHash
+
+Apart from taking bit-packed input, `simd-minimizers` also works on ASCII-encoded DNA sequences of `A/C/T/G` characters directly, which are then packed into values $\{0,1,2,3\}$ for ntHash (in that order) during iteration.
+This is around 0.25ns/bp slower, mostly because of the larger size of the unpacked input.
+
+The mulHash variant is around 0.20ns/bp slower again, but works for any ASCII input.
+Performance on 100 MB of the Pizza&Chili corpus English^[<https://pizzachili.dcc.uchile.cl/texts/nlang/>] and Sources^[<https://pizzachili.dcc.uchile.cl/texts/code/>] datasets is nearly identical to performance on the random DNA shown in @tbl-minimizer-impl-comparison.
+
+#### Human genome
+
+We also run `simd-minimizers` on the chromosomes of the T2T-CHM13v2.0 human genome^[Available at <https://github.com/marbl/CHM13>.] [@t2t], of total size 3.2 Gbp.
+Here, computing forward minimizers takes 5.19 seconds, and canonical minimizers takes 6.71 seconds for $(w, k) = (11, 21)$, which corresponds 1.67 and 2.15 ns/bp, which is within a few percent of @tbl-minimizer-impl-comparison.
+
+#### Density
+
+For $(w,k)=(11,21)$, we get a density of 0.173 for forward minimizers, and 0.167 for canonical minimizers, which are both close to the expected density of $2/(w+1) = 1/6\approx 0.167$.
+Changing to $(w,k)=(19,19)$, we get density 0.098 for forward minimizers and 0.100 for canonical minimizers, both close to the expected density of $2/(19+1)=1/10=0.1$.
+Thus, we see that in practice, ntHash is a sufficiently random hash function to approach the expected density of random minimizers with a perfectly uniform random hash function.
+
+#### Multithreading
+
+We test throughput in a multithreaded setting, by using 6 threads to process the chromosomes in parallel.
+This way, processing takes 0.97 s (forward) and 1.27 s (canonical) when the input data is already loaded into memory, showing slightly above 5× speedup.
+This is just below 6× speedup as the chromosomes don't perfectly partition the data into 6 equal parts, so that some threads finish before others.
+For applications, we recommend to simply call our library in parallel from multiple threads as needed.
