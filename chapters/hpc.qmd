@@ -7,13 +7,16 @@
 :::
 
 ```{dot}
+//| fig-width: 6
+//| fig-height: 0.6
 digraph {
   rankdir=LR
+  graph [margin=0.1 pad=0]
   node [shape=box style=rounded]
-  Parsing -> Hashing -> Minimizers -> "Downstream application"
-  Parsing [URL="simd-parsing.html"]
-  Hashing [URL="rolling-hash.html"]
-  Minimizers [URL="simd-minimizers.html"]
+  "Parsing" -> "Hashing" -> "Minimizers" -> "Downstream application"
+  "Parsing" [URL="simd-parsing.html"]
+  "Hashing" [URL="rolling-hash.html"]
+  "Minimizers" [URL="simd-minimizers.html"]
   "Downstream application" [URL="filtering.html"]
 }
 ```
