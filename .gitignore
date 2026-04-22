@@ -1,5 +1,7 @@
 /.quarto/
 /_book/
+/index_files/
+/site_libs/
 /.luarc.json
 **/*.quarto_ipynb
 **/.jupyter_cache
