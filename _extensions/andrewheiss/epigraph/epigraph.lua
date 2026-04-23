@@ -39,7 +39,7 @@ end
 -- Build HTML output like this:
 --
 -- <div class="epigraph-wrapper clearfix">
---   <figure class="text-end w-75 float-end figure">
+--   <figure class="text-end w-80 float-end figure">
 --     <blockquote class="epigraph blockquote">
 --       <p>Something neat</p>
 --     </blockquote>
@@ -58,7 +58,7 @@ function html_epigraph(text, source)
 
   local template = {
     '<div class="epigraph-wrapper clearfix">\n',
-    '<figure class="text-end w-75 float-end">\n',
+    '<figure class="text-end w-80 float-end">\n',
     '<blockquote class="epigraph">\n',
     text_parsed,
     '</blockquote>\n',
