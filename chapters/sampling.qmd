@@ -1,7 +1,3 @@
 # Sampling k-mers to lower memory & complexity
 
-:::{.callout-tip appearance="minimal"}
-*He who controls the space controls the universe.*
-
--- not Frank Herbert
-:::
+{{< epigraph "*He who controls the space controls the universe.*" source="not Frank Herbert" >}}

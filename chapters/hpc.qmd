@@ -1,10 +1,6 @@
 # High-performance sequence processing
 
-:::{.callout-tip appearance="minimal"}
-*All we have to decide is what to do with the cycles that are given us.*
-
--- not J. R. R. Tolkien
-:::
+{{< epigraph "*All we have to decide is what to do with the cycles that are given us.*" source="not J. R. R. Tolkien" >}}
 
 ```{dot}
 //| fig-width: 6

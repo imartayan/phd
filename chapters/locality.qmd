@@ -1,7 +1,3 @@
 # Locality-preserving representations of k-mer sets
 
-:::{.callout-tip appearance="minimal"}
-*Keep your friends close, and your k-mers closer.*
-
--- not Sun Tzu
-:::
+{{< epigraph "*Keep your friends close, and your k-mers closer.*" source="not Sun Tzu" >}}
