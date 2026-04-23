@@ -2,7 +2,7 @@ project:
   type: book
 
 book:
-  title: "Locality-preserving representation of k-mer sets"
+  title: "Locality-preserving representation of k‑mer sets"
   author:
     - name: "Igor Martayan"
       orcid: 0009-0008-3007-6168
@@ -114,9 +114,9 @@ custom-amsthm:
     name: Property
 
 search-replace:
-  /kmer: "*k*-mer"
-  /mmer: "*m*-mer"
-  /skmer: "super-*k*-mer"
-  /Skmer: "Super-*k*-mer"
-  /hkmer: "hyper-*k*-mer"
-  /Hkmer: "Hyper-*k*-mer"
+  /kmer: "*k*‑mer"
+  /mmer: "*m*‑mer"
+  /skmer: "super‑*k*‑mer"
+  /Skmer: "Super‑*k*‑mer"
+  /hkmer: "hyper‑*k*‑mer"
+  /Hkmer: "Hyper‑*k*‑mer"

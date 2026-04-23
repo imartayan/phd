@@ -1,2 +1,2 @@
 # phd
-Locality-preserving representation of k-mer sets
+Locality-preserving representation of k‑mer sets
