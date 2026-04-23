@@ -2,12 +2,21 @@
 
 The sketching methods presented in @sec-intro-sketching compress a sequence into a compact summary, but they treat the sequence as a simple "bag" of /kmers: two sequences with a high Jaccard index are considered similar regardless of *where* the shared /kmers appear.
 
-Many bioinformatics tasks, such as read alignment or index construction, require something stronger: a guarantee that two sequences sharing a long *local* exact match will also share at least one selected /kmer at corresponding positions.
+Many bioinformatics tasks, such as read alignment or index construction, require something stronger: a guarantee that two sequences sharing a long local exact match will also share at least one selected /kmer at corresponding positions.
 This *locality* property is what distinguishes minimizers from general sketching, and is the subject of this chapter.
 
 ## Definition and basic properties {#sec-minimizer-definition}
 
 ### Historical context
+
+The concept of minimizers was introduced independently by two groups in 2003--2004.
+@schleimer2003winnowing introduced *winnowing* in the context of document fingerprinting and plagiarism detection: a sliding window scans the /kmers of a document and the smallest /kmer (according to some ordering) is selected as a fingerprint.
+@roberts2004reducing proposed the same idea for biological sequences, introducing the term *minimizer*, with the explicit goal of providing a locality-preserving sketch: any two sequences sharing a long exact match are guaranteed to share at least one minimizer.
+
+A minimizer scheme is parametrized by three values: the /kmer length $k$, the window size $w$, and a total ordering $\prec$ on /kmers.
+A *window* of size $w$ is a set of $w$ consecutive /kmers, spanning a substring of length $\ell = w + k - 1$.
+The *minimizer* of a window is the /kmer that is smallest under $\prec$, with ties broken by selecting the leftmost occurrence^[Choosing the leftmost occurrence is a convention, some schemes use the rightmost one or select all tied /kmers.].
+Sliding the window one position at a time along the sequence yields the *minimizer sketch* of that sequence: the (deduplicated) sequence of minimizer positions.
 
 ### Fundamental properties
 
