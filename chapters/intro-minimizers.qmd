@@ -5,9 +5,7 @@ The sketching methods presented in @sec-intro-sketching compress a sequence into
 Many bioinformatics tasks, such as read alignment or index construction, require something stronger: a guarantee that two sequences sharing a long local exact match will also share at least one selected /kmer at corresponding positions.
 This *locality* property is what distinguishes minimizers from general sketching, and is the subject of this chapter.
 
-## Definition and basic properties {#sec-minimizer-definition}
-
-### Historical context
+## Definition and fundamental properties {#sec-minimizer-definition}
 
 The concept of minimizers was introduced independently by two groups in 2003--2004.
 @schleimer2003winnowing introduced *winnowing* in the context of document fingerprinting and plagiarism detection: a sliding window scans the /kmers of a document and the smallest /kmer (according to some ordering) is selected as a fingerprint.
@@ -18,9 +16,43 @@ A *window* of size $w$ is a set of $w$ consecutive /kmers, spanning a substring 
 The *minimizer* of a window is the /kmer that is smallest under $\prec$, with ties broken by selecting the leftmost occurrence^[Choosing the leftmost occurrence is a convention, some schemes use the rightmost one or select all tied /kmers.].
 Sliding the window one position at a time along the sequence yields the *minimizer sketch* of that sequence: the (deduplicated) sequence of minimizer positions.
 
-### Fundamental properties
+:::{.callout-caution}
+## Different notations
+
+Depending on the context, multiple notations are used in the literature.
+The parameters that we defined above as $k$ and $\ell$ are sometimes denoted $m$ and $k$ respectively, meaning that one minimizer of size $m$ is selected from each substring of size $k = w + m - 1$.
+:::
+
+### Window guarantee
+
+An essential property of minimizers is the so-called *window guarantee*.
+
+::: {#pty-window-guarantee}
+## Window guarantee
+
+Any window of *w* consecutive /kmers, i.e. any substring of length $\ell = w + k - 1$, contains at least one minimizer.
+:::
+
+This property has two important consequences that make minimizers especially useful in practice.
+
+::: {#pty-conservation}
+## Conservation
+
+Any pair of sequences sharing an exact match of length at least $\ell = w + k - 1$ will share at least one minimizer.
+:::
+
+::: {#pty-bounded-dist}
+## Bounded distance
+
+The distance between two consecutive minimizers is at most $w$.
+:::
+
+These two properties together ensure that minimizers can serve as *anchors* for sequence comparison: shared minimizers between a query and a reference indicate candidate alignment positions, and the bounded distance guarantees that no long match is missed [@minimizers-review].
 
 ### Density
+
+The *density* of a minimizer scheme is the expected fraction of /kmers selected over all positions of a random sequence.
+Since consecutive minimizers are at most $w$ positions apart (@pty-bounded-dist), the density is always lower-bounded by $1/w$.
 
 ## Orderings {#sec-minimizer-orderings}
 
