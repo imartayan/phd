@@ -11,7 +11,7 @@ The concept of minimizers was introduced independently by two groups in 2003--20
 @schleimer2003winnowing introduced *winnowing* in the context of document fingerprinting and plagiarism detection: a sliding window scans the /kmers of a document and the smallest /kmer (according to some ordering) is selected as a fingerprint.
 @roberts2004reducing proposed the same idea for biological sequences, introducing the term *minimizer*, with the explicit goal of providing a locality-preserving sketch: any two sequences sharing a long exact match are guaranteed to share at least one minimizer.
 
-A minimizer scheme is parametrized by three values: the /kmer length $k$, the window size $w$, and a total ordering $\prec$ on /kmers.
+A minimizer scheme is parameterized by three values: the /kmer length $k$, the window size $w$, and a total ordering $\prec$ on /kmers.
 A *window* of size $w$ is a set of $w$ consecutive /kmers, spanning a substring of length $\ell = w + k - 1$.
 The *minimizer* of a window is the /kmer that is smallest under $\prec$, with ties broken by selecting the leftmost occurrence^[Choosing the leftmost occurrence is a convention, some schemes use the rightmost one or select all tied /kmers.].
 Sliding the window one position at a time along the sequence yields the *minimizer sketch* of that sequence: the (deduplicated) sequence of minimizer positions.
@@ -22,8 +22,6 @@ Sliding the window one position at a time along the sequence yields the *minimiz
 Depending on the context, multiple notations are used in the literature.
 The parameters that we defined above as $k$ and $\ell$ are sometimes denoted $m$ and $k$ respectively, meaning that one minimizer of size $m$ is selected from each substring of size $k = w + m - 1$.
 :::
-
-### Window guarantee
 
 An essential property of minimizers is the so-called *window guarantee*.
 
@@ -44,23 +42,32 @@ Any pair of sequences sharing an exact match of length at least $\ell = w + k - 
 ::: {#pty-bounded-dist}
 ## Bounded distance
 
-The distance between two consecutive minimizers is at most $w$.
+The distance between consecutive minimizers is at most $w$.
 :::
 
-These two properties together ensure that minimizers can serve as *anchors* for sequence comparison: shared minimizers between a query and a reference indicate candidate alignment positions, and the bounded distance guarantees that no long match is missed [@minimizers-review].
+These two properties together ensure that minimizers can serve as *anchors* for sequence comparison: shared minimizers between a query and a reference indicate candidate alignment positions, and the bounded distance guarantees that no long match is missed [@minimizers-survey-ndiaye].
 
-### Density
+## Density and orderings {#sec-minimizer-orderings}
 
 The *density* of a minimizer scheme is the expected fraction of /kmers selected over all positions of a random sequence.
 Since consecutive minimizers are at most $w$ positions apart (@pty-bounded-dist), the density is always lower-bounded by $1/w$.
-
-## Orderings {#sec-minimizer-orderings}
+We'll see in the following subsections that the ordering used to compare /kmers can have a big impact on the density, and thus on the size of the resulting sketch.
 
 ### Lexicographic ordering
 
+The simplest ordering is the lexicographic order on /kmer strings.
+While it requires no precomputation and is straightforward to implement, lexicographic ordering has well-known limitations: homopolymers (especially repeated `A`s) tend to select adjacent /kmers, thus increasing the density and skewing the distribution of minimizer values [@minimizers-ordering;@minimizers-survey-zheng].
+In particular, @minimizers-ordering report an empirical density of $2.24 / (w+1)$ for lexicographic minimizers with $k=10, w=10$.
+
 ### Random ordering
 
-## Super-/kmers and sequence partitioning {#sec-skmers}
+Another simple solution is to assign order /kmers randomly, typically using a pseudo-random hash function.
+@miniception proved that random minimizers achieve a density of $2 / (w+1) + o(1/w)$ as long as $k > 3 \log_{|\Sigma|}(w+1)$.
+In practice this condition is almost always satisfied and random ordering is the default choice in most bioinformatics tools.
+
+The gap between this density of $2 / (w+1)$ and the $1/w$ lower bound motivated the design of improved orderings and new low-density schemes, which we discuss in more details in @sec-low-density-minimizers.
+
+## /Skmers and sequence partitioning {#sec-skmers}
 
 ## Canonical minimizers {#sec-canonical-minimizers-intro}
 
@@ -86,6 +93,6 @@ TBA
 
 - historical context [@schleimer2003winnowing;@roberts2004reducing]
 - random vs lexicographic
-- practical use cases [@minimizers-review]
+- practical use cases [@minimizers-survey-ndiaye]
 - improving conservation [@syncmers;@shaw-conservation;@strobemers;@strobealign]
 - low density schemes detailed in @sec-low-density-minimizers
