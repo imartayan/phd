@@ -1,4 +1,4 @@
-# Application to sequence filtering
+# Application to sequence filtering {#sec-filtering}
 
 :::{.callout-note}
 This chapter is adapted from {{< longcite k2rmini >}}.

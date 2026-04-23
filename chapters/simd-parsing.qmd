@@ -1,4 +1,4 @@
-# Vectorized sequence parsing
+# Vectorized sequence parsing {#sec-simd-parsing}
 
 :::{.callout-note}
 This chapter is adapted from {{< longcite helicase >}}.
