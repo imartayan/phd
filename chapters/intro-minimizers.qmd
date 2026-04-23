@@ -3,7 +3,7 @@
 The sketching methods presented in @sec-intro-sketching compress a sequence into a compact summary, but they treat the sequence as a simple "bag" of /kmers: two sequences with a high Jaccard index are considered similar regardless of *where* the shared /kmers appear.
 
 Many bioinformatics tasks, such as read alignment or index construction, require something stronger: a guarantee that two sequences sharing a long local exact match will also share at least one selected /kmer at corresponding positions.
-This *locality* property is what distinguishes minimizers from general sketching, and is the subject of this chapter.
+This *locality* property is what distinguishes minimizers from general "context-free" sketching.
 
 ## Definition and fundamental properties {#sec-minimizer-definition}
 
@@ -45,7 +45,7 @@ Any pair of sequences sharing an exact match of length at least $\ell = w + k - 
 The distance between consecutive minimizers is at most $w$.
 :::
 
-These two properties together ensure that minimizers can serve as *anchors* for sequence comparison: shared minimizers between a query and a reference indicate candidate alignment positions, and the bounded distance guarantees that no long match is missed [@minimizers-survey-ndiaye].
+These two properties together ensure that minimizers can serve as *anchors* for sequence comparison: shared minimizers between a query and a reference indicate candidate matching positions, and the bounded distance guarantees that no long match is missed [@minimizers-survey-ndiaye].
 
 ## Density and orderings {#sec-minimizer-orderings}
 
