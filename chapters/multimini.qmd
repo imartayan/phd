@@ -149,7 +149,7 @@ An example is provided in @fig-multimini-seq-to-model.
 %%| filename: multimini-seq-to-model
 
 \usetikzlibrary{patterns.meta,calc}
-\usetikzlibrary{shapes,arrows,shadows,positioning}
+\usetikzlibrary{shapes,arrows,positioning}
 \usetikzlibrary{shapes.multipart}
 \usetikzlibrary{decorations.pathreplacing}
 \usetikzlibrary{patterns}
