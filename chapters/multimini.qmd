@@ -144,7 +144,86 @@ Finally, we define $\boldsymbol{\Delta} = \Delta_1, \Delta_2, \ldots$ as the seq
 An example is provided in @fig-multimini-seq-to-model.
 
 :::{#fig-multimini-seq-to-model}
-![](../fig/multimini/seq_to_model)
+
+```{.tikz}
+%%| filename: multimini-seq-to-model
+
+\usetikzlibrary{patterns.meta,calc}
+\usetikzlibrary{shapes,arrows,shadows,positioning}
+\usetikzlibrary{shapes.multipart}
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{patterns}
+\usetikzlibrary{matrix}
+\usetikzlibrary{chains}
+\usetikzlibrary{shapes.misc}
+
+\tikzstyle{seq}=[rectangle,rectangle split, rectangle split horizontal,rectangle split parts=10,ultra thick,draw=lightgray,rounded corners]
+\tikzstyle{mmer}=[rectangle,rectangle split, rectangle split horizontal,rectangle split parts=3]
+
+\begin{tikzpicture}
+
+\node[seq] (s) at (0,0) {\nodepart{one} \texttt{A}\nodepart{two}\texttt{T} \nodepart{three} \texttt{A} \nodepart{four}\texttt{C}  \nodepart{five} \texttt{G}\nodepart{six} \texttt{C}\nodepart{seven} \texttt{A}\nodepart{eight} \texttt{T}\nodepart{nine}\texttt{C} \nodepart{ten} $\cdots$};
+
+\node at ([xshift=-0.5cm]s.west) {$S = $};
+\node (X) at ([xshift=0.5cm]s.east) {$\mathbf{R} $};
+
+\node[mmer,anchor=west] (m1) at ([yshift=-0.75cm]s.west) {\nodepart{one} \texttt{A}\nodepart{two} \texttt{T}\nodepart{three} \texttt{A}};
+\node[mmer,anchor=west] (m2) at ([yshift=-1.25cm]s.one split) {\nodepart{one} \texttt{T}\nodepart{two} \texttt{A}\nodepart{three} \texttt{C}};
+\node[mmer,anchor=west] (m3) at ([yshift=-1.75cm]s.two split) {\nodepart{one} \texttt{A}\nodepart{two} \texttt{C}\nodepart{three} \texttt{G}};
+\node[mmer,anchor=west] (m4) at ([yshift=-2.25cm]s.three split) {\nodepart{one} \texttt{C}\nodepart{two} \texttt{G}\nodepart{three} \texttt{C}};
+\node[mmer,anchor=west] (m5) at ([yshift=-2.75cm]s.four split) {\nodepart{one} \texttt{G}\nodepart{two} \texttt{C}\nodepart{three} \texttt{A}};
+\node[mmer,anchor=west] (m6) at ([yshift=-3.25cm]s.five split) {\nodepart{one} \texttt{C}\nodepart{two} \texttt{A}\nodepart{three} \texttt{T}};
+\node[mmer,anchor=west] (m7) at ([yshift=-3.75cm]s.six split) {\nodepart{one} \texttt{A}\nodepart{two} \texttt{T}\nodepart{three} \texttt{C}};
+
+\node[anchor=west] (m8) at ([yshift=-4.25cm]s.seven split) {$\vdots$};
+
+\node (x1) at (X|-,|-m1) {$13$};
+\node (x2) at (X|-,|-m2) {$50$};
+\node (x3) at (X|-,|-m3) {$7$};
+\node (x4) at (X|-,|-m4) {$26$};
+\node (x5) at (X|-,|-m5) {$37$};
+\node (x6) at (X|-,|-m6) {$20$};
+\node (x7) at (X|-,|-m7) {$14$};
+
+\node at (X|-,|-m8) {$\vdots$};
+
+\foreach \i in {1,...,7} {
+\draw[->] (m\i)--(x\i);
+}
+
+\node (Y) at ([xshift=0.75cm]X) {$\mathbf{P} =$};
+
+\node at ([xshift=0.75cm]Y) {$3,$};
+
+\node[gray]  at ([xshift=1.5cm]x1) {$13$};
+\node[gray]  at ([xshift=1.5cm]x2) {$50$};
+\node[red]  at ([xshift=1.5cm]x3) {$7$};
+\node[gray]  at ([xshift=1.5cm]x4) {$26$};
+
+\node at ([xshift=1.25cm]Y) {$3,$};
+
+\node[gray]  at ([xshift=2cm]x2) {$50$};
+\node[red]  at ([xshift=2cm]x3) {$7$};
+\node[gray]  at ([xshift=2cm]x4) {$26$};
+\node[gray]  at ([xshift=2cm]x5) {$37$};
+
+\node at ([xshift=1.75cm]Y) {$3,$};
+
+\node[red]  at ([xshift=2.5cm]x3) {$7$};
+\node[gray]  at ([xshift=2.5cm]x4) {$26$};
+\node[gray]  at ([xshift=2.5cm]x5) {$37$};
+\node[gray]  at ([xshift=2.5cm]x6) {$20$};
+
+\node at ([xshift=2.25cm]Y) {$7,$};
+
+\node[gray]  at ([xshift=3cm]x4) {$26$};
+\node[gray]  at ([xshift=3cm]x5) {$37$};
+\node[gray]  at ([xshift=3cm]x6) {$20$};
+\node[red]  at ([xshift=3cm]x7) {$14$};
+
+\node at ([xshift=2.75cm]Y) {$\dots$};
+\end{tikzpicture}
+```
 
 An example of sequence $S$, represented as a sequence $\mathbf{R}$ of integers (here, using lexicographical order), and the sequence $\mathbf{P}$ of minimizers positions, with $m=3$ and $w=4$.
 We have $\mathbf{P}^\ast = 3, 7, \ldots$ and $\boldsymbol{\Delta} = 3, 4, \ldots$.
