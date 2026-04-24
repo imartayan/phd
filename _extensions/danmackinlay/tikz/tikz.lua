@@ -238,8 +238,11 @@ $body$
       local args = {
         '--no-fonts',
         '--output=' .. svg_file,
-        dvi_file
       }
+      if user_opts['zoom'] then
+        table.insert(args, '--zoom=' .. user_opts['zoom'])
+      end
+      table.insert(args, dvi_file)
       local success_dvisvgm, dvisvgm_result = pcall(pandoc.pipe, 'dvisvgm', args, '')
       if not success_dvisvgm then
         error("Error converting PDF to SVG for TikZ figure '" .. base_filename .. "':\n" ..
@@ -328,8 +331,7 @@ local function code_to_figure(conf)
     pandoc.system.make_directory(tikz_dir, true)
     write_file(tikz_dir .. '/' .. fname, imgdata)
 
-    -- Build image src relative to chapter CWD so Quarto can resolve it.
-    local img_path = conf.img_prefix .. conf.rel_output_dir .. '/' .. fname
+    local img_path = conf.img_path_prefix .. fname
 
     -- Create the image object.
     local image = pandoc.Image(dgr_opt.alt, img_path, "", dgr_opt['image-attr'])
@@ -390,17 +392,14 @@ local function configure(meta, format_name)
   local output_dir = project_dir ~= ''
       and pandoc.path.join { project_dir, rel_output_dir }
       or rel_output_dir
-
-  -- Compute prefix to go from a chapter dir back to the project root (e.g. '../' for chapters/).
-  -- Used to build image src paths relative to the chapter CWD.
-  local img_prefix = ''
-  if project_dir ~= '' then
-    local cwd = system.get_working_directory()
-    local chapter_rel = cwd:sub(#project_dir + 2)  -- chapter path relative to project root
-    local depth = 0
-    for _ in chapter_rel:gmatch('[^/\\]+') do depth = depth + 1 end
-    img_prefix = string.rep('../', depth)
-  end
+  -- Build the image src prefix relative to the chapter dir.
+  -- QUARTO_DOCUMENT_PATH is the chapter directory; use it rather than CWD since
+  -- CWD may be the project root (not the chapter dir) during a full book render.
+  local doc_dir = os.getenv('QUARTO_DOCUMENT_PATH') or system.get_working_directory()
+  local chapter_rel = project_dir ~= '' and doc_dir:sub(#project_dir + 2) or ''
+  local depth = 0
+  for _ in chapter_rel:gmatch('[^/\\]+') do depth = depth + 1 end
+  local img_path_prefix = string.rep('../', depth) .. rel_output_dir .. '/'
 
   return {
     cache = image_cache and true,
@@ -408,8 +407,7 @@ local function configure(meta, format_name)
     save_tex = save_tex,
     tex_dir = tex_dir,
     output_dir = output_dir,
-    img_prefix = img_prefix,
-    rel_output_dir = rel_output_dir,
+    img_path_prefix = img_path_prefix,
   }
 end
 
