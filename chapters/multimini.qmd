@@ -308,7 +308,62 @@ Then, we repeat this selection at the end of each selected /skmer: among all the
 We detail our method in @alg-multimini, running in $O(N \cdot |S|)$ time and using $O(N \cdot w)$ memory.
 
 :::{#fig-multimini-selection}
-![](../fig/multimini/selection)
+
+```{.tikz}
+%%| filename: multimini-selection
+%%| opt-zoom: 1.5
+
+\colorlet{lblue}{blue!50!white}
+\colorlet{lred}{red!50!white}
+\colorlet{lgreen}{green!50!white}
+\colorlet{lpurple}{purple!50!white}
+\colorlet{lorange}{orange!50!white}
+\colorlet{lpink}{pink!50!white}
+\colorlet{lbrown}{brown!50!white}
+\colorlet{lyellow}{yellow!50!white}
+\colorlet{lolive}{olive!50!white}
+
+\usetikzlibrary{patterns.meta,calc}
+\usetikzlibrary{shapes,arrows,positioning}
+\usetikzlibrary{shapes.multipart}
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{patterns}
+\usetikzlibrary{matrix}
+\usetikzlibrary{chains}
+\usetikzlibrary{shapes.misc}
+
+\tikzstyle{seq}=[rectangle,rectangle split, rectangle split horizontal,rectangle split parts=18,ultra thick,draw=lightgray,rounded corners,rectangle split part fill={white,white,white,white,lred!30,lred!30,lred!30,lred!30,lred!30,lred!30,white}]
+\tikzstyle{prev}=[rectangle,rectangle split, rectangle split horizontal,rectangle split parts=9,ultra thick,draw=lightgray,rounded corners]
+\tikzstyle{cand}=[rectangle,rectangle split, rectangle split horizontal,rectangle split parts=15,ultra thick,draw=lightgray,rounded corners]
+
+\begin{tikzpicture}
+
+\node[seq] (s) at (0,0) { \nodepart{one} \texttt{T} \nodepart{two} \texttt{A} \nodepart{three} \texttt{A} \nodepart{four} \texttt{G} \nodepart{five} \texttt{G}  \nodepart{six} \texttt{G} \nodepart{seven} \texttt{T} \nodepart{eight} \texttt{G} \nodepart{nine} \texttt{T} \nodepart{ten} \texttt{C} \nodepart{eleven} \texttt{C} \nodepart{twelve} \texttt{A} \nodepart{thirteen} \texttt{G} \nodepart{fourteen} \texttt{C} \nodepart{fifteen} \texttt{T} \nodepart{sixteen} \texttt{A} \nodepart{seventeen} \texttt{C} \nodepart{eighteen}  $\dots$ };
+
+\node at ([xshift=-0.5cm]s.west) {$S = $};
+
+\node[prev,anchor=east] (p) at ([yshift=-1cm]s.nine split) {\nodepart{one} \texttt{T} \nodepart{two} \texttt{A} \nodepart{three} \texttt{A} \nodepart{four} \texttt{G} \nodepart{five} \texttt{G}  \nodepart{six} \texttt{G} \nodepart{seven} \texttt{T} \nodepart{eight} \texttt{G} \nodepart{nine} \texttt{T} };
+
+\node[anchor=west] (prec) at ([xshift=0.5cm]p.east) {previous super-\textit{k}-mer};
+\draw[->,ultra thick] (prec)--([xshift=0.1cm]p.east);
+
+\node[cand,anchor=west,rectangle split parts=9,rectangle split part fill={lgreen!30,lgreen!30,lgreen!30,lgreen!30,lgreen!30,lgreen!30,white}] (c1) at ([yshift=1cm]s.four split) {\nodepart{one} \texttt{G} \nodepart{two} \texttt{G} \nodepart{three} \texttt{T} \nodepart{four} \texttt{G} \nodepart{five} \texttt{T}  \nodepart{six} \texttt{C} \nodepart{seven} \texttt{C} \nodepart{eight} \texttt{A} \nodepart{nine} \texttt{G} };
+
+\node[cand,anchor=west,rectangle split parts=13,rectangle split part fill={white,white,white,lgreen!30,lgreen!30,lgreen!30,lgreen!30,lgreen!30,lgreen!30,white}] (c2) at ([yshift=1.75cm]s.one split) {\nodepart{one} \texttt{A} \nodepart{two} \texttt{A} \nodepart{three} \texttt{G} \nodepart{four} \texttt{G} \nodepart{five} \texttt{G}  \nodepart{six} \texttt{T} \nodepart{seven} \texttt{G} \nodepart{eight} \texttt{T} \nodepart{nine} \texttt{C} \nodepart{ten} \texttt{C} \nodepart{eleven} \texttt{A} \nodepart{twelve} \texttt{G} \nodepart{thirteen} \texttt{C}};
+
+\node[cand,anchor=west,rectangle split parts=12,rectangle split part fill={white,lgreen!30,lgreen!30,lgreen!30,lgreen!30,lgreen!30,lgreen!30,white}] (c3) at ([yshift=2.5cm]s.three split) {\nodepart{one} \texttt{G} \nodepart{two} \texttt{G} \nodepart{three} \texttt{G} \nodepart{four} \texttt{T} \nodepart{five} \texttt{G}  \nodepart{six} \texttt{T} \nodepart{seven} \texttt{C} \nodepart{eight} \texttt{C} \nodepart{nine} \texttt{A} \nodepart{ten} \texttt{G} \nodepart{eleven} \texttt{C} \nodepart{twelve} \texttt{T}};
+
+\node[anchor=west,align=center] (new) at ([yshift=0.75cm]c3.nine split east) {new \\ super-\textit{k}-mer};
+\draw[->,ultra thick] (new)--([xshift=0.1cm]c3.east);
+
+\node[cand,anchor=west,rectangle split parts=7,rectangle split part fill={lgreen!30,lgreen!30,lgreen!30,lgreen!30,lgreen!30,lgreen!30,white}] (c4) at ([yshift=3.25cm]s.four split) {\nodepart{one} \texttt{G} \nodepart{two} \texttt{G} \nodepart{three} \texttt{T} \nodepart{four} \texttt{G} \nodepart{five} \texttt{T}  \nodepart{six} \texttt{C} \nodepart{seven} \texttt{C} };
+
+\draw[ultra thick,blue,opacity=0.5] ([yshift=0.5cm]s.ten split) --([yshift=3.75cm]s.ten split);
+
+\draw [decorate,decoration={brace,amplitude=5pt,raise=0ex}]
+  (c2.west|-,|-c1.south) -- (c2.west|-,|-c4.north) node[midway,xshift=-1.25cm,align=center]{super-\textit{k}-mers \\ candidates} ;
+\end{tikzpicture}
+```
 
 Choice of a /skmer for $k=6$ using a multiminimizer scheme.
 The first /kmer uncovered by the previous /skmer is highlighted in red.
@@ -336,7 +391,7 @@ Among the $N=4$ candidate /skmers covering this /kmer, the multiminimizer scheme
     \Comment{$T$: text; $\mathcal{S}_0,\ldots,\mathcal{S}_{N-1}$: $N$ minimizer schemes.}
     \State{Initialize $\texttt{buf}$ of size $N \times w$ and $\texttt{run}$ of size $N$}
     \State{$k \gets w + m - 1$}
-    \State{$i^* \gets -w$} \Comment{Starting position of the current super-$k$-mer.}
+    \State{$i^* \gets -w$} \Comment{Starting position of the current super-k-mer.}
     \State{$j^* \gets 0$} \Comment{$i^* \bmod w$.}
     \State{$h^* \gets 0$} \Comment{Selected minimizer scheme.}
     \State{$\texttt{run}[h^*] \gets 0$}
@@ -527,7 +582,7 @@ Since the space usage of a /skmer representation of a sequence is driven by the 
 @fig-multimini-superkmer-space shows the space usage of a /skmer representation of multiminimizers, whereas @fig-multimini-sk-mocmm provides the same information for MOCMMs, both for multiple numbers of hash functions and $k$ values.
 
 Ideally, to represent a sequence over an alphabet of size $4$ (e.g., a DNA sequence $S$), one could use only $2$ bits per nucleotide in $S$.
-However, super-$k$-mers use as low as $6$ bits per nucleotide in $S$.
+However, /skmers use as low as $6$ bits per nucleotide in $S$.
 Hyper-$k$-mers [@hyperkmers] were recently introduced and tend toward $4$ bits per nucleotide in $S$ when using a random-minimizer-based hyper-$k$-mer representation.
 This is still higher than the lower bound of $2$ bits per nucleotide, due to random minimizers having a density of $\frac{2}{w+1}$.
 
@@ -538,9 +593,9 @@ Our results show that KFC converges to $2$ bits per base in $S$.
 To the best of our knowledge, this is the first streaming /kmer representation to achieve it.
 
 :::{#fig-multimini-space layout-ncol=2}
-![Super-$k$-mer representation + multiminimizers.](../fig/multimini/superkmer_space_canonical){#fig-multimini-superkmer-space}
+![/Skmer representation + multiminimizers.](../fig/multimini/superkmer_space_canonical){#fig-multimini-superkmer-space}
 
-![Super-$k$-mer representation + MOCMM.](../fig/multimini/bit_usage_superkmer_mocmm){#fig-multimini-sk-mocmm}
+![/Skmer representation + MOCMM.](../fig/multimini/bit_usage_superkmer_mocmm){#fig-multimini-sk-mocmm}
 
 ![Hyper-$k$-mer representation + multiminimizers.](../fig/multimini/duplication_factor_hyperkmer){#fig-multimini-size-hyperkmer}
 
