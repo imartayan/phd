@@ -99,6 +99,7 @@ filters:
   - search-replace
   - pseudocode
   - custom-amsthm-environments
+  - tikz
 
 crossref:
   custom:
