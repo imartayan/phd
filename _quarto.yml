@@ -110,6 +110,10 @@ crossref:
       latex-list-of-description: Algorithm
 
 custom-amsthm:
+  - key: hyp
+    name: Hypothesis
+  - key: pbm
+    name: Problem
   - key: pty
     name: Property
 
