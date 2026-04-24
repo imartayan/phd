@@ -193,8 +193,9 @@ local function compile_tikz_to_svg(code, user_opts, conf, basename)  -- Added co
 
       -- Build the LaTeX document
       local tikz_template = pandoc.template.compile [[
-\documentclass[tikz]{standalone}
+\documentclass[multi=tikzpicture,varwidth=false]{standalone}
 \def\pgfsysdriver{pgfsys-dvisvgm.def}
+\usepackage{tikz}
 % \usepackage{tikz} % already loaded by the documentclass
 $additional-packages$
 $for(header-includes)$
