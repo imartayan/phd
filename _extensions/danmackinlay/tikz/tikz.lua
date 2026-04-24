@@ -178,8 +178,8 @@ local function compile_tikz_to_svg(code, user_opts, conf, basename)  -- Added co
   if not check_dependency('pdflatex') then
     error("pdflatex not found. Please install LaTeX to compile TikZ diagrams.")
   end
-  if not check_dependency('inkscape') then
-    error("Inkscape not found. Please install Inkscape to convert PDFs to SVG.")
+  if not check_dependency('dvisvgm') then
+    error("dvisvgm not found. Please install dvisvgm (included in TeX Live) to convert PDFs to SVG.")
   end
 
   local function process_in_dir(dir)
@@ -235,20 +235,17 @@ $body$
           "\nTikZ Code:\n" .. code)
       end
 
-      -- Convert PDF to SVG using Inkscape
+      -- Convert PDF to SVG using dvisvgm (ships with TeX Live)
       local args = {
-        '--pages=1',
-        '--export-area-drawing',
-        '--export-type=svg',
-        '--export-plain-svg',
-        '--export-margin=0',
-        '--export-filename=' .. svg_file,
+        '--pdf',
+        '--no-fonts',
+        '--output=' .. svg_file,
         pdf_file
       }
-      local success_inkscape, inkscape_result = pcall(pandoc.pipe, 'inkscape', args, '')
-      if not success_inkscape then
+      local success_dvisvgm, dvisvgm_result = pcall(pandoc.pipe, 'dvisvgm', args, '')
+      if not success_dvisvgm then
         error("Error converting PDF to SVG for TikZ figure '" .. base_filename .. "':\n" ..
-          tostring(inkscape_result) .. "\nTikZ Code:\n" .. code)
+          tostring(dvisvgm_result) .. "\nTikZ Code:\n" .. code)
       end
 
       -- Read the SVG file
@@ -292,6 +289,14 @@ local function code_to_figure(conf)
     -- Get basename for file naming
     local basename = dgr_opt.filename or pandoc.sha1(block.text)
 
+    -- Use the block's filename attribute or create a new name by hashing the image content.
+    local fname = basename .. '.svg'
+
+    -- Write SVG to disk instead of mediabag: Quarto rewrites mediabag srcs
+    -- after the lightbox filter runs, causing href/src mismatches.
+    -- Quarto relativizes output-dir from the project root to the chapter dir.
+    local tikz_dir = conf.output_dir
+
     -- Check if image is cached
     local hash = block.text
     local imgdata, imgtype = nil, nil
@@ -304,23 +309,24 @@ local function code_to_figure(conf)
       local success, result = pcall(function()
         return compile_tikz_to_svg(block.text, dgr_opt.opt, conf, basename) -- Pass conf and basename
       end)
-      if not success then
-        quarto.log.error("Error compiling TikZ figure '" .. basename .. "': " .. tostring(result))
-        return nil -- Return the original block unchanged
+      if not success or not result then
+        -- Compilation failed (e.g. pdflatex/inkscape not installed); fall back
+        -- to the on-disk SVG so CI can use pre-committed files without the tools.
+        imgdata = read_file(tikz_dir .. '/' .. fname)
+        if imgdata then
+          quarto.log.warning("TikZ figure '" .. basename .. "': using existing file (compilation unavailable)")
+          imgtype = 'image/svg+xml'
+        else
+          quarto.log.error("Error compiling TikZ figure '" .. basename .. "': " .. tostring(result))
+          return nil -- Return the original block unchanged
+        end
+      else
+        imgdata, imgtype = result, 'image/svg+xml'
+        -- Cache the image
+        cache_image(hash, dgr_opt.opt, imgdata)
       end
-      imgdata, imgtype = result, 'image/svg+xml'
-
-      -- Cache the image
-      cache_image(hash, dgr_opt.opt, imgdata)
     end
 
-    -- Use the block's filename attribute or create a new name by hashing the image content.
-    local fname = basename .. '.svg'
-
-    -- Write SVG to disk instead of mediabag: Quarto rewrites mediabag srcs
-    -- after the lightbox filter runs, causing href/src mismatches.
-    -- Quarto relativizes output-dir from the project root to the chapter dir.
-    local tikz_dir = conf.output_dir
     pandoc.system.make_directory(tikz_dir, true)
     write_file(tikz_dir .. '/' .. fname, imgdata)
 
