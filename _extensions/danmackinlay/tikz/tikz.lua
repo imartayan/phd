@@ -6,16 +6,16 @@ Based on the style of 'quarto_diagram/diagram.lua', adapted for TikZ diagrams.
 
 PANDOC_VERSION:must_be_at_least '3.0'
 
-local pandoc = require 'pandoc'
-local system = require 'pandoc.system'
-local utils  = require 'pandoc.utils'
+local pandoc                   = require 'pandoc'
+local system                   = require 'pandoc.system'
+local utils                    = require 'pandoc.utils'
 
-local stringify = utils.stringify
+local stringify                = utils.stringify
 local with_temporary_directory = system.with_temporary_directory
-local with_working_directory = system.with_working_directory
+local with_working_directory   = system.with_working_directory
 
 -- Functions to read and write files
-local function read_file (filepath)
+local function read_file(filepath)
   local fh = io.open(filepath, 'rb')
   if not fh then return nil end
   local contents = fh:read('a')
@@ -23,7 +23,7 @@ local function read_file (filepath)
   return contents
 end
 
-local function write_file (filepath, content)
+local function write_file(filepath, content)
   local fh = io.open(filepath, 'wb')
   if not fh then return false end
   fh:write(content)
@@ -40,12 +40,12 @@ local function check_dependency(cmd)
 end
 
 -- Returns a filter-specific directory in which cache files can be stored, or nil if not available.
-local function cachedir ()
+local function cachedir()
   local cache_home = os.getenv 'XDG_CACHE_HOME'
   if not cache_home or cache_home == '' then
     local user_home = system.os == 'windows'
-      and os.getenv 'USERPROFILE'
-      or os.getenv 'HOME'
+        and os.getenv 'USERPROFILE'
+        or os.getenv 'HOME'
 
     if not user_home or user_home == '' then
       return nil
@@ -59,13 +59,13 @@ local function cachedir ()
   return cache_dir
 end
 
-local image_cache = nil  -- Path holding the image cache, or `nil` if the cache is not used.
+local image_cache = nil -- Path holding the image cache, or `nil` if the cache is not used.
 
 -- Function to parse properties from code comments
-local function properties_from_code (code, comment_start)
+local function properties_from_code(code, comment_start)
   local props = {}
   local pattern = comment_start:gsub('%p', '%%%1') .. '| ?' ..
-    '([-_%w]+): ([^\n]*)\n'
+      '([-_%w]+): ([^\n]*)\n'
   for key, value in code:gmatch(pattern) do
     if key == 'fig-attr' then
       -- Handle nested attributes for fig-attr
@@ -145,7 +145,7 @@ local function diagram_options(cb)
 end
 
 -- Function to get cached image
-local function get_cached_image (hash, options)
+local function get_cached_image(hash, options)
   if not image_cache then
     return nil
   end
@@ -161,7 +161,7 @@ local function get_cached_image (hash, options)
 end
 
 -- Function to cache image
-local function cache_image (hash, options, imgdata)
+local function cache_image(hash, options, imgdata)
   -- Do nothing if caching is disabled or not possible.
   if not image_cache then
     return
@@ -173,7 +173,7 @@ local function cache_image (hash, options, imgdata)
 end
 
 -- Function to compile TikZ code to SVG
-local function compile_tikz_to_svg(code, user_opts, conf, basename)  -- Added conf and basename parameters
+local function compile_tikz_to_svg(code, user_opts, conf, basename) -- Added conf and basename parameters
   -- Ensure required dependencies are available
   if not check_dependency('latex') then
     error("latex not found. Please install LaTeX to compile TikZ diagrams.")
@@ -193,10 +193,7 @@ local function compile_tikz_to_svg(code, user_opts, conf, basename)  -- Added co
 
       -- Build the LaTeX document
       local tikz_template = pandoc.template.compile [[
-\documentclass[multi=tikzpicture,varwidth=false]{standalone}
-\def\pgfsysdriver{pgfsys-dvisvgm.def}
-\usepackage{tikz}
-% \usepackage{tikz} % already loaded by the documentclass
+\documentclass[dvisvgm,tikz]{standalone}
 $additional-packages$
 $for(header-includes)$
 $it$
@@ -346,16 +343,16 @@ local function code_to_figure(conf)
 end
 
 -- Function to configure the filter based on metadata and format
-local function configure (meta, format_name)
+local function configure(meta, format_name)
   local conf = meta.tikz or {}
   local format = format_name
-  meta.tikz = nil  -- Remove tikz metadata to avoid processing it further
+  meta.tikz = nil -- Remove tikz metadata to avoid processing it further
 
   -- cache for image files
   if conf.cache == true then
     image_cache = conf['cache-dir']
-      and stringify(conf['cache-dir'])
-      or cachedir()
+        and stringify(conf['cache-dir'])
+        or cachedir()
     if image_cache then
       pandoc.system.make_directory(image_cache, true)
     end
@@ -384,8 +381,8 @@ local function configure (meta, format_name)
   end
 
   local output_dir = conf['output-dir']
-    and stringify(conf['output-dir'])
-    or 'tikz-output'
+      and stringify(conf['output-dir'])
+      or 'tikz-output'
 
   return {
     cache = image_cache and true,
