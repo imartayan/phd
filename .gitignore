@@ -7,6 +7,7 @@
 **/*.quarto_ipynb
 **/.jupyter_cache
 **/figure-latex
+fig/tikz
 
 *.aux
 *.bbl
