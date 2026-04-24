@@ -1,4 +1,3 @@
-
 -- Custom amsthm environments extension for Quarto
 -- Allows defining custom theorem-like environments using crossref metadata
 
@@ -32,28 +31,28 @@ function read_state()
       end
     end
   end
-  return {counters = {}, values = {}, files = {}}
+  return { counters = {}, values = {}, files = {} }
 end
 
 function serialize_table(tbl, indent)
   indent = indent or 0
   local indent_str = string.rep("  ", indent)
   local next_indent_str = string.rep("  ", indent + 1)
-  
+
   if type(tbl) == "string" then
     return string.format("%q", tbl)
   elseif type(tbl) ~= "table" then
     return tostring(tbl)
   end
-  
+
   local parts = {}
   for k, v in pairs(tbl) do
-    local key_str = type(k) == "string" 
-      and string.format("[%q]", k) 
-      or "[" .. tostring(k) .. "]"
+    local key_str = type(k) == "string"
+        and string.format("[%q]", k)
+        or "[" .. tostring(k) .. "]"
     table.insert(parts, next_indent_str .. key_str .. " = " .. serialize_table(v, indent + 1))
   end
-  
+
   if #parts == 0 then
     return "{}"
   end
@@ -61,30 +60,34 @@ function serialize_table(tbl, indent)
 end
 
 function write_state()
-  os.execute("mkdir -p .quarto")
-  
+  -- Do not overwrite state written by other chapters (e.g. references.html
+  -- runs after all chapters and must not clobber their counter values).
+  if not next(new_ids_this_chapter) then
+    return
+  end
+
+  os.execute("mkdir -p " .. state_file:match("^(.+)/[^/]+$"))
+
   local files = {}
   for key, env in pairs(custom_amsthm_envs) do
     if current_counters[key] then
       files[key] = {}
       for id, _ in pairs(current_counters[key]) do
-        local file_for_id
         if new_ids_this_chapter[key] and new_ids_this_chapter[key][id] then
-          file_for_id = current_file or ""
+          files[key][id] = current_file or ""
         else
-          file_for_id = (env.files and env.files[id]) or ""
+          files[key][id] = (env.files and env.files[id]) or ""
         end
-        files[key][id] = file_for_id
       end
     end
   end
-  
+
   local state = {
     counters = amsthm_counters,
     values = current_counters,
-    files = files
+    files = files,
   }
-  
+
   local file = io.open(state_file, "w")
   if file then
     file:write(serialize_table(state) .. "\n")
@@ -100,12 +103,38 @@ function process_custom_amsthm(meta)
   elseif meta.title then
     project_id = pandoc.utils.stringify(meta.title)
   end
-  state_file = string.format(".quarto/amsthm-state-%d.lua", string_hash(project_id))
-  
-  if PANDOC_STATE and PANDOC_STATE.output_file then
-    current_file = PANDOC_STATE.output_file
+
+  -- Use an absolute path so chapters, appendices, and references (which Quarto
+  -- processes from different working directories) all share the same state file.
+  local cwd = io.popen("pwd"):read("*l")
+  -- Walk up from cwd until we find _quarto.yml (the project root).
+  local project_root = cwd
+  local dir = cwd
+  for _ = 1, 10 do
+    local f = io.open(dir .. "/_quarto.yml", "r")
+    if f then
+      f:close()
+      project_root = dir
+      break
+    end
+    local parent = dir:match("^(.+)/[^/]+$")
+    if not parent or parent == dir then break end
+    dir = parent
   end
-  
+  state_file = string.format("%s/.quarto/amsthm-state-%d.lua", project_root, string_hash(project_id))
+
+  -- Build current_file as a path relative to the project root, so that
+  -- chapters/multimini.html and appendix/multimini.html are distinct.
+  if PANDOC_STATE and PANDOC_STATE.output_file then
+    local rel_dir = cwd:sub(#project_root + 2) -- e.g. "chapters" or "appendix" or ""
+    local out = PANDOC_STATE.output_file
+    if rel_dir and rel_dir ~= "" then
+      current_file = rel_dir .. "/" .. out
+    else
+      current_file = out
+    end
+  end
+
   -- Extract chapter number from Span with class "chapter-number" in title
   if meta.title then
     for i = 1, #meta.title do
@@ -121,18 +150,19 @@ function process_custom_amsthm(meta)
       end
     end
   end
-  
-  -- Reset state file on first chapter
-  if not current_section or current_section == "1" then
+
+  -- Reset state file only on chapter "1" (the first numbered chapter).
+  -- Appendices get lettered/nil section numbers, so they never trigger this.
+  if current_section == "1" then
     local file = io.open(state_file, "w")
     if file then
-      file:write(serialize_table({counters = {}, values = {}, files = {}}) .. "\n")
+      file:write(serialize_table({ counters = {}, values = {}, files = {} }) .. "\n")
       file:close()
     end
   end
-  
+
   local previous_state = read_state()
-  
+
   if meta["custom-amsthm"] then
     for _, custom in ipairs(meta["custom-amsthm"]) do
       local key = pandoc.utils.stringify(custom.key)
@@ -142,7 +172,7 @@ function process_custom_amsthm(meta)
       local numbered = custom.numbered == nil or custom.numbered -- default to true
       -- Get numbering style: "section" (default) or "global"
       local numbering_style = pandoc.utils.stringify(custom["numbering-style"] or "section")
-      
+
       custom_amsthm_envs[key] = {
         name = name,
         reference_prefix = reference_prefix,
@@ -151,32 +181,32 @@ function process_custom_amsthm(meta)
         numbering_style = numbering_style,
         files = (previous_state.files and previous_state.files[key]) or {}
       }
-      
+
       -- For global numbering, restore counter from previous state
       if numbering_style == "global" and previous_state.counters[key] then
         amsthm_counters[key] = previous_state.counters[key]
       else
         amsthm_counters[key] = 0
       end
-      
+
       current_counters[key] = previous_state.values[key] or {}
       section_counters[key] = {}
-      
+
       if not meta.crossref then
         meta.crossref = {}
       end
       -- Add custom crossref type
-      meta.crossref[key .. "-title"] = pandoc.MetaInlines({pandoc.Str(name)})
-      meta.crossref[key .. "-prefix"] = pandoc.MetaInlines({pandoc.Str(reference_prefix)})
+      meta.crossref[key .. "-title"] = pandoc.MetaInlines({ pandoc.Str(name) })
+      meta.crossref[key .. "-prefix"] = pandoc.MetaInlines({ pandoc.Str(reference_prefix) })
     end
   end
-  
+
   return meta
 end
 
 function generate_latex_headers()
   local headers = {}
-  
+
   for key, env in pairs(custom_amsthm_envs) do
     local latex_env
     if env.numbered then
@@ -195,7 +225,7 @@ function generate_latex_headers()
     end
     table.insert(headers, latex_env)
   end
-  
+
   if #headers > 0 then
     return "\\usepackage{amsthm}\n" .. table.concat(headers, "\n")
   end
@@ -224,7 +254,7 @@ function handle_amsthm_div(div)
   if id == "" then
     return div
   end
-  
+
   -- Check if this div has an ID that matches any of our custom environments
   for key, env in pairs(custom_amsthm_envs) do
     local prefix = key .. "-"
@@ -233,7 +263,7 @@ function handle_amsthm_div(div)
       local current_number = ""
       local title = ""
       local content_without_title = {}
-      
+
       if env.numbered then
         if env.numbering_style == "section" and current_section then
           section_counters[key][current_section] = (section_counters[key][current_section] or 0) + 1
@@ -244,7 +274,7 @@ function handle_amsthm_div(div)
           current_number = tostring(amsthm_counters[key])
         end
         current_counters[key][id] = current_number
-        
+
         -- Track new IDs for file mapping
         if not new_ids_this_chapter[key] then
           new_ids_this_chapter[key] = {}
@@ -252,7 +282,7 @@ function handle_amsthm_div(div)
         new_ids_this_chapter[key][id] = true
         label = "\\label{" .. id .. "}"
       end
-      
+
       -- Extract title from first header (## Title)
       for i, block in ipairs(div.content) do
         if i == 1 and block.t == "Header" and block.level == 2 then
@@ -261,7 +291,7 @@ function handle_amsthm_div(div)
           table.insert(content_without_title, block)
         end
       end
-      
+
       local latex_begin
       if title ~= "" then
         -- Strip parentheses: " (Title)" -> "Title"
@@ -270,7 +300,7 @@ function handle_amsthm_div(div)
         latex_begin = "\\begin{" .. env.latex_name .. "}" .. label
       end
       local latex_end = "\\end{" .. env.latex_name .. "}"
-      
+
       -- For LaTeX output
       if FORMAT:match("latex") then
         local content = {}
@@ -289,47 +319,47 @@ function handle_amsthm_div(div)
         if title ~= "" then
           html_title = html_title .. title
         end
-        
+
         -- Preserve original classes and add "theorem" class
-        local html_classes = {"theorem"}
+        local html_classes = { "theorem" }
         if div.classes then
           for _, cls in ipairs(div.classes) do
             table.insert(html_classes, cls)
           end
         end
-        
+
         local content = {}
-        
+
         -- Create the first paragraph with theorem title span and content
         if #content_without_title > 0 and content_without_title[1].t == "Para" then
           local first_para = content_without_title[1]
           local title_span = pandoc.Span(
-            {pandoc.Strong({pandoc.Str(html_title)})},
-            {class = "theorem-title"}
+            { pandoc.Strong({ pandoc.Str(html_title) }) },
+            { class = "theorem-title" }
           )
-          
-          local new_content = {title_span, pandoc.Space()}
+
+          local new_content = { title_span, pandoc.Space() }
           for _, inline in ipairs(first_para.content) do
             table.insert(new_content, inline)
           end
-          
+
           table.insert(content, pandoc.Para(new_content))
-          
+
           for i = 2, #content_without_title do
             table.insert(content, content_without_title[i])
           end
         else
           local title_span = pandoc.Span(
-            {pandoc.Strong({pandoc.Str(html_title)})},
-            {class = "theorem-title"}
+            { pandoc.Strong({ pandoc.Str(html_title) }) },
+            { class = "theorem-title" }
           )
-          table.insert(content, pandoc.Para({title_span}))
-          
+          table.insert(content, pandoc.Para({ title_span }))
+
           for _, block in ipairs(content_without_title) do
             table.insert(content, block)
           end
         end
-        
+
         return pandoc.Div(content, pandoc.Attr(id, html_classes))
       end
     end
@@ -349,20 +379,38 @@ function handle_amsthm_cite(cite)
             return pandoc.RawInline("latex", env.reference_prefix .. "~\\ref{" .. id .. "}")
           else
             local counter_val = current_counters[key][id]
-            
+
             -- Include file name for cross-chapter references
             local href = "#" .. id
             local ref_file = env.files and env.files[id]
             if ref_file and ref_file ~= "" and ref_file ~= current_file then
-              -- Cross-chapter reference - include the file name
-              href = ref_file .. "#" .. id
+              -- Compute a relative URL from the current file's directory to ref_file.
+              -- Both paths are relative to the project root, e.g.
+              --   current_file = "appendix/multimini.html"
+              --   ref_file     = "chapters/multimini.html"
+              -- Desired href  = "../chapters/multimini.html#id"
+              local cur_dir = current_file:match("^(.+)/[^/]+$") or ""
+              local ref_dir = ref_file:match("^(.+)/[^/]+$") or ""
+              local ref_base = ref_file:match("[^/]+$") or ref_file
+              local rel
+              if cur_dir == ref_dir then
+                rel = ref_base
+              elseif cur_dir == "" then
+                rel = ref_file
+              elseif ref_dir == "" then
+                rel = "../" .. ref_base
+              else
+                -- Both in different subdirs (one level deep in a Quarto book)
+                rel = "../" .. ref_file
+              end
+              href = rel .. "#" .. id
             end
-            
+
             return pandoc.Link(
-              {pandoc.Str(env.reference_prefix), pandoc.Str("\u{00A0}"), pandoc.Str(counter_val)}, 
-              href, 
-              "", 
-              {class = "quarto-xref"}
+              { pandoc.Str(env.reference_prefix), pandoc.Str("\u{00A0}"), pandoc.Str(counter_val) },
+              href,
+              "",
+              { class = "quarto-xref" }
             )
           end
         end
@@ -380,7 +428,7 @@ return {
   {
     Meta = function(meta)
       process_custom_amsthm(meta)
-      
+
       -- Add LaTeX headers for custom environments
       if FORMAT:match("latex") then
         local latex_headers = generate_latex_headers()
@@ -389,14 +437,14 @@ return {
             if type(meta["header-includes"]) == "table" then
               table.insert(meta["header-includes"], pandoc.RawBlock("latex", latex_headers))
             else
-              meta["header-includes"] = {meta["header-includes"], pandoc.RawBlock("latex", latex_headers)}
+              meta["header-includes"] = { meta["header-includes"], pandoc.RawBlock("latex", latex_headers) }
             end
           else
             meta["header-includes"] = pandoc.RawBlock("latex", latex_headers)
           end
         end
       end
-      
+
       return meta
     end
   },
