@@ -25,7 +25,7 @@ In practice, the threshold can either be set as an absolute value $T \in \mathbb
 
 ### Related work
 
-Although sequence-level indexes have been proposed [@karasikov2022lossless;@vandamme2024k2r], indexing and storing entire dataset collection at this resolution remains expensive and challenging at scale, thus favoring lightweight filtering methods directly from unindexed data.
+Although sequence-level indexes have been proposed [@karasikov2022lossless;@k2r], indexing and storing entire dataset collection at this resolution remains expensive and challenging at scale, thus favoring lightweight filtering methods directly from unindexed data.
 Efficient multi-pattern matching is a highly studied topic from both the theoretical [@crochemore1999fastmulti] and practical point of view [@faro2013exact].
 Practical implementation can be found in classical data processing with grep-like efficient tools such as Ripgrep [@ripgrep] or Hyperscan [@hyperscan].
 Some tools perform pattern matching adapted to genomic data, such as Seqkit [@seqkit1;@seqkit2], fqgrep [@fqgrep] or grepq [@grepq].
