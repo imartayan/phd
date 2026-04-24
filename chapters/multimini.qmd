@@ -147,6 +147,7 @@ An example is provided in @fig-multimini-seq-to-model.
 
 ```{.tikz}
 %%| filename: multimini-seq-to-model
+%%| opt-zoom: 1.5
 
 \usetikzlibrary{patterns.meta,calc}
 \usetikzlibrary{shapes,arrows,positioning}
