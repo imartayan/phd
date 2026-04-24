@@ -328,8 +328,11 @@ local function code_to_figure(conf)
     pandoc.system.make_directory(tikz_dir, true)
     write_file(tikz_dir .. '/' .. fname, imgdata)
 
+    -- Build image src relative to chapter CWD so Quarto can resolve it.
+    local img_path = conf.img_prefix .. conf.rel_output_dir .. '/' .. fname
+
     -- Create the image object.
-    local image = pandoc.Image(dgr_opt.alt, tikz_dir .. '/' .. fname, "", dgr_opt['image-attr'])
+    local image = pandoc.Image(dgr_opt.alt, img_path, "", dgr_opt['image-attr'])
 
     -- Create a figure if the diagram has a caption; otherwise return just the image.
     return dgr_opt.caption and
@@ -388,12 +391,25 @@ local function configure(meta, format_name)
       and pandoc.path.join { project_dir, rel_output_dir }
       or rel_output_dir
 
+  -- Compute prefix to go from a chapter dir back to the project root (e.g. '../' for chapters/).
+  -- Used to build image src paths relative to the chapter CWD.
+  local img_prefix = ''
+  if project_dir ~= '' then
+    local cwd = system.get_working_directory()
+    local chapter_rel = cwd:sub(#project_dir + 2)  -- chapter path relative to project root
+    local depth = 0
+    for _ in chapter_rel:gmatch('[^/\\]+') do depth = depth + 1 end
+    img_prefix = string.rep('../', depth)
+  end
+
   return {
     cache = image_cache and true,
     image_cache = image_cache,
     save_tex = save_tex,
     tex_dir = tex_dir,
     output_dir = output_dir,
+    img_prefix = img_prefix,
+    rel_output_dir = rel_output_dir,
   }
 end
 
