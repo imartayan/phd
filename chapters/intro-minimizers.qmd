@@ -79,7 +79,11 @@ This gap between the density of $2 / (w+1)$ and the $1/w$ lower bound motivated 
 
 ## /Skmers and sequence partitioning {#sec-skmers}
 
-## Canonical minimizers {#sec-canonical-minimizers-intro}
+A key practical use of minimizers is to *partition* a sequence into overlapping segments called */skmers*.
+For each minimizer $x$ of the sequence, the corresponding /skmer is the substring covering the consecutive windows that select $x$ as a minimizer.
+An example of /skmer is depicted in @fig-minimizers-overview.
+Note that, in the context of /skmers, the minimizer size is often denoted $m$ while $k$ denotes the number of bases in a window, i.e. $w + m - 1$.
+Using these notations, two consecutive /skmers always overlap by $k - 1$ bases.
 
 ## Improving conservation {#sec-minimizer-conservation}
 
