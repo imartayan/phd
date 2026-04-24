@@ -175,11 +175,11 @@ end
 -- Function to compile TikZ code to SVG
 local function compile_tikz_to_svg(code, user_opts, conf, basename)  -- Added conf and basename parameters
   -- Ensure required dependencies are available
-  if not check_dependency('pdflatex') then
-    error("pdflatex not found. Please install LaTeX to compile TikZ diagrams.")
+  if not check_dependency('latex') then
+    error("latex not found. Please install LaTeX to compile TikZ diagrams.")
   end
   if not check_dependency('dvisvgm') then
-    error("dvisvgm not found. Please install dvisvgm (included in TeX Live) to convert PDFs to SVG.")
+    error("dvisvgm not found. Please install dvisvgm (included in TeX Live) to convert DVI to SVG.")
   end
 
   local function process_in_dir(dir)
@@ -188,12 +188,12 @@ local function compile_tikz_to_svg(code, user_opts, conf, basename)  -- Added co
       -- Use the provided basename or default to "tikz-image"
       local base_filename = basename or "tikz-image"
       local tikz_file = base_filename .. ".tex"
-      local pdf_file = base_filename .. ".pdf"
+      local dvi_file = base_filename .. ".dvi"
       local svg_file = base_filename .. ".svg"
 
       -- Build the LaTeX document
       local tikz_template = pandoc.template.compile [[
-\documentclass[tikz]{standalone}
+\documentclass[dvisvgm,tikz]{standalone}
 % \usepackage{tikz} % already loaded by the documentclass
 $additional-packages$
 $for(header-includes)$
@@ -220,10 +220,10 @@ $body$
       )
       write_file(tikz_file, tex_code)
 
-      -- Execute the LaTeX compiler:
+      -- Execute the LaTeX compiler (DVI mode — no Ghostscript dependency for dvisvgm):
       local success, latex_result = pcall(
         pandoc.pipe,
-        'pdflatex',
+        'latex',
         { '-interaction=nonstopmode', tikz_file },
         ''
       )
@@ -235,12 +235,11 @@ $body$
           "\nTikZ Code:\n" .. code)
       end
 
-      -- Convert PDF to SVG using dvisvgm (ships with TeX Live)
+      -- Convert DVI to SVG using dvisvgm (ships with TeX Live, no Ghostscript needed)
       local args = {
-        '--pdf',
         '--no-fonts',
         '--output=' .. svg_file,
-        pdf_file
+        dvi_file
       }
       local success_dvisvgm, dvisvgm_result = pcall(pandoc.pipe, 'dvisvgm', args, '')
       if not success_dvisvgm then
