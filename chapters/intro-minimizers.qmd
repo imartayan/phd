@@ -2,13 +2,13 @@
 
 The sketching methods presented in @sec-intro-sketching compress a sequence into a compact summary, but they treat the sequence as a simple "bag" of /kmers: two sequences with a high Jaccard index are considered similar regardless of *where* the shared /kmers appear.
 
-Many bioinformatics tasks, such as read alignment or index construction, require something stronger: a guarantee that two sequences sharing a long local exact match will also share at least one selected /kmer at corresponding positions.
-This *locality* property is what distinguishes minimizers from general "context-free" sketching.
+Many bioinformatics tasks require something stronger: a guarantee that two sequences sharing a long local exact match will also share at least one selected /kmer at corresponding positions.
+This *locality* property is what distinguishes minimizers from general "context-free" sketching: here selected /kmers act as representatives of their local context.
 
 ## Definition and fundamental properties {#sec-minimizer-definition}
 
 The concept of minimizers was introduced independently by two groups in 2003--2004.
-@schleimer2003winnowing introduced *winnowing* in the context of document fingerprinting and plagiarism detection: a sliding window scans the /kmers of a document and the smallest /kmer (according to some ordering) is selected as a fingerprint.
+@schleimer2003winnowing introduced *winnowing* in the context of document fingerprinting and plagiarism detection: a sliding window scans the document and the smallest /kmer of each window (according to some ordering) is selected as a fingerprint.
 @roberts2004reducing proposed the same idea for biological sequences, introducing the term *minimizer*, with the explicit goal of providing a locality-preserving sketch: any two sequences sharing a long exact match are guaranteed to share at least one minimizer.
 
 A minimizer scheme is parameterized by three values: the /kmer length $k$, the window size $w$, and a total ordering $\prec$ on /kmers.
@@ -71,7 +71,7 @@ An example of lexicographic minimizer selection is given in @fig-minimizers-over
 
 ### Random ordering
 
-Another simple solution is to order /kmers randomly, typically using a pseudo-random hash function.
+Another popular solution is to order /kmers randomly, typically using a pseudo-random hash function.
 @miniception proved that random minimizers achieve a density of $2 / (w+1) + o(1/w)$ as long as $k > 3 \log_{|\Sigma|}(w+1)$.
 In practice this condition is almost always satisfied and random ordering is the default choice in most bioinformatics tools.
 
