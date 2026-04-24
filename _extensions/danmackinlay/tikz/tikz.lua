@@ -380,9 +380,13 @@ local function configure(meta, format_name)
     end
   end
 
-  local output_dir = conf['output-dir']
+  local rel_output_dir = conf['output-dir']
       and stringify(conf['output-dir'])
       or 'tikz-output'
+  local project_dir = os.getenv('QUARTO_PROJECT_DIR') or ''
+  local output_dir = project_dir ~= ''
+      and pandoc.path.join { project_dir, rel_output_dir }
+      or rel_output_dir
 
   return {
     cache = image_cache and true,
