@@ -77,10 +77,12 @@ In practice this condition is almost always satisfied and random ordering is the
 
 This gap between the density of $2 / (w+1)$ and the $1/w$ lower bound motivated the design of improved orderings and low-density schemes, which we discuss in more details in @sec-low-density-minimizers.
 
-## /Skmers and sequence partitioning {#sec-skmers}
+## /Skmers {#sec-skmers}
 
-A key practical use of minimizers is to *partition* a sequence into overlapping segments called */skmers*.
-For each minimizer $x$ of the sequence, the corresponding /skmer is the substring covering the consecutive windows that select $x$ as a minimizer.
+An important property of minimizer schemes is that consecutive windows tend to share the same minimizer.
+More precisely, random minimizers are shared between $(w+1) / 2$ windows on average (i.e. the inverse of the density).
+Therefore, instead of being represented independently, the windows associated to a given minimizer occurrence can be merged into a compact representation called /skmer.
+Formally, a /skmer is the smallest substring covering all windows selecting a given minimizer position.
 An example of /skmer is depicted in @fig-minimizers-overview.
 Note that, in the context of /skmers, the minimizer size is often denoted $m$ while $k$ denotes the number of bases in a window, i.e. $w + m - 1$.
 Using these notations, two consecutive /skmers always overlap by $k - 1$ bases.
