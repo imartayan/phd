@@ -29,3 +29,5 @@ thesis.pdf
 .cspell_words.txt
 .vale.ini
 .DS_Store
+*.drawio
+*.zip
