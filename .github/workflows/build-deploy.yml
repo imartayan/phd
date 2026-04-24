@@ -25,8 +25,21 @@ jobs:
       - name: Install Python dependencies
         run: python -m pip install -r requirements.txt
 
+      - name: Cache TinyTeX
+        id: cache-tinytex
+        uses: actions/cache@v5
+        with:
+          path: ~/.TinyTeX
+          key: tinytex-${{ runner.os }}-dvisvgm-pgf-standalone
+
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          tinytex: ${{ steps.cache-tinytex.outputs.cache-hit != 'true' }}
+
+      - name: Set up TinyTeX
+        if: steps.cache-tinytex.outputs.cache-hit != 'true'
+        run: tlmgr install dvisvgm pgf standalone
 
       - name: Render Quarto Project
         uses: quarto-dev/quarto-actions/render@v2
