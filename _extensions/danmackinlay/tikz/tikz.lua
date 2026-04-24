@@ -317,11 +317,15 @@ local function code_to_figure(conf)
     -- Use the block's filename attribute or create a new name by hashing the image content.
     local fname = basename .. '.svg'
 
-    -- Store the data in the mediabag:
-    pandoc.mediabag.insert(fname, 'image/svg+xml', imgdata)
+    -- Write SVG to disk instead of mediabag: Quarto rewrites mediabag srcs
+    -- after the lightbox filter runs, causing href/src mismatches.
+    -- Quarto relativizes output-dir from the project root to the chapter dir.
+    local tikz_dir = conf.output_dir
+    pandoc.system.make_directory(tikz_dir, true)
+    write_file(tikz_dir .. '/' .. fname, imgdata)
 
     -- Create the image object.
-    local image = pandoc.Image(dgr_opt.alt, fname, "", dgr_opt['image-attr'])
+    local image = pandoc.Image(dgr_opt.alt, tikz_dir .. '/' .. fname, "", dgr_opt['image-attr'])
 
     -- Create a figure if the diagram has a caption; otherwise return just the image.
     return dgr_opt.caption and
@@ -372,11 +376,16 @@ local function configure (meta, format_name)
     end
   end
 
+  local output_dir = conf['output-dir']
+    and stringify(conf['output-dir'])
+    or 'tikz-output'
+
   return {
     cache = image_cache and true,
     image_cache = image_cache,
     save_tex = save_tex,
     tex_dir = tex_dir,
+    output_dir = output_dir,
   }
 end
 

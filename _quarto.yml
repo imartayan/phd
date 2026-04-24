@@ -119,6 +119,10 @@ custom-amsthm:
   - key: pty
     name: Property
 
+tikz:
+  cache: true
+  output-dir: fig/tikz
+
 search-replace:
   /kmer: "*k*‑mer"
   /mmer: "*m*‑mer"
