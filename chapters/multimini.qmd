@@ -288,7 +288,7 @@ If, indeed, all subsequent $\Delta_i$'s have the same expectation, then, using @
 Unfortunately, formally establishing the law of further variables becomes rapidly intractable due to the dependencies between them.
 To complete the study of subsequent $\mathbb{E}[\Delta_i]$'s, we resort to Monte-Carlo simulations of our probabilistic model and obtain the results depicted in @sec-multimini-app-monte-carlo.
 From our results, the assumption that $\mathbb{E}[\varepsilon] = 0$ is empirically verified (numerically, we get $\mathbb{E}[\varepsilon] \approx 0.0060$), and the $\mathbb{E}[\Delta_i]$'s are indeed distributed around $\mu = \frac{w+1}{2} = 5.5$ (using $w=10$) -- see supplementary @fig-multimini-monte-carlo-mean.
-We obtain numerically a density of $0.1808$, i.e. $0.55\%$ of error compared to the theoretical value of $0.\overline{18}$.
+We obtain numerically a density of 0.1808, i.e. 0.55% of error compared to the theoretical value of $0.\overline{18}$.
 This empirical result highlights that @hyp-multimini-iid is indeed a proper assumption to work with, and also that the assumption of @thm-multimini-density-distance is reasonable, since it is verified in practice.
 
 ### Multiminimizers: trading time for space {#sec-multimini-method}
@@ -493,7 +493,7 @@ While those values are equal at first, soon we obtain repeated minimizers^[While
 :::{#fig-multimini-deduplicated layout-ncol=2}
 ![Theoretical values of $d^\ast$ for $2 \leq k \leq 6$ as a function of $1 \leq w \leq k$, obtained with the formula of @prp-multimini-dedup-density.](../fig/multimini/deduplicated_density_random_minimizers){#fig-multimini-dedup-theory}
 
-![Monte-Carlo simulations of random minimizers under @hyp-multimini-iid. We generated $N_\text{simu} = 10^3$ random sequences $\mathbf{R}$ of size $|\mathbf{R}| = 10^5$, with $m=8$ and $w=10$. $95\%$ of values across all simulations are within the colored areas, the solid lines being the medians.](../fig/multimini/deduplicated_vs_standard){#fig-multimini-dedup-mc}
+![Monte-Carlo simulations of random minimizers under @hyp-multimini-iid. We generated $N_\text{simu} = 10^3$ random sequences $\mathbf{R}$ of size $|\mathbf{R}| = 10^5$, with $m=8$ and $w=10$. 95% of values across all simulations are within the colored areas, the solid lines being the medians.](../fig/multimini/deduplicated_vs_standard){#fig-multimini-dedup-mc}
 
 (left) Theoretical values of $d^\ast$ for small $k$. (right) Evolution of $d$ and $d^\ast$ over the course of parsing a random sequence.
 :::
@@ -550,7 +550,7 @@ As discussed in @sec-multimini-method, the multiminimizer trick aims at reducing
 We expect to reduce the density when increasing the number of hash functions.
 The intuition is that increasing the number of /skmer candidates increases the chance of finding a /skmer that ends further than the others, thus increasing the distance between consecutive selected positions.
 
-To show this density reduction, we generated a random sequence ($5$M bases) and computed the density of our scheme on it, for $1$ to $8$ hash functions, using $w=15$ and varying $m$ (thus $k$).
+To show this density reduction, we generated a random sequence (5M bases) and computed the density of our scheme on it, for 1 to 8 hash functions, using $w=15$ and varying $m$ (thus $k$).
 We observed that the higher the number of hash functions, the lower the density, which allows us to reach densities lower than any other scheme (see @fig-multimini-density-w).
 To our knowledge, multiminimizer is the first iterator over minimizers with a density lower than the lower bound introduced by [@density-lower-bound].
 Figures for additional $m$ and $w$ values are available in @sec-multimini-app-more-w.
@@ -564,9 +564,9 @@ Therefore, we used a non-SIMD implementation, making it much slower.
 For this reason, we could only reasonably run it on a random sequence of $5 \times 10^5$ bases.
 
 :::{#fig-multimini-density layout-ncol=2}
-![Multiminimizers.](../fig/multimini/density_no_ocmm){#fig-multimini-density-w}
+![Multiminimizers.](../fig/multimini/density/density_mm_small_w_15){#fig-multimini-density-w}
 
-![Multi open-closed mod-minimizers.](../fig/multimini/density_ocmm){#fig-multimini-density-mocmm}
+![Multi open-closed mod-minimizers.](../fig/multimini/density/density_mocmm_small_w_15){#fig-multimini-density-mocmm}
 
 Density of multiple schemes, compared to our (a) multiminimizer and (b) MOCMM schemes with up to 32 hash functions.
 Our schemes are able to reach densities less than the lower bound of [@density-lower-bound].
@@ -576,31 +576,31 @@ Our schemes are able to reach densities less than the lower bound of [@density-l
 In both @fig-multimini-density-w and @fig-multimini-density-mocmm, one can observe that the density approaches the theoretical lower bound $1/w$.
 This convergence seems intuitive since, when the number of hash functions becomes large enough, all /mmers of a /kmer are likely to be chosen as the minimizer candidate for at least one of the hash functions, and therefore the multiminimizer scheme tends to become optimal.
 
-### Super-*k*-mers and hyper-*k*-mers space usage {#sec-multimini-space}
+### /Skmers and /hkmers space usage {#sec-multimini-space}
 
 Since the space usage of a /skmer representation of a sequence is driven by the density of the underlying scheme [@hyperkmers, Thm. 1], we can translate a density reduction to a linear /skmer representation.
 @fig-multimini-superkmer-space shows the space usage of a /skmer representation of multiminimizers, whereas @fig-multimini-sk-mocmm provides the same information for MOCMMs, both for multiple numbers of hash functions and $k$ values.
 
-Ideally, to represent a sequence over an alphabet of size $4$ (e.g., a DNA sequence $S$), one could use only $2$ bits per nucleotide in $S$.
-However, /skmers use as low as $6$ bits per nucleotide in $S$.
-Hyper-$k$-mers [@hyperkmers] were recently introduced and tend toward $4$ bits per nucleotide in $S$ when using a random-minimizer-based hyper-$k$-mer representation.
-This is still higher than the lower bound of $2$ bits per nucleotide, due to random minimizers having a density of $\frac{2}{w+1}$.
+Ideally, to represent a sequence over an alphabet of size 4 (e.g., a DNA sequence $S$), one could use only 2 bits per nucleotide in $S$.
+However, /skmers use as low as 6 bits per nucleotide in $S$.
+/hkmers [@hyperkmers] were recently introduced and tend toward 4 bits per nucleotide in $S$ when using a random-minimizer-based /hkmer representation.
+This is still higher than the lower bound of 2 bits per nucleotide, due to random minimizers having a density of $\frac{2}{w+1}$.
 
-Since our multiminimizer scheme approaches a density of $\frac{1}{w}$, using a multiminimizer scheme could allow hyper-$k$-mers to tend toward $2$ bits per nucleotide in the input sequence.
-To test this hypothesis, we replaced the iterator over minimizer of KFC (a hyper-$k$-mer-based /kmer counter introduced in [@hyperkmers]) by our iterator over multiminimizer and report the result in @fig-multimini-size-hyperkmer.
-Note that KFC is optimized for large $k$ values (e.g. $> 60$), so we tested our hypothesis in this range.
-Our results show that KFC converges to $2$ bits per base in $S$.
+Since our multiminimizer scheme approaches a density of $\frac{1}{w}$, using a multiminimizer scheme could allow /hkmers to tend toward 2 bits per nucleotide in the input sequence.
+To test this hypothesis, we replaced the iterator over minimizer of KFC (a /hkmer-based /kmer counter introduced in [@hyperkmers]) by our iterator over multiminimizer and report the result in @fig-multimini-size-hyperkmer.
+Note that KFC is optimized for large $k$ values (e.g. > 60), so we tested our hypothesis in this range.
+Our results show that KFC converges to 2 bits per base in $S$.
 To the best of our knowledge, this is the first streaming /kmer representation to achieve it.
 
 :::{#fig-multimini-space layout-ncol=2}
-![/Skmer representation + multiminimizers.](../fig/multimini/superkmer_space_canonical){#fig-multimini-superkmer-space}
+![/Skmer representation + multiminimizers.](../fig/multimini/space_sk_mm){#fig-multimini-superkmer-space}
 
-![/Skmer representation + MOCMM.](../fig/multimini/bit_usage_superkmer_mocmm){#fig-multimini-sk-mocmm}
+![/Skmer representation + MOCMM.](../fig/multimini/space_sk_mocmm){#fig-multimini-sk-mocmm}
 
-![Hyper-$k$-mer representation + multiminimizers.](../fig/multimini/duplication_factor_hyperkmer){#fig-multimini-size-hyperkmer}
+![/Hkmer representation + multiminimizers.](../fig/multimini/space_hk_mm){#fig-multimini-size-hyperkmer}
 
 Number of bits per /kmer for different representations of a random read, with $m=21$, depending on $k$ and the number of hash functions used with the multiminimizer trick.
-Increasing the number of hash functions allows the hyper-$k$-mer representation (c) to converge to $2$ bits//kmer, the minimum required to represent a DNA sequence.
+Increasing the number of hash functions allows the /hkmer representation (c) to converge to 2 bits/kmer, the minimum required to represent a DNA sequence.
 :::
 
 ### Pin: a multiminimizer approach to Needle-like applications {#sec-multimini-pin}
@@ -609,22 +609,22 @@ We developed a simple proof-of-concept minimizer index to demonstrate the utilit
 Such an index stores a set of minimizers that collectively cover all /kmers of interest, enabling efficient filtering as an indexed minimizer is a necessary condition for an indexed /kmer, and with sufficiently large minimizers, passing the filter already implies substantial sequence similarity.
 Our prototype relies on exact hash tables and handles a single uncolored set; the same idea can be readily adapted to colored or approximate index structures.
 During construction, we test the presence of /kmers and then greedily select minimizers to cover any uncovered sequences.
-We evaluate the approach on the Human HiFi accession `SRR11292123` ($\sim$24 Gb) in @fig-multimini-pin, and observe a substantial reduction in index size with competitive build and query times.
-Merely switching from a single to two hash functions yields an index about $20\%$ smaller, with roughly a $20\%$ increase in construction time and about $85\%$ in query time.
+We evaluate the approach on the Human HiFi accession `SRR11292123` (~24 Gb) in @fig-multimini-pin, and observe a substantial reduction in index size with competitive build and query times.
+Merely switching from a single to two hash functions yields an index about 20% smaller, with roughly a 20% increase in construction time and about 85% in query time.
 
 :::{#fig-multimini-pin}
-![](../fig/multimini/pin_results)
+![](../fig/multimini/pin_results){width=80%}
 
 Relative performances of the minimizer dictionary Pin using multiminimizers, comparing $N$ hash functions vs $N=1$.
 The $x$-axis depicts the relative index size (in terms of the number of minimizers), and the $y$-axis provides relative construction (left) and query (right) times.
-As an indicator, for $N=1$, there are $\approx 850 \times 10^6$ minimizers, construction time is $234$s, and query time is about $0.04$s.
+As an indicator, for $N=1$, there are $\approx 850 \times 10^6$ minimizers, construction time is 234s, and query time is about 0.04s.
 :::
 
 ## Conclusion
 
 This work advances both the theory and practice of minimizer-based sampling by (i) establishing a general density–distance equivalence under minimal assumptions (@thm-multimini-density-distance); (ii) introducing the novel notion of the deduplicated density, which captures the fraction of distinct minimizers covering a set of /kmers and for which we provide an analytical expression and empirical characterization in the random minimizers case; and (iii) designing the multiminimizer scheme, a simple yet effective scheme that trades time for space and achieves densities below the forward-scheme lower bound while preserving linear runtime.
 We also propose a proof-of-concept of a multi open-closed mod-minimizer scheme, achieving even lower densities.
-Empirically, increasing the number of hash functions consistently reduces density and memory footprint, and the benefits translate directly to /skmers, hyper-$k$-mer representations, and filtering indexes.
+Empirically, increasing the number of hash functions consistently reduces density and memory footprint, and the benefits translate directly to /skmers, /hkmer representations, and filtering indexes.
 
 Several theoretical questions remain open.
 First of all, the theoretical density of the multiminimizer scheme remains to be studied.
@@ -636,7 +636,7 @@ From an algorithmic standpoint, developing effective local or global heuristics 
 Finally, on the practical side, two areas can be explored.
 Firstly, combining multiminimizers with other existing low-density schemes to form multi-seeded variants could further reduce density in practice while retaining fast iteration.
 The proof of concept "multiminimizers on open-closed mod-minimizer" could be vastly improved by, e.g., using SIMD instructions to speed up computation.
-Secondly, replacing traditional minimizer iterators with our Rust library could improve a vast number of existing tools, beyond our work here on improving a hyper-$k$-mer-based /kmer counter.
+Secondly, replacing traditional minimizer iterators with our Rust library could improve a vast number of existing tools, beyond our work here on improving a /hkmer-based /kmer counter.
 Thus, we set the stage for the next generation of theoretically grounded, robust, and efficient sampling schemes.
 
 Different sequence-mapping tools have highlighted the need for heuristics to fill in the deserts where sampled alignment landmarks are missing, as well as to better handle low complexity regions.

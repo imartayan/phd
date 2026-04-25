@@ -63,7 +63,7 @@ rather than the approximation of @prp-multimini-uniform.
 As one can see, $P_1$ converges quickly to the limit uniform distribution (as one can expect since the dependency on $m$ is of the order of $\sigma^{-m}$).
 
 :::{#fig-multimini-convergence}
-![](../fig/multimini/Z1_proba_evolution_with_m)
+![](../fig/multimini/Z1_proba_evolution_with_m){width=80%}
 
 With $w=10$, evolution of the distribution of $P_1$ as $m$ increases.
 The actual value of $P_1$ is computed using the exact formula instead of the approximation of @prp-multimini-uniform.
@@ -79,7 +79,7 @@ Simulating our probabilistic model of random minimizers, with @hyp-multimini-iid
 ![Empirical distribution of $\varepsilon$. The red line denotes the empirical mean of $\varepsilon$.](../fig/multimini/deviation_to_mean){#fig-multimini-monte-carlo-deviation}
 
 Monte-Carlo simulations of our model of random minimizers under @hyp-multimini-iid.
-We used $m=8$, $w=10$ and generated $N_\text{simu} = 10^6$ random sequences $\mathbf{R}$, all long enough so that the sequence $\boldsymbol{\Delta}$ contains at least $100$ values.
+We used $m=8$, $w=10$ and generated $N_\text{simu} = 10^6$ random sequences $\mathbf{R}$, all long enough so that the sequence $\boldsymbol{\Delta}$ contains at least 100 values.
 :::
 
 One thing that seems surprising at first glance is the peak observed for $\mathbb{E}[\Delta_2]$.
@@ -286,16 +286,36 @@ VertexCover admits a yes-instance $(V, E, k)$ iff the MultiMinCover instance $(\
 In this section, we ran the same evaluation as in @sec-multimini-density, but applied our multiminimizer iterator to multiple $w$ and more $m$ values to check robustness.
 @fig-multimini-sup-density-no-mocmm and @fig-multimini-sup-density-mocmm show that for all $w$ values, our iterator can yield densities lower than the lower bound.
 
-:::{#fig-multimini-sup-density-no-mocmm}
-![](../fig/multimini/sup_density_no_ocmm)
+:::{#fig-multimini-sup-density-no-mocmm layout-ncol=2}
+![](../fig/multimini/density/density_mm_w_3)
 
-Density of multiple schemes, including multiminimizers with up to 32 hash functions. Same plot as @fig-multimini-density-w, for $w \in \{3, 7, 15, 31, 63\}$.
+![](../fig/multimini/density/density_mm_w_7)
+
+![](../fig/multimini/density/density_mm_w_15)
+
+![](../fig/multimini/density/density_mm_w_25)
+
+![](../fig/multimini/density/density_mm_w_31)
+
+![](../fig/multimini/density/density_mm_w_63)
+
+Density of multiple schemes, including multiminimizers with up to 32 hash functions, for $w \in \{3, 7, 15, 31, 63\}$.
 :::
 
-:::{#fig-multimini-sup-density-mocmm}
-![](../fig/multimini/sup_density_ocmm)
+:::{#fig-multimini-sup-density-mocmm layout-ncol=2}
+![](../fig/multimini/density/density_mocmm_w_3)
 
-Density of multiple schemes, including multiminimizers based on open-closed mod-minimizers [@ocmm] with up to 32 hash functions. Same plot as @fig-multimini-density-mocmm, for $w \in \{3, 7, 15, 31, 63\}$.
+![](../fig/multimini/density/density_mocmm_w_7)
+
+![](../fig/multimini/density/density_mocmm_w_15)
+
+![](../fig/multimini/density/density_mocmm_w_25)
+
+![](../fig/multimini/density/density_mocmm_w_31)
+
+![](../fig/multimini/density/density_mocmm_w_63)
+
+Density of multiple schemes, including multiminimizers based on open-closed mod-minimizers [@ocmm] with up to 32 hash functions, for $w \in \{3, 7, 15, 31, 63\}$.
 :::
 
 ## Conservation with respect to error rate {#sec-multimini-app-conservation}
@@ -306,9 +326,9 @@ The results are shown in @fig-multimini-conservation.
 In particular, we can observe that the conservation decreases slightly faster with respect to the error rate as the number of hash functions increases.
 
 :::{#fig-multimini-conservation}
-![](../fig/multimini/conservation)
+![](../fig/multimini/conservation){width=80%}
 
-Conservation of sampled multiminimizers, measured by their Jaccard similarity, with $1 \leq N \leq 4$ for a random string of size $10^5$ compared to a mutated version of the string with up to $3.5\%$ of errors.
+Conservation of sampled multiminimizers, measured by their Jaccard similarity, with $1 \leq N \leq 4$ for a random string of size 10^5^ compared to a mutated version of the string with up to 3.5% of errors.
 :::
 
 ## Linearity of indexation time {#sec-multimini-app-time}
@@ -317,8 +337,8 @@ In this section, we show that the iteration over multiminimizers is linear with 
 The results are shown in @fig-multimini-time.
 
 :::{#fig-multimini-time}
-![](../fig/multimini/time_vs_N)
+![](../fig/multimini/time_vs_N){width=80%}
 
-Time taken to index a random string of size $10^5$.
+Time taken to index a random string of size 10^5^.
 The linear regression shows that the time taken to iterate over the multiminimizers is approximately the time needed to iterate over one random minimizer scheme times the number of hash functions.
 :::
