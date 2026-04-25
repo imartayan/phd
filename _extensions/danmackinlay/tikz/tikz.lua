@@ -34,6 +34,7 @@ end
 -- Function to check if a command exists
 local function check_dependency(cmd)
   local handle = io.popen("command -v " .. cmd .. " 2>/dev/null")
+  if not handle then return false end
   local result = handle:read("*a")
   handle:close()
   return result ~= ""
@@ -116,9 +117,7 @@ local function diagram_options(cb)
       fig_attr.id = value
     elseif attr_name == 'name' then
       fig_attr.name = value
-    elseif attr_name == 'fig-attr' then
-      -- Already handled
-    else
+    elseif attr_name ~= 'fig-attr' then
       -- Check for prefixed attributes
       local prefix, key = attr_name:match '^(%a+)%-(%a[-%w]*)$'
       if prefix == 'fig' then
@@ -153,11 +152,7 @@ local function get_cached_image(hash, options)
   local cache_key = pandoc.sha1(hash .. stringify(options))
   local filename = cache_key .. '.svg' -- We will use SVG output
   local imgpath = pandoc.path.join { image_cache, filename }
-  local imgdata = read_file(imgpath)
-  if imgdata then
-    return imgdata, 'image/svg+xml'
-  end
-  return nil
+  return read_file(imgpath)
 end
 
 -- Function to cache image
@@ -173,7 +168,7 @@ local function cache_image(hash, options, imgdata)
 end
 
 -- Function to compile TikZ code to SVG
-local function compile_tikz_to_svg(code, user_opts, conf, basename) -- Added conf and basename parameters
+local function compile_tikz_to_svg(code, user_opts, conf, basename)
   -- Ensure required dependencies are available
   if not check_dependency('latex') then
     error("latex not found. Please install LaTeX to compile TikZ diagrams.")
@@ -254,7 +249,7 @@ $body$
       if not imgdata then
         error("Failed to read generated SVG file for TikZ figure '" .. base_filename .. "'.\nTikZ Code:\n" .. code)
       end
-      return imgdata, 'image/svg+xml'
+      return imgdata
     end)
   end
 
@@ -300,15 +295,15 @@ local function code_to_figure(conf)
 
     -- Check if image is cached
     local hash = block.text
-    local imgdata, imgtype = nil, nil
+    local imgdata = nil
     if conf.cache then
-      imgdata, imgtype = get_cached_image(hash, dgr_opt.opt)
+      imgdata = get_cached_image(hash, dgr_opt.opt)
     end
 
-    if not imgdata or not imgtype then
+    if not imgdata then
       -- No cached image; compile TikZ code
       local success, result = pcall(function()
-        return compile_tikz_to_svg(block.text, dgr_opt.opt, conf, basename) -- Pass conf and basename
+        return compile_tikz_to_svg(block.text, dgr_opt.opt, conf, basename)
       end)
       if not success or not result then
         -- Compilation failed (e.g. pdflatex/inkscape not installed); fall back
@@ -316,14 +311,12 @@ local function code_to_figure(conf)
         imgdata = read_file(tikz_dir .. '/' .. fname)
         if imgdata then
           quarto.log.warning("TikZ figure '" .. basename .. "': using existing file (compilation unavailable)")
-          imgtype = 'image/svg+xml'
         else
           quarto.log.error("Error compiling TikZ figure '" .. basename .. "': " .. tostring(result))
           return nil -- Return the original block unchanged
         end
       else
-        imgdata, imgtype = result, 'image/svg+xml'
-        -- Cache the image
+        imgdata = result
         cache_image(hash, dgr_opt.opt, imgdata)
       end
     end
@@ -348,9 +341,8 @@ local function code_to_figure(conf)
 end
 
 -- Function to configure the filter based on metadata and format
-local function configure(meta, format_name)
+local function configure(meta)
   local conf = meta.tikz or {}
-  local format = format_name
   meta.tikz = nil -- Remove tikz metadata to avoid processing it further
 
   -- cache for image files
@@ -414,7 +406,7 @@ end
 return {
   {
     Pandoc = function(doc)
-      local conf = configure(doc.meta, FORMAT)
+      local conf = configure(doc.meta)
       return doc:walk {
         CodeBlock = code_to_figure(conf),
       }
