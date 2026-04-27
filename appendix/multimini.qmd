@@ -1,4 +1,4 @@
-# Multiminimizers
+# Proofs and experiments on multiminimizers
 
 ## Proof of @thm-multimini-density-distance {#sec-multimini-app-density-distance}
 
@@ -45,7 +45,11 @@ $$\overbrace{R_1, \ldots, R_{i-1}}^{> R_i},\ \boxed{R_i},\ \overbrace{R_{i+1}, \
 
 The events $(R_j > R_i)$ and $(R_j \geq R_i)$ are clearly not independent of $R_i$; but resorting to the law of total probability, and using that the $R_j$'s are i.i.d., we obtain
 
-$$\mathbb{P}(P_1 = i) = \frac{1}{\sigma^m} \sum_{r=0}^{\sigma^m - 1} \left(\frac{r}{\sigma^m}\right)^{i-1} \cdot \left(\frac{r}{\sigma^m} + \frac{1}{\sigma^m}\right)^{w-i}.$$
+\begin{align*}
+\mathbb{P}(P_1=i) &= \sum_{r=1}^{\sigma^m} \mathbb{P}(R_1 > r)^{i-1} \cdot \mathbb{P}(R_1\geq r)^{w-i}\cdot \mathbb{P}(R_i=r) \\
+&=\frac{1}{\sigma^{m}} \sum_{r=1}^{\sigma^m} \left(\frac{\sigma^m-r}{\sigma^m}\right)^{i-1}\cdot \left(\frac{\sigma^m -r}{\sigma^m}+\frac{1}{\sigma^m}\right)^{w-i}\\
+&= \frac{1}{\sigma^{m}}\sum_{r=0}^{\sigma^m -1} \left(\frac{r}{\sigma^m}\right)^{i-1}\cdot \left(\frac{r}{\sigma^m}+\frac{1}{\sigma^m}\right)^{w-i} \quad \text{by change of variable.}
+\end{align*}
 
 Using @lem-multimini-trapezoid with $f : x \mapsto x^{i-1}(x + \sigma^{-m})^{w-i}$, we obtain
 
@@ -53,7 +57,10 @@ $$\mathbb{P}(P_1 = i) = \frac{\mathbf{1}_{i=1}}{\sigma^{mw}} + \int_0^1 x^{i-1}(
 
 Using the fact that $(x + \sigma^{-m})^n = x^n + \frac{nx^{n-1}}{\sigma^m} + O(\sigma^{-2m})$, we get
 
-$$\mathbb{P}(P_1 = i) = \frac{1}{w} + \left(\frac{w-i}{w-1} - \frac{1}{2}\right) \cdot \frac{1}{\sigma^m} + O\!\left(\frac{1}{\sigma^{2m}}\right). \quad \square$$
+\begin{align*}
+\mathbb{P}(P_1=i) &= \int_0^1 x^{w-1}\,dx + \frac{w-i}{\sigma^m}\int_0^1 x^{w-2}\,dx - \frac{1}{2\sigma^m} + O\!\left(\frac{1}{\sigma^{2m}}\right)\\
+&= \frac{1}{w} + \left(\frac{w-i}{w-1} - \frac{1}{2}\right) \cdot \frac{1}{\sigma^m} + O\!\left(\frac{1}{\sigma^{2m}}\right). \quad \square
+\end{align*}
 
 ## Convergence of $P_1$ to the uniform distribution {#sec-multimini-app-convergence-p1}
 
@@ -125,17 +132,49 @@ For any $1 \leq j \leq i \leq w$, the probability that $P_2^* = w+j$ overwrites 
 $$\mathbb{P}((P_1^*=i) \cap (P_2^*=w+j) \cap (R_{w+j} < R_i)) = \frac{1}{w+j-1} - \frac{1}{w+j} + O\!\left(\frac{1}{\sigma^m}\right).$$
 :::
 
-*Proof.* Let $O_{i,w+j}$ denote this event.
-By conditioning on the values of $R_i$ and $R_{w+j}$, using the i.i.d. structure and applying @lem-multimini-trapezoid, we obtain:
+*Proof.* Let $O_{i,w+j}$ denote the event $(P_1^*=i) \cap (P_2^*=w+j) \cap (R_{w+j} < R_i)$.
 
-$$\mathbb{P}(O_{i,w+j}) = \int_0^1 x^{w+j-2}(1-x)\, dx + O\!\left(\frac{1}{\sigma^m}\right) = \frac{1}{w+j-1} - \frac{1}{w+j} + O\!\left(\frac{1}{\sigma^m}\right). \quad \square$$
+\begin{align*}
+\mathbb{P}(O_{i,w+j}) &= \sum_{r=1}^{\sigma^m} \mathbb{P}(R_1 > r)^{i-1} \cdot \mathbb{P}(R_i=r) \cdot \mathbb{P}(R_1 \ge r)^{w-i+j-1} \cdot \mathbb{P}(R_{w+j} < r) \\
+&= \frac{1}{\sigma^m} \sum_{r=1}^{\sigma^m} \mathbb{P}(R_1 > r)^{i-1} \cdot \mathbb{P}(R_1 \ge r)^{w-i+j-1} \cdot (1 - \mathbb{P}(R_{w+j} \geq r))\\
+&= \frac{1}{\sigma^m} \sum_{r=1}^{\sigma^m}\left(\frac{\sigma^m-r}{\sigma^m}\right)^{i-1}\left(\frac{\sigma^m-r+1}{\sigma^m}\right)^{w-i+j-1}\left(1-\frac{\sigma^m-r+1}{\sigma^m}\right)\\
+&= \frac{1}{\sigma^m} \sum_{r=1}^{\sigma^m} \left(\frac{r-1}{\sigma^m}\right)^{i-1}\left(\frac{r}{\sigma^m}\right)^{w-i+j-1}\left(1-\frac{r}{\sigma^m}\right) \quad \text{by change of variable.}
+\end{align*}
+
+Applying @lem-multimini-trapezoid with $f: x \mapsto (x-\sigma^{-m})^{i-1}x^{w-i+j-1}(1-x)$, we obtain
+$$\mathbb{P}(O_{i,w+j}) = \int_0^1 (x-\sigma^{-m})^{i-1}x^{w-i+j-1}(1-x)\,dx - \frac{\mathbf{1}_{w+j=i+1}(-\sigma^{-m})^{i-1}}{2\sigma^m} + O\!\left(\frac{1}{\sigma^{2m}}\right).$$
+Using the expansion $(x-\sigma^{-m})^{i-1} = x^{i-1}+ O(\sigma^{-m})$, we get
+\begin{align*}
+\mathbb{P}(O_{i,w+j}) &= \int_0^1 x^{w+j-2}(1-x)\,dx + O\!\left(\frac{1}{\sigma^m}\right)\\
+&= \frac{1}{w+j-1} - \frac{1}{w+j} + O\!\left(\frac{1}{\sigma^m}\right),
+\end{align*}
+since $\int_0^1 x^n(1-x)\,dx = \frac{1}{n+1}-\frac{1}{n+2}$. $\square$
 
 Assuming $w^2 = o(\sigma^m)$,
 \begin{align*}
 \mathbb{E}[\Delta_2 \cdot \mathbf{1}_{P_2^* \text{ overwrites } P_1^*}]
-&= \sum_{i=1}^{w} \sum_{j=1}^{i} (w-i+j) \left[\frac{1}{w+j-1} - \frac{1}{w+j} + O\!\left(\frac{1}{\sigma^m}\right)\right].
+&= \sum_{i=1}^{w} \sum_{j=1}^{i} (w-i+j) \cdot \mathbb{P}(O_{i,w+j}) \\
+&= \sum_{i=1}^{w} \sum_{j=1}^{i} (w-i+j) \left[\frac{1}{w+j-1} - \frac{1}{w+j} + O\!\left(\frac{1}{\sigma^m}\right)\right] \\
+&= \sum_{i=1}^w \left[ \sum_{j=1}^i \frac{w-i+j}{w+j-1} - \sum_{j=1}^i \frac{w-i+j}{w+j}\right] + O\!\left(\frac{1}{\sigma^m}\right)\\
+&= \sum_{i=1}^w \left[ \sum_{j=1}^i \frac{w-i+j-1+1}{w+j-1} - \left(i - i\sum_{j=1}^i \frac{1}{w+j}\right) \right] + O\!\left(\frac{1}{\sigma^m}\right)\\
+&= \sum_{i=1}^w \left[ i - (i-1)\sum_{j=1}^i \frac{1}{w+j-1} -i + i\sum_{j=1}^i \frac{1}{w+j}\right] + O\!\left(\frac{1}{\sigma^m}\right)\\
+&= \sum_{i=1}^w \left[\sum_{j=1}^i \frac{1}{w+j-1} + i\left(\frac{1}{w+i}-\frac{1}{w}\right)\right] + O\!\left(\frac{1}{\sigma^m}\right).
 \end{align*}
-Expanding and simplifying using harmonic numbers yields $w(H_{2w} - H_w) - \frac{w-1}{2} + O(1/\sigma^m)$.
+Expanding into three different sums,
+\begin{align*}
+\mathbb{E}[\Delta_2 \cdot \mathbf{1}_{P_2^* \text{ overwrites } P_1^*}]
+&= \underbrace{\sum_{i=1}^w \sum_{j=1}^i \frac{1}{w+j-1}}_{(A)} + \underbrace{\sum_{i=1}^w \frac{i}{w+i}}_{(B)} - \underbrace{\frac{1}{w}\sum_{i=1}^w i}_{(C)} + O\!\left(\frac{1}{\sigma^m}\right).
+\end{align*}
+$(C)$ is obviously $\frac{w+1}{2}$.
+For $(A)$, note that the term $\frac{1}{w}$ appears $w$ times, $\frac{1}{w+1}$ appears $w-1$ times, and so on up to $\frac{1}{2w-1}$ which appears only once.
+Hence,
+$$(A) = \sum_{i=0}^{w-1}\frac{w-i}{w+i} = 1 + \sum_{i=1}^w\frac{w-i}{w+i} = 1 + w(H_{2w}-H_w) - \underbrace{\sum_{i=1}^w\frac{i}{w+i}}_{(B)}.$$
+We do not need to compute $(B)$ as terms cancel, and
+\begin{align*}
+\mathbb{E}[\Delta_2 \cdot \mathbf{1}_{P_2^* \text{ overwrites } P_1^*}]
+&= 1 + w(H_{2w}-H_w) - (B) + (B) - \frac{w+1}{2} + O\!\left(\frac{1}{\sigma^m}\right)\\
+&= w(H_{2w}-H_w) - \frac{w-1}{2} + O\!\left(\frac{1}{\sigma^m}\right).
+\end{align*}
 
 **Rescan case.**
 

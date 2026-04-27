@@ -1,4 +1,4 @@
-# Vectorized sequence parsing
+# Experiments on parsing
 
 ## Features of the benchmarked CPUs
 

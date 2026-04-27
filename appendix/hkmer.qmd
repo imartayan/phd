@@ -1,0 +1,201 @@
+# Experiments on hyper-k-mers {#sec-kfc-supplementary}
+
+## Datasets {#sec-kfc-datasets}
+
+@tbl-datasets lists the datasets used in the experiments and their characteristics.
+
+:::{#tbl-datasets .large-table}
+| Name | Type | Coverage | \# reads | Total length | Min. | Avg. | Max. |
+|:--|:--:|--:|--:|---:|-:|--:|--:|
+| `SRR11434954` | HiFi | 5000× | 1,789,131 | 23,122,913,014 | 46 | 12,924.1 | 26,294 |
+| `SRR28370642` | ONT Duplex | 50× | 114,703 | 236,908,842 | 349 | 2,065.4 | 126,029 |
+| `SRR28370651` | ONT Duplex | 50× | 109,061 | 226,502,819 | 330 | 2,076.8 | 125,012 |
+| `SRR28370668` | ONT Simplex | 2000× | 6,819,683 | 9,101,103,830 | 1 | 1,334.5 | 396,011 |
+
+E. Coli datasets used for benchmarking KFC. Min., Avg. and Max. refer to the minimum, average and maximum read length in bases.
+:::
+
+## Multi-threading efficiency {#sec-kfc-multithread}
+
+KFC effectively utilizes multi-core architectures, achieving performance gains with up to several dozen cores before experiencing diminishing returns (@fig-plot-ont-100x-multithread).
+
+:::{#fig-plot-ont-100x-multithread}
+<!-- ![](../fig/hkmer/MTecolihifi) -->
+
+![](../fig/hkmer/plots/MTecolihifi.png){width=80%}
+
+Multi-core usage efficiency of KFC on the 100× HiFi E. coli dataset.
+:::
+
+## Effect of coverage {#sec-kfc-coverage}
+
+@fig-combined-benchmark-coverage shows benchmarks similar to @fig-combined-benchmark-all but at various coverage levels, without significant change in the relative behaviors of the tools.
+
+:::{#fig-combined-benchmark-coverage layout-ncol=2}
+<!-- ![](../fig/hkmer/combined-benchmark-coverage) -->
+
+![](../fig/hkmer/plots/ecolihifi50xmem)
+
+![](../fig/hkmer/plots/ecolihifi50xtime)
+
+![](../fig/hkmer/plots/ecoliont200xtime)
+
+![](../fig/hkmer/plots/ecoliont200xmem)
+
+![](../fig/hkmer/plots/ecoliont500xtime)
+
+![](../fig/hkmer/plots/ecoliont500xmem)
+
+/kmer counting benchmark on the ONT Simplex E. coli dataset (SRR28370668) at 50×, 200× and 500× coverage.
+Each subfigure shows memory usage (left) and runtime (right) as a function of /kmer size $k$.
+:::
+
+@fig-plot-gut-full shows the benchmark on the complete (unsampled) HiFi human gut dataset.
+
+:::{#fig-plot-gut-full layout-ncol=2}
+<!-- ![](../fig/hkmer/plot-gut-full) -->
+
+![](../fig/hkmer/plots/gutfullmem)
+
+![](../fig/hkmer/plots/gutfulltime)
+
+/kmer counting benchmark on the complete HiFi human gut datasets (SRR15275210, SRR15275211, SRR15275212, SRR15275213), filtering /kmers appearing once or twice (abundance threshold $t = 3$).
+:::
+
+## Effect of not filtering unique /kmers {#sec-kfc-nofilter}
+
+@fig-combined-benchmark-nofilter shows the same benchmarks as @fig-combined-benchmark-all but without filtering unique /kmers (abundance threshold $t = 1$).
+Jellyfish's performance is unchanged; FastK and KMC's performance degrades significantly in both time and memory.
+KFC remains competitive even without filtering, compared to its competitors that do filter.
+
+:::{#fig-combined-benchmark-nofilter layout-ncol=2}
+<!-- ![](../fig/hkmer/combined-benchmark-nofilter) -->
+
+![](../fig/hkmer/plots/duplexab1mem)
+
+![](../fig/hkmer/plots/duplexab1time)
+
+![](../fig/hkmer/plots/ecolihifi100xab1mem)
+
+![](../fig/hkmer/plots/ecolihifi100xab1time)
+
+![](../fig/hkmer/plots/ecoliont100xab1mem)
+
+![](../fig/hkmer/plots/ecoliont100xab1time)
+
+Comparison of /kmer counting benchmarks on ONT Duplex, PacBio HiFi and ONT Simplex E. coli datasets, without filtering unique /kmers.
+:::
+
+## KFC's algorithm {#sec-kfc-algorithm}
+
+@alg-kfc gives an overview of the two passes of KFC.
+
+::: {#alg-kfc}
+
+```pseudocode
+#| html-no-end: true
+#| html-indent-lines: true
+#| html-line-number: false
+#| html-comment-delimiter: "//"
+#| pdf-line-number: false
+#| pdf-no-end: true
+#| pdf-indent-lines: true
+#| pdf-italic-comment: true
+#| pdf-right-comment: true
+#| pdf-comment-color: "darkgray"
+#| pdf-comment-delimiter: "//"
+
+\begin{algorithmic}
+\Function{CountHkmer}{$read\_set \in (\Sigma^*)^*$; $k$, $m$, $t \in \mathbb{N}$ with $m \leq k$}
+    \State $sk\_count \gets$ empty multimap
+    \Comment{maps minimizer to $(hash(sk), count(sk))$}
+    \State $hk\_count \gets$ empty multimap
+    \Comment{maps minimizer to $(id\_left, id\_right, count(hk))$}
+    \State $hk\_parts \gets$ empty vector of strings
+    \Comment{2 bits per character}
+    \State
+    \Comment{First pass}
+    \For{$read$ in $read\_set$}
+    \Comment{can be parallelized}
+        \For{$(prev\_sk, sk, next\_sk)$ in $read$}
+            \State $m \gets$ minimizer of $sk$
+            \If{$(hash(sk), c) \in sk\_count[m]$}
+                \State $c \gets c + 1$; update $sk\_count$
+            \Else
+                \State $c \gets 1$; add $(hash(sk), 1)$ to $sk\_count[m]$
+            \EndIf
+            \If{$c = t$}
+            \Comment{$sk$ just became solid: insert its /hkmer}
+                \If{$IsSolid(sk\_count, prev\_sk, t)$}
+                    \State $id\_left \gets$ id of right part of $prev\_sk$ in $hk\_count$
+                \Else
+                    \State $id\_left \gets |hk\_parts|$; append left part of $sk$ to $hk\_parts$
+                \EndIf
+                \If{$IsSolid(sk\_count, next\_sk, t)$}
+                    \State $id\_right \gets$ id of left part of $next\_sk$ in $hk\_count$
+                \Else
+                    \State $id\_right \gets |hk\_parts|$; append right part of $sk$ to $hk\_parts$
+                \EndIf
+                \State add $(id\_left, id\_right, c)$ to $hk\_count[m]$
+            \ElsIf{$c > t$}
+            \Comment{$sk$ already indexed: update count}
+                \State $(id\_left, id\_right, exact) \gets$ \Call{LookupAndUpdate}{$hk\_count, hk\_parts, sk$}
+                \If{not $exact$}
+                    \State add $(id\_left, id\_right, 1)$ to $hk\_count[m]$
+                \EndIf
+            \EndIf
+        \EndFor
+    \EndFor
+    \State
+    \Comment{Second pass: handle first/last super-k-mers and non-solid super-k-mers sharing a minimizer with a solid one}
+    \For{$read$ in $read\_set$}
+    \Comment{can be parallelized}
+        \For{$sk$ in $read$}
+            \State $m \gets$ minimizer of $sk$
+            \If{$first\_sk$ or $last\_sk$}
+                \State $(id\_left, id\_right, exact) \gets$ \Call{LookupAndUpdate}{$hk\_count, hk\_parts, sk$}
+                \If{not $exact$}
+                    \If{$id\_left = -1$}
+                        \State $id\_left \gets |hk\_parts|$; append left part of $sk$ to $hk\_parts$
+                    \EndIf
+                    \If{$id\_right = -1$}
+                        \State $id\_right \gets |hk\_parts|$; append right part of $sk$ to $hk\_parts$
+                    \EndIf
+                    \State add $(id\_left, id\_right, 1)$ to $hk\_count[m]$
+                \EndIf
+            \ElsIf{not $IsSolid(sk\_count, sk, t)$}
+                \State \Call{LookupAndUpdate}{$hk\_count, hk\_parts, sk$}
+            \EndIf
+        \EndFor
+    \EndFor
+    \State \Return $sk\_count, hk\_count, hk\_parts$
+\EndFunction
+
+\Function{IsSolid}{$sk\_count$, $sk$, $t$}
+\Comment{checks if a super-k-mer has reached threshold $t$}
+    \For{$(h, c) \in sk\_count[minimizer(sk)]$}
+        \If{$h = hash(sk)$}
+            \State \Return $c \geq t$
+        \EndIf
+    \EndFor
+    \State \Return $false$
+\EndFunction
+
+\Function{LookupAndUpdate}{$hk\_count$, $hk\_parts$, $sk$}
+\Comment{Returns $(id\_left, id\_right, exact)$; increments count on exact match.}
+    \State $id\_left, id\_right \gets -1, -1$
+    \Comment{$-1$: sentinel for ``not found''}
+    \For{$(l, r, c) \in hk\_count[minimizer(sk)]$}
+        \If{$(hk\_parts[l], hk\_parts[r]) = sk$}
+            \State $c \gets c + 1$; \Return $(l, r, true)$
+        \EndIf
+        \If{$sk$ starts with $hk\_parts[l]$} \State $id\_left \gets l$ \EndIf
+        \If{$sk$ ends with $hk\_parts[r]$} \State $id\_right \gets r$ \EndIf
+    \EndFor
+    \State \Return $(id\_left, id\_right, false)$
+\EndFunction
+\end{algorithmic}
+```
+
+KFC's two-pass /kmer counting algorithm using /hkmers.
+:::

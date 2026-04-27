@@ -48,8 +48,9 @@ book:
     - chapters/discussion.qmd
     - references.qmd
   appendices:
-    - appendix/simd-parsing.qmd
     - appendix/forward-canonical.qmd
+    - appendix/simd-parsing.qmd
+    - appendix/hkmer.qmd
     - appendix/multimini.qmd
   draft-mode: gone
 

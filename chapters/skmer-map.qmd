@@ -3,3 +3,368 @@
 :::{.callout-note}
 This chapter is adapted from {{< longcite brisk >}} and {{< longcite hyperkmers >}}.
 :::
+
+Representing DNA sequences as sets of /kmers is a simple yet highly efficient approach in sequence bioinformatics, enabling accurate estimation of sequence similarity in linear time and circumventing the need for computationally intensive alignment steps.
+However, naive storage of /kmers leads to significant space overheads, potentially up to a factor of $k$, since each position in a DNA sequence can generate a /kmer.
+
+A significant advancement in reducing the memory footprint of /kmer storage was the introduction of */skmers* [@mspkmercounter; @kmc2].
+A /skmer encodes $N$ successive /kmers sharing the same minimizer into $k + N - 1$ nucleotides, significantly reducing redundancy.
+/Skmer-based tools such as KMC3 [@kmc3] are among the best in this competitive field.
+However, /skmers are still far from optimal space efficiency: consecutive /skmers overlap by $k - 1$ bases, leading to unwanted redundancies.
+
+In this chapter, we formally analyze the space usage of /skmers and introduce */hkmers*, a more space-efficient alternative.
+/Hkmers asymptotically reduce the storage from 6 bits to 4 bits per nucleotide, matching the efficiency of syncmer-based representations while retaining all the useful properties of /skmers: they cover the full /kmer set, are computed in a streaming fashion, and are naturally partitioned by minimizer.
+We also present *KFC*, a /kmer counting tool built on /hkmers, which achieves sub-linear memory scaling with /kmer size $k$.
+
+## Definitions {#sec-skmer-definitions}
+
+We use the same notation as @mod-mini and @sshash throughout.
+We consider strings defined over the alphabet $\Sigma = \{A, C, G, T\}$ of size $\sigma = 4$.
+Let $S \in \Sigma^*$ be a string; we write $S[i..j)$ for the substring of length $j - i$ starting at position $i$ (included) and ending at $j$ (excluded).
+
+A */kmer* is a substring $S[i..i+k)$ of fixed length $k$.
+An *order* $\mathcal{O}_m$ on $m$-mers is an injective function $\mathcal{O}_m : \Sigma^m \rightarrow \mathbb{R}$, where $x \leq_{\mathcal{O}_m} y$ iff $\mathcal{O}_m(x) \leq \mathcal{O}_m(y)$.
+In practice, pseudo-random hash functions $h : \Sigma^m \rightarrow U$ are used to define an order [@lphash].
+A *minimizer* of a /kmer $K$ is its minimal $m$-mer under $\mathcal{O}_m$; see @sec-intro-minimizers for a broader introduction.
+
+The *density* of a minimizer scheme is the expected proportion of selected minimizers over the number of $m$-mers in a random string.
+For random minimizers, the density equals $d = 2/(w+1)$ [@schleimer2003winnowing], where $w = k - m + 1$ is the window size (the number of $m$-mers in a /kmer).
+
+::: {#def-superkmer}
+## /Skmer
+
+A maximal sequence of consecutive /kmers sharing the same minimizer.
+
+Given two consecutive /skmers $u$ and $v$, their *overlap* $\operatorname{ov}(u, v)$ is the $k-1$ bases shared by the rightmost /kmer of $u$ and the leftmost /kmer of $v$.
+:::
+
+::: {#def-hyperkmer}
+## /Hkmer
+
+Given three consecutive /skmers $u$, $v$ and $w$, let $m_v$ be the minimizer of $v$.
+The /hkmer associated to $m_v$ is the pair $(\operatorname{ov}(u,v),\, \operatorname{ov}(v,w))$; we call $\operatorname{ov}(u,v)$ its *left part* and $\operatorname{ov}(v,w)$ its *right part*.
+By convention, if $v$ has no predecessor, its left part is the first $k-1$ bases of the sequence; if $v$ has no successor, its right part is the last $k-1$ bases.
+:::
+
+Every /hkmer contains exactly $2(k-1)$ bases.
+Given two consecutive /hkmers $x$ and $y$, the right part of $x$ and the left part of $y$ are identical and can therefore be stored only once.
+@fig-schema-hkmer illustrates this sharing on a short example.
+
+:::{#fig-schema-hkmer}
+![](../fig/hkmer/schema-hkmer)
+
+Example of minimizers, /skmers and /hkmers for $m=3$ and $k=11$ using lexicographic order.
+In this example, the original sequence contains 40 bases; /skmers use 70 bases while /hkmers use 50 bases.
+:::
+
+Our main goal is to find a representation of $\mathscr{S}$ whose space is less than 6 bits per nucleotide.
+
+## Space usage analysis {#sec-skmer-space}
+
+We first introduce a theoretical analysis of /skmers and their space requirements, then do the same for closed syncmers [@syncmers].
+Syncmers have been shown to cover sequences more efficiently than minimizer-based sampling [@syncmers], with a tendency to select /kmers that cover more positions.
+Despite not being suitable for representing /kmer sets, our theoretical results on closed syncmers are useful to put /hkmers into perspective.
+
+Let $\mathscr{S}$ be the set of /kmers of string $S$.
+Each character encodes in 2 bits since $|\Sigma| = 4$.
+Naively storing $\mathscr{S}$ requires $2k$ bits per nucleotide, since each position in $S$ is covered by $k$ /kmers.
+We now derive the asymptotic space usage of three representations: /skmers, closed syncmers, and /hkmers.
+
+### /Skmers {#sec-sk-space-analysis}
+
+::: {#lem-sk-number}
+## Average number of /skmers
+
+Given a random string $S$, the expected number of /skmers is $(|S| - m + 1) \times d$.
+:::
+
+:::{.proof}
+By definition of the density $d$, the expected number of minimizers is $(|S| - m + 1) \times d$.
+Since each minimizer corresponds to one /skmer, the expected count is the same.
+:::
+
+::: {#lem-sk-length}
+## Average length of /skmers
+
+Given a random string $S$, the average /skmer length approaches $1/d + k - 1$ as $|S| \to +\infty$.
+:::
+
+:::{.proof}
+By @lem-sk-number, there are $(|S| - m + 1) \times d$ /skmers on average.
+Since there are $|S| - k + 1$ /kmers in $S$, each /skmer contains
+$$
+\frac{|S| - k + 1}{(|S| - m + 1) \times d}
+$$
+/kmers on average, corresponding to $\frac{|S| - k + 1}{(|S| - m + 1) \times d} + k - 1$ bases.
+:::
+
+::: {#thm-sk-space}
+## /Skmer space usage
+
+Given a random string $S$, the expected total number of bases in the /skmers of $S$ is asymptotically equivalent to $|S| \cdot (1 + (k-1) \cdot d)$ as $|S| \to +\infty$.
+:::
+
+:::{.proof}
+Let $S_{sk}$ be the multiset of /skmers of $S$.
+Combining @lem-sk-number and @lem-sk-length:
+$$
+\sum_{i} |S_{sk}[i]|
+= (|S| - m + 1) \cdot d \cdot \left(\frac{|S| - k + 1}{(|S| - m + 1) \cdot d} + k - 1\right)
+\underset{|S| \to +\infty}{\sim} |S| \cdot (1 + (k-1) \cdot d).
+$$
+:::
+
+For random minimizers with $d = 2/(k - m + 2)$, @thm-sk-space gives
+$$
+|S| \cdot \left(1 + \frac{2(k-1)}{k-m+2}\right) \underset{k \gg m}{\sim} 3 \cdot |S|,
+$$
+i.e. **6 bits per nucleotide** with a 4-letter alphabet [@fhs].
+
+### Closed syncmers {#sec-syncmer-space-analysis}
+
+A *closed syncmer* [@syncmers] is a /kmer whose minimizer is located at its start or its end (see @sec-intro-minimizers for a general introduction to syncmers).
+
+::: {#thm-syncmer-space}
+## Closed syncmer space usage
+
+Given a random string $S$, the expected total number of bases in the closed syncmers of $S$ is asymptotically equivalent to $|S| \cdot k \cdot d$ as $|S| \to +\infty$.
+:::
+
+:::{.proof}
+Each /kmer consists of $w = k - m + 1$ $m$-mers.
+Consider the last $w + 1$ $m$-mers after a new minimizer is spawned.
+The smallest $m$-mer among them must be either the first (if the previous minimizer left the window) or the last (if the new minimizer is smaller than the previous one).
+In the first case the previous /kmer ends with a minimizer; in the second the current /kmer starts with a minimizer.
+In both cases exactly one closed syncmer is produced per minimizer, so there are $(|S| - m + 1) \times d$ syncmers on average.
+Each has length $k$, giving a total of $(|S| - m + 1) \cdot d \cdot k \sim |S| \cdot k \cdot d$.
+:::
+
+For random minimizers this becomes $|S| \cdot 2k/(k - m + 2) \sim 2|S|$ for $k \gg m$, i.e. **4 bits per nucleotide**.
+Closed syncmers therefore achieve the same asymptotic cost as compressed static representations, but are computed in a streaming fashion.
+Their drawback is that they only *sample* a subset of /kmers and are not suitable for representing complete /kmer sets.
+
+### /Hkmers {#sec-hkmer-space-analysis}
+
+::: {#thm-hkmer-space}
+## /Hkmer space usage
+
+Given a random string $S$, the expected total number of bases in the /hkmers of $S$ is asymptotically equivalent to $|S| \cdot (k-1) \cdot d$ as $|S| \to +\infty$.
+In addition, storing the links between the two parts requires a $2\log_2(d|S|)$-bit overhead per /hkmer.
+:::
+
+:::{.proof}
+Each minimizer of $S$ is associated with one /hkmer, giving $(|S| - m + 1) \times d$ /hkmers on average.
+Each consecutive pair shares $k - 1$ bases that need only be written once.
+Thus, except for the first /hkmer (which uses $2(k-1)$ bases), each subsequent one uses $k-1$ new bases.
+The total is $((|S| - m + 1) \cdot d + 1) \cdot (k-1) \sim |S| \cdot (k-1) \cdot d$.
+Each /hkmer also stores two indices into the parts vector; since there are $\sim d|S|$ /hkmers, each index occupies $\log_2(d|S|)$ bits, giving a $2\log_2(d|S|)$-bit overhead per /hkmer.
+:::
+
+For random minimizers, the base count is $\sim |S| \cdot 2(k-1)/(k-m+2) \sim 2|S|$ for $k \gg m$, i.e. **4 bits per nucleotide**.
+Assuming $m = \Omega(\log_2(d|S|))$, the pointer overhead is negligible.
+
+### Summary
+
+@tbl-space-usage summarizes the three representations.
+
+| Representation | Asymptotic formula (bits/bp) | Random minimizers, $k \gg m$ |
+|:---|:---:|:---:|
+| /Skmers (@thm-sk-space) | $2 + 2(k-1)\,d$ | 6 |
+| Closed syncmers (@thm-syncmer-space) | $2k\,d$ | 4 |
+| /Hkmers (@thm-hkmer-space) | $2(k-1)\,d + 2\log_2(d|S|)\,d$ | 4 |
+
+: Asymptotic space usage of /skmers, closed syncmers and /hkmers. For random minimizers and $k \gg m = \Omega(\log_2(d|S|))$. {#tbl-space-usage}
+
+/Hkmers require $2/3$ of the space of /skmers under random minimizers, and this ratio decreases further for lower-density minimizer schemes.
+Unlike syncmers, /hkmers cover the full /kmer set and retain the locality properties of /skmers: each /hkmer is associated with a specific minimizer, naturally facilitating partitioning and indexing [@marchet2023scalable; @blight; @lphash].
+@fig-plot-space-hkmer-skmer shows how the space usage evolves with $k$ for both representations.
+
+:::{#fig-plot-space-hkmer-skmer}
+![](../fig/hkmer/plot-space-hkmer-skmer)
+
+Space usage of /skmers and /hkmers for $k \in [30, 200]$, with random minimizers of size 21.
+:::
+
+## KFC: counting /kmers with /hkmers {#sec-kfc}
+
+We present *KFC* (/kmer Frequency Counter), a /kmer counting algorithm that uses /hkmers as a compact intermediate representation.
+Rather than storing /kmers directly, KFC maintains an index mapping each minimizer to a list of /hkmers along with their occurrence counts.
+@fig-schema-kfc gives a high-level view of this data structure.
+
+:::{#fig-schema-kfc}
+![](../fig/hkmer/schema-kfc)
+
+High-level view of the KFC data structure.
+**Bottom**: a vector of /hkmer parts stores the left and right parts of each /hkmer, encoded in 2 bits per base; bold substrings correspond to the minimizers.
+**Top**: a hash table maps each minimizer to a list of entries, each representing a /hkmer and its count via two pointers (dots) into the parts vector.
+Each pointer encodes a position, start and end offset, and an orientation flag to handle reverse complements.
+:::
+
+Two components are maintained in memory:
+
+- A **vector of /hkmer parts** stores the left and right parts of all /hkmers, encoded as 2 bits per base.
+- A **hash table** maps each minimizer to a list of entries, each representing a /hkmer and its count.
+  Each entry stores two pointers (position, offset and orientation flag) into the parts vector so that the /kmers covered by the /hkmer can be reconstructed on demand.
+
+The algorithm proceeds in two passes over the input reads.
+
+### First pass: indexing solid /skmers
+
+In the first pass, the algorithm iterates in a streaming fashion over all /skmers in the input, maintaining a hash map from minimizers to (/skmer hash, count) pairs.
+A /skmer is declared *solid* when its count reaches the abundance threshold $t$.
+At that moment, its associated /hkmer is computed from the left and right /skmer neighbors and inserted into the index.
+If a neighbor is itself already solid, the algorithm takes a reference to its existing /hkmer part rather than duplicating it, exploiting the overlap-sharing property from @thm-hkmer-space.
+For /skmers seen more than $t$ times, the algorithm looks up the index to check whether their sequence is already covered by an existing /hkmer entry, incrementing the count if so and inserting a new entry otherwise.
+
+This first pass cannot handle two edge cases:
+
+1. The *first and last /skmers of each read* are often truncated and therefore likely to be unique; they are skipped.
+2. A *non-solid /skmer whose minimizer is shared with a solid one* indicates a possible sequencing error in the non-solid /skmer.
+   The /kmers it shares with the solid /skmer should not be discarded.
+
+### Second pass: handling edge cases
+
+The second pass re-reads the input to correct both edge cases.
+For each non-solid /skmer whose minimizer appears in the index, the algorithm attempts to match it against existing /hkmer parts and inserts a new entry when needed.
+The first and last /skmers of each read are handled identically: matched against existing parts if possible, or inserted with fresh parts otherwise.
+
+After both passes, the only /kmers that may be incorrectly discarded are those that (A) appear more than twice in the input but (B) belong to a non-solid /skmer sharing no minimizer with any solid one.
+This /skmer-level threshold is slightly more aggressive than a strict /kmer-level threshold, but the discarded /kmers are almost exclusively erroneous ones at typical coverage and error rates (see @sec-kfc-evaluation).
+
+Because the algorithm processes reads in a streaming fashion, only the index needs to reside in memory at any time; reads are loaded on demand.
+This gives KFC a sub-linear memory footprint with respect to /kmer size $k$, in contrast to all competing tools.
+The two passes are also naturally parallelizable.
+
+## Experimental evaluation {#sec-kfc-evaluation}
+
+<!-- TODO: MISSING PARAGRAPHS -->
+
+We benchmarked KFC against Jellyfish [@jellyfish], KMC [@kmc1; @kmc2; @kmc3], FASTK [@fastk], Kaarme [@kaarme] and Gerbil [@gerbil] on a wide range of /kmer sizes up to $k = 1021$.
+Datasets used in this study and their characteristics are reported in @tbl-datasets; experiments were performed on a server with 1 TB of RAM and 64 processors.
+
+### Long-read whole-genome sequencing {#sec-kfc-longreads}
+
+In our initial experiments we evaluated all tools on three distinct long-read technologies: ONT Duplex, ONT Simplex and PacBio HiFi *E. coli* datasets, and report the results in @fig-combined-benchmark-all.
+Despite varying error distributions among the methods, the tools exhibit similar overall behaviors.
+Kaarme maintains an almost constant memory usage but is significantly slower than the other tools; due to timeouts it is not tested across all /kmer sizes.
+Jellyfish shows a steadily increasing memory usage with $k$, outperforming FASTK and KMC at larger /kmer sizes, although it is nearly always the second slowest in terms of runtime.
+KMC3 and FASTK demonstrate very similar behaviors, with memory usage quickly approaching the available RAM; FASTK uses less memory than KMC in low-error experiments but has comparable consumption on the noisier simplex dataset.
+Gerbil outperforms both FASTK and KMC3 in memory and runtime but cannot handle /kmers larger than 512.
+KFC is the only tool to display both decreasing runtime and memory usage with increasing $k$; consequently, for $k \geq 200$, KFC exhibits the lowest runtime and memory usage among all tested tools.
+Experiments at different coverages are reported in @sec-kfc-coverage, without significant change in the tools' relative behaviors.
+
+:::{#fig-combined-benchmark-all layout-ncol=2}
+<!-- ![](../fig/hkmer/combined-benchmark-all) -->
+
+![](../fig/hkmer/plots/ecoliduplex100xmem)
+
+![](../fig/hkmer/plots/ecoliduplex100xtime)
+
+![](../fig/hkmer/plots/ecolihifi100xmem)
+
+![](../fig/hkmer/plots/ecolihifi100xtime)
+
+![](../fig/hkmer/plots/ecoliont100xmem)
+
+![](../fig/hkmer/plots/ecoliont100xtime)
+
+Comparison of /kmer benchmarks on different *E.coli* datasets.
+Each subfigure shows the memory usage and timing plots for different sequencing technologies.
+:::
+
+We also ran the same benchmark on two larger-scale metagenomic HiFi experiments to assess tool behavior on larger and more complex datasets.
+As a medium-scale experiment, we chose a HiFi Zymo Biomics community sequencing comprising 21 strains of 17 species, providing at least one order of magnitude more distinct /kmers than the *E. coli* datasets.
+We sampled 5 Gigabases of accession SRR13128014 and report the results in @fig-plot-zymo-hifi.
+
+:::{#fig-plot-zymo-hifi layout-ncol=2}
+<!-- ![](../fig/hkmer/plot-zymo-hifi) -->
+
+![](../fig/hkmer/plots/zymohifi100xmem)
+
+![](../fig/hkmer/plots/zymohifi100xtime)
+
+/kmer counting benchmark on the HiFi Zymo community dataset (SRR13128014).
+:::
+
+As a large-scale experiment, we chose the human gut metagenome HiFi sequencings used as a metagenome assembly benchmark [@feng2022metagenome; @benoit2024high], accessions SRR15275210, SRR15275211, SRR15275212 and SRR15275213.
+Pooled, assemblers estimate the genome content of these datasets between 700 and 900 Megabases [@feng2022metagenome].
+We sampled 15 Gigabases of the four datasets pooled and report the results in @fig-plot-gut-hifi; results on the full dataset are shown in @fig-plot-gut-full.
+
+:::{#fig-plot-gut-hifi layout-ncol=2}
+<!-- ![](../fig/hkmer/plot-gut-hifi) -->
+
+![](../fig/hkmer/plots/guthifimem)
+
+![](../fig/hkmer/plots/guthifitime)
+
+/kmer counting benchmark on the HiFi human gut datasets (SRR15275210, SRR15275211, SRR15275212, SRR15275213).
+:::
+
+The memory advantage of KFC is explained directly by @thm-hkmer-space: as $k$ grows, each additional base is shared across more /hkmer entries, so the effective cost per input nucleotide decreases, whereas all competing tools store /kmer content in a way that scales at least linearly with $k$.
+
+To confirm that the observed improvement is not merely an artifact of the /skmer-level filtering heuristic, we repeated the experiments without unique /kmer filtering.
+The results, reported in @sec-kfc-nofilter, show that Jellyfish's performance is unchanged while FASTK and KMC's performance significantly degrades in both time and memory.
+KFC remains competitive even without filtering, compared to its competitors that do filter.
+
+### Pangenome /kmer analysis {#sec-kfc-pangenome}
+
+In a distinct experiment reported in @fig-plot-salmo, we ran all tools on one thousand *S. enterica* complete genomes from NCBI to evaluate the cost of counting large /kmers for pangenome analysis.
+KFC remains the most memory-efficient tool, followed by FASTK and then KMC.
+Regarding runtime, KFC becomes the fastest tool for very large /kmer sizes (above 500), despite currently limited multithreading efficiency compared to KMC when processing few sequences; when using a lower number of threads, KFC is the fastest across all tested sizes.
+FASTK's runtime increases rapidly with $k$.
+These findings highlight the advantage of KFC in handling genome collections without filtering.
+
+:::{#fig-plot-salmo layout-ncol=2}
+<!-- ![](../fig/hkmer/plot-salmo) -->
+
+![](../fig/hkmer/plots/salmomem)
+
+![](../fig/hkmer/plots/salmotime)
+
+/kmer counting benchmark on one thousand *S. enterica* complete genomes.
+:::
+
+### Internal evaluations {#sec-kfc-internal}
+
+We evaluated the /skmer abundance threshold heuristic by analyzing the number of /kmers lost when applying the unique /skmer removal heuristic (@fig-plot-lost).
+The number of lost /kmers decreases exponentially as the abundance threshold increases, with greater loss at low coverage and for larger /kmer sizes.
+Higher error rates also increase /kmer loss, consistent with the effect of sequencing errors on /kmer coverage.
+
+:::{#fig-plot-lost layout-ncol=2}
+<!-- ![](../fig/hkmer/plot-lost) -->
+
+![](../fig/hkmer/plots/losthifi100x.png)
+
+![](../fig/hkmer/plots/lostont100x.png)
+
+Percentage of /kmers lost by removing unique /skmers, as a function of the abundance threshold and /kmer size.
+Left: simulated HiFi dataset with 100× coverage and 0.1% error rate.
+Right: simulated ONT dataset with 100× coverage and 1% error rate.
+:::
+
+Although the proportion of lost /kmers may seem substantial, most are low-abundance and thus likely erroneous.
+To substantiate this, we counted the number of reference-genome /kmers absent from both KMC and KFC outputs at various /kmer sizes and abundance thresholds (@fig-plot-lost-genomic).
+At low abundance thresholds KFC filters more /kmers than KMC, but as the threshold increases both methods exhibit similar behaviors with few filtered /kmers.
+On a HiFi dataset (0.1% error rate), no differences were observed between KMC and KFC outputs, confirming that the /skmer-level threshold, while slightly more aggressive, remains conservative enough to maintain accuracy.
+
+:::{#fig-plot-lost-genomic}
+<!-- ![](../fig/hkmer/plot-lost-genomic) -->
+
+![](../fig/hkmer/plots/ecoliontgenomiclost){width=80%}
+
+Amount of filtered genomic /kmers by KFC and KMC according to the abundance threshold and /kmer size, on a simulated 100× ONT *E. coli* dataset with 1% error rate.
+:::
+
+The multithreading efficiency of KFC is reported in @sec-kfc-multithread.
+
+## Conclusion {#sec-kfc-conclusion}
+
+/Hkmers reduce space redundancy caused by /kmer overlaps by representing sequences as collections of minimizers and the sequences between them.
+Theoretical analysis and practical experiments demonstrate that /hkmers are more succinct than /skmers, achieving space usage closer to sampling techniques such as syncmers, while still providing a direct /kmer representation and achieving 4 bits per nucleotide.
+KFC, the /kmer counter built on /hkmers, outperforms all competitors in both speed and memory usage for large $k$ (e.g. $k \geq 200$), and uniquely becomes more efficient as $k$ increases.
+Since longer /kmers are expected to become more relevant thanks to steadily improving long-read sequencing technologies, /hkmers and KFC are future-proof solutions.
+
+Several improvements remain open.
+First, /hkmers are still more space-consuming than the theoretical lower bound of 2 bits per nucleotide; finding a streaming representation that achieves this bound is an open question.
+Second, the current implementation does not scale well to short $k$ values due to the large number of collisions between minimizers and contexts; /kmer lengths in the range 17 to 63 could in principle benefit from /hkmer-like representations.
+Third, the two-pass algorithm discards /kmers belonging to non-solid /skmers that share no minimizer with any solid /skmer; handling this corner case without a second pass is another direction for future work.

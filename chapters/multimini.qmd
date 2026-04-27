@@ -20,7 +20,7 @@ At first glance, this guarantees coverage, but not efficient sampling, since in 
 In practice, successive windows share $w-1$ /mmers and differ by only one entering and one leaving /mmer, so they tend to select the same minimizer over long stretches.
 To formalize this, the notion of density was introduced: the average number of selected /mmers per window, or equivalently, the fraction of /mmers retained.
 This paper focuses on minimizer density, in particular in its optimization.
-To be explicit, a lower density means that fewer /mmers are selected, which directly reduces memory usage and comparison cost, making it both a theoretically interesting question and one with broad practical impact, described succinctly below.
+To be explicit, a lower density means that fewer /mmers are selected, which directly reduces memory usage and comparison cost, or expectedly more cache-coherent algorithms, making it both a theoretically interesting question and one with broad practical impact, described succinctly below.
 
 A wide range of tools now rely on minimizers as their main alignment and indexing mechanism.
 Long-read [@minimap2; @morisse2019consent] and whole-genome aligners [@minkin2020scalable] index only minimizers for their heuristics, reducing memory footprint and accelerating chaining.
@@ -47,7 +47,7 @@ Subsequent results disproved this, and multiple research threads have since push
 This suggests that substantial further improvements in local schemes are unlikely.
 Recent schemes such as @greedymini attain densities extremely close to the @density-lower-bound bound for practical parameter ranges, as do the aforementioned constructions of @pellow2023efficient and @mod-mini.
 
-To escape the limitations of universal forward local schemes, the community has also designed sequence-specific schemes that tailor minimizer selection to the properties of a given genome.
+To escape the limitations of universal forward local schemes, which are designed to perform well on any input, the community has also designed sequence-specific schemes that tailor minimizer selection to the properties of a given genome.
 These include frequency-based selection [@chikhi2014representation], spacing-based strategies [@polar-sets], and machine-learning approaches [@deep-minimizer].
 While these methods can substantially reduce density on real genomes, they cannot be computed in a streaming fashion, making them impractical at very large scales.
 
