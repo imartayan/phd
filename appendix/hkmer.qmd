@@ -12,16 +12,15 @@
 | `SRR28370651` | ONT Duplex | 50× | 109,061 | 226,502,819 | 330 | 2,076.8 | 125,012 |
 | `SRR28370668` | ONT Simplex | 2000× | 6,819,683 | 9,101,103,830 | 1 | 1,334.5 | 396,011 |
 
-E. Coli datasets used for benchmarking KFC. Min., Avg. and Max. refer to the minimum, average and maximum read length in bases.
+E. Coli datasets used for benchmarking KFC. Min., Avg. and Max. refer to the minimum, average and maximum read length respectively.
 :::
 
-## Multi-threading efficiency {#sec-kfc-multithread}
+## Multi-threading efficiency of KFC {#sec-kfc-multithread}
 
-KFC effectively utilizes multi-core architectures, achieving performance gains with up to several dozen cores before experiencing diminishing returns (@fig-plot-ont-100x-multithread).
+In this section, we assess the multi-threading efficiency of KFC (@fig-plot-ont-100x-multithread).
+Our results demonstrate that KFC effectively utilizes multi-core architectures, achieving performance gains with up to several dozen cores before experiencing diminishing returns.
 
 :::{#fig-plot-ont-100x-multithread}
-<!-- ![](../fig/hkmer/MTecolihifi) -->
-
 ![](../fig/hkmer/plots/MTecolihifi.png){width=80%}
 
 Multi-core usage efficiency of KFC on the 100× HiFi E. coli dataset.
@@ -32,8 +31,6 @@ Multi-core usage efficiency of KFC on the 100× HiFi E. coli dataset.
 @fig-combined-benchmark-coverage shows benchmarks similar to @fig-combined-benchmark-all but at various coverage levels, without significant change in the relative behaviors of the tools.
 
 :::{#fig-combined-benchmark-coverage layout-ncol=2}
-<!-- ![](../fig/hkmer/combined-benchmark-coverage) -->
-
 ![](../fig/hkmer/plots/ecolihifi50xmem)
 
 ![](../fig/hkmer/plots/ecolihifi50xtime)
@@ -46,15 +43,10 @@ Multi-core usage efficiency of KFC on the 100× HiFi E. coli dataset.
 
 ![](../fig/hkmer/plots/ecoliont500xmem)
 
-/kmer counting benchmark on the ONT Simplex E. coli dataset (SRR28370668) at 50×, 200× and 500× coverage.
-Each subfigure shows memory usage (left) and runtime (right) as a function of /kmer size $k$.
+/kmer counting benchmark on ONT Simplex E. coli dataset (SRR28370668) for various coverage.
 :::
 
-@fig-plot-gut-full shows the benchmark on the complete (unsampled) HiFi human gut dataset.
-
 :::{#fig-plot-gut-full layout-ncol=2}
-<!-- ![](../fig/hkmer/plot-gut-full) -->
-
 ![](../fig/hkmer/plots/gutfullmem)
 
 ![](../fig/hkmer/plots/gutfulltime)
@@ -64,13 +56,11 @@ Each subfigure shows memory usage (left) and runtime (right) as a function of /k
 
 ## Effect of not filtering unique /kmers {#sec-kfc-nofilter}
 
-@fig-combined-benchmark-nofilter shows the same benchmarks as @fig-combined-benchmark-all but without filtering unique /kmers (abundance threshold $t = 1$).
-Jellyfish's performance is unchanged; FastK and KMC's performance degrades significantly in both time and memory.
-KFC remains competitive even without filtering, compared to its competitors that do filter.
+In this section, we present the performance of KFC when unique /kmers are not filtered out.
+@fig-combined-benchmark-nofilter shows the results discussed in @sec-kfc-longreads.
+They are similar to @fig-combined-benchmark-all, but without filtering unique /kmers.
 
 :::{#fig-combined-benchmark-nofilter layout-ncol=2}
-<!-- ![](../fig/hkmer/combined-benchmark-nofilter) -->
-
 ![](../fig/hkmer/plots/duplexab1mem)
 
 ![](../fig/hkmer/plots/duplexab1time)
@@ -83,7 +73,8 @@ KFC remains competitive even without filtering, compared to its competitors that
 
 ![](../fig/hkmer/plots/ecoliont100xab1time)
 
-Comparison of /kmer counting benchmarks on ONT Duplex, PacBio HiFi and ONT Simplex E. coli datasets, without filtering unique /kmers.
+Comparison of /kmer benchmarks on different E. coli datasets without any filtering.
+Each subfigure shows the memory usage and timing plots for different sequencing technologies.
 :::
 
 ## KFC's algorithm {#sec-kfc-algorithm}
