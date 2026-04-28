@@ -37,12 +37,12 @@ book:
       - chapters/set-rep.qmd
       - chapters/skmer-map.qmd
       - chapters/hkmer.qmd
-      - chapters/skmer-sketch.qmd
       - chapters/locality-discussion.qmd
     - part: chapters/sampling.qmd
       chapters:
       - chapters/low-density-minimizers.qmd
       - chapters/multimini.qmd
+      - chapters/skmer-sketch.qmd
       - chapters/phrases.qmd
       - chapters/lexic.qmd
       - chapters/sampling-discussion.qmd
