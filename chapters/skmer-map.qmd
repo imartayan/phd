@@ -1,0 +1,5 @@
+# Super‑k‑mers maps
+
+:::{.callout-note}
+This chapter is partially adapted from {{< longcite brisk >}}.
+:::
