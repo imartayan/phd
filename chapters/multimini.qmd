@@ -48,7 +48,7 @@ This suggests that substantial further improvements in local schemes are unlikel
 Recent schemes such as @greedymini attain densities extremely close to the @density-lower-bound bound for practical parameter ranges, as do the aforementioned constructions of @pellow2023efficient and @mod-mini.
 
 To escape the limitations of universal forward local schemes, which are designed to perform well on any input, the community has also designed sequence-specific schemes that tailor minimizer selection to the properties of a given genome.
-These include frequency-based selection [@chikhi2014representation], spacing-based strategies [@polar-sets], and machine-learning approaches [@deep-minimizer].
+These include frequency-based selection [@unitigs], spacing-based strategies [@polar-sets], and machine-learning approaches [@deep-minimizer].
 While these methods can substantially reduce density on real genomes, they cannot be computed in a streaming fashion, making them impractical at very large scales.
 
 Despite the extensive effort devoted to low-density minimizer schemes, several aspects of density behavior remain poorly understood.
@@ -303,7 +303,7 @@ However, without a way to retrieve which /mmer was chosen for a specific /kmer, 
 The same problem arises when inserting a /kmer into a database: one must perform $k - m + 1$ checks to verify whether it is already present or not.
 
 To reduce this prohibitive cost, we propose a simple yet efficient solution leveraging the notion of /skmers.
-A */skmer* is defined as a maximal sequence of consecutive /kmers having the same minimizer [@li2013memory].
+A */skmer* is defined as a maximal sequence of consecutive /kmers having the same minimizer [@superkmers].
 Our technique starts by generating $N$ distinct hash functions (e.g. using $N$ distinct random seeds).
 Then, we use these $N$ hash functions to generate $N$ distinct random minimizer schemes.
 Each of these minimizer schemes yields a set of /skmers on the sequence $S$, each covering all /kmers of $S$.
