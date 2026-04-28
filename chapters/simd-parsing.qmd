@@ -235,6 +235,7 @@ One benefit of having a manual implementation is that we can easily adapt it to 
     \State \textbf{return} \texttt{movemask}($v_\text{eq}$)
     \Comment{return the corresponding bitmask (1 if equal, 0 otherwise)}
 \EndFunction
+\State{$\quad$}
 
 \Function{IsACTG}{$v_\text{data}$}
     \State $\texttt{LUT} \gets \texttt{["A", \_, "C", \_, "T", \_, "G", \_]}$
@@ -288,6 +289,7 @@ Due to these architectural differences, producing a packed representation is sli
     \State \textbf{return} \texttt{movemask}($v_\text{hi}$), \texttt{movemask}($v_\text{lo}$)
     \Comment{movemask only extracts the highest bit of each byte}
 \EndFunction
+\State{$\quad$}
 
 \Function{Packedx86}{$v_\text{data}$}
     \State $v_\text{hi} \gets v_\text{data} \texttt{ << 5}$
@@ -297,6 +299,7 @@ Due to these architectural differences, producing a packed representation is sli
     \State \textbf{return} \texttt{interleave}($m_\text{hi}, m_\text{lo}$)
     \Comment{interleave one bit of each mask, usually using \texttt{PDEP}}
 \EndFunction
+\State{$\quad$}
 
 \Function{PackedARM}{$v_\text{data}$}
     \State $v_\text{shift} \gets v_\text{data} \texttt{ << 5}$
