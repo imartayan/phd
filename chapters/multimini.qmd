@@ -241,7 +241,9 @@ Consider $\varepsilon_i = \mathbb{E}[\Delta_i] - \mu$ as some realization of an 
 Then, we have $d \cdot \mu = 1$.
 :::
 
-*Proof.* The proof is deferred to @sec-multimini-app-density-distance. $\square$
+:::{.proof}
+The proof is deferred to @sec-multimini-app-density-distance.
+:::
 
 Basically, @thm-multimini-density-distance states that if we assume that the distances between consecutive selected positions of minimizers are somehow equally distributed, then their expected value is exactly $1/d$.
 This assumption is the minimum viable hypothesis for establishing the result (since $\mu$ must be well defined), and note also that this hypothesis does not depend on the process by which the $R_i$'s values are obtained, nor how the positions of the minimizers $P_1, P_2, \ldots$ are selected in successive windows -- thus making our result very general, applicable to *any local scheme*, and, to the best of our knowledge, the first of its kind.
@@ -280,7 +282,9 @@ $$\mathbb{P}(P_1 = i) = \frac{1}{w} + \left(\frac{w-i}{w-1} - \frac{1}{2}\right)
 It follows that $P_1 \xrightarrow{a.s.} \mathcal{U}(\llbracket 1, w \rrbracket)$ when $m \to \infty$.
 :::
 
-*Proof.* The proof is deferred to @sec-multimini-app-uniform. $\square$
+:::{.proof}
+The proof is deferred to @sec-multimini-app-uniform.
+:::
 
 In @sec-multimini-app-convergence-p1, we observe that the limit distribution is reached very quickly, for fairly small values of $m$ ($m=8$ in our case), which implies that for all values of $m$ likely to be used in practice, @hyp-multimini-uniform-position is verified for $P_1$, and $\Delta_1$ also follows a uniform distribution, meaning that $\mathbb{E}[\Delta_1] = \frac{w+1}{2}$.
 If, indeed, all subsequent $\Delta_i$'s have the same expectation, then, using @thm-multimini-density-distance, we retrieve the well-known density of random minimizers, $d = \frac{2}{w+1}$ [@schleimer2003winnowing; @roberts2004reducing].
@@ -479,7 +483,9 @@ Under @hyp-multimini-iid, the deduplicated density of the random minimizer schem
 $$d^\ast = \frac{1}{2^{\sigma^k} - 1} \sum_{n=1}^{\sigma^k} \binom{\sigma^k}{n} \frac{\sigma^m}{n} \left[1 - \frac{1}{\sigma^m} \sum_{r=1}^{\sigma^m} \left[1 - \left(\frac{r}{\sigma^m}\right)^w + \left(\frac{r-1}{\sigma^m}\right)^w\right]^n\right].$$
 :::
 
-*Proof.* The proof is deferred to @sec-multimini-app-dedup-density. $\square$
+:::{.proof}
+The proof is deferred to @sec-multimini-app-dedup-density.
+:::
 
 The dependence on $\sigma^k$ is unfortunate, making it intractable to compute $d^\ast$ when $k$ is large.
 We nonetheless computed the first values, shown in @fig-multimini-deduplicated (left); one can see that $d^\ast$ seems to be driven by the value of $w$ rather than $k$, hence we conjecture that $d^\ast$ might only depend on $w$.
@@ -527,7 +533,9 @@ This problem also proves to be difficult, as per the following result.
 MultiMinCover is NP-complete (for $\sigma \geq 3$ and $N \geq 2$).
 :::
 
-*Proof.* The proof is deferred to @sec-multimini-app-mincover. $\square$
+:::{.proof}
+The proof is deferred to @sec-multimini-app-mincover.
+:::
 
 Since minimizing $|\mathcal{Y}|$ is difficult, we must resort to heuristics.
 Furthermore, when parsing long sequences, it would be prohibitively expensive to keep track of all the /kmers encountered and their candidate minimizers before starting to build the multiminimizer cover.
