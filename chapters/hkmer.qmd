@@ -470,7 +470,7 @@ HiFi *E. coli* dataset (`SRR11434954`) downsampled at  100X depth
 ONT Simplex *E. coli* dataset (`SRR28370668`) downsampled at 100X coverage
 :::
 
-Comparison of /kmer counting benchmarks on different *E. coli* datasets, with unique \kmer filtering.
+Comparison of /kmer counting benchmarks on different *E. coli* datasets, with unique /kmer filtering.
 Each subfigure shows the memory usage and timing plots for different sequencing technologies.
 :::
 
