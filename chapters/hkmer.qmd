@@ -246,22 +246,30 @@ In particular, for random minimizers, the number of bases in a set of /hkmers is
 Moreover, assuming $m = \Omega(\log_2(d|S|))$, the space overhead of the links becomes negligible as $k \gg m$.
 @fig-plot-space-hkmer-skmer gives an overview of the evolution of the space usage as $k$ increases, and compares it to the evolution of /skmers' space usage.
 
-These results, summarized in @tbl-space-usage, show that representing a set of /kmers using /hkmers is more space-efficient than /skmers and slightly more space-efficient than closed syncmers, regardless of the chosen minimizer scheme.
-In particular, /hkmers require $\frac{2}{3}$ of the space used by /skmers for random minimizers, and this ratio gets even lower for minimizer schemes with a lower density.
-
-| Representation | Expected number of bits / nucleotide | For random minimizers with $k \gg m = \Omega(\log_2(d|S|))$ |
-|:---|:---:|:---:|
-| /Skmers (@thm-sk-space) | $2 + 2 \cdot (k-1) \cdot d$ | 6 |
-| Closed syncmers (@thm-syncmer-space) | $2 \cdot k \cdot d$ | 4 |
-| /Hkmers (@thm-hkmer-space) | $2 \cdot (k-1) \cdot d + 2 \log_2(d|S|) \cdot d$ | 4 |
-
-: Comparison of the space usage of /skmers, closed syncmers and /hkmers. {#tbl-space-usage}
-
 :::{#fig-plot-space-hkmer-skmer}
 ![](../fig/hkmer/plot-space-hkmer-skmer)
 
 Space usage of /skmers and /hkmers for $k \in [30, 200]$, with random minimizers of size 21.
 :::
+
+These results, summarized in @tbl-space-usage, show that representing a set of /kmers using /hkmers is more space-efficient than /skmers and slightly more space-efficient than closed syncmers, regardless of the chosen minimizer scheme.
+In particular, /hkmers require $\frac{2}{3}$ of the space used by /skmers for random minimizers, and this ratio gets even lower for minimizer schemes with a lower density.
+
+:::{#tbl-space-usage .large-table}
+| Representation | Expected number of bits / nucleotide | For random minimizers with $k \gg m = \Omega(\log_2(d|S|))$ |
+|:---|:----:|:---:|
+| /Skmers (@thm-sk-space) | $2 + 2 \cdot (k-1) \cdot d$ | 6 |
+| Closed syncmers (@thm-syncmer-space) | $2 \cdot k \cdot d$ | 4 |
+| /Hkmers (@thm-hkmer-space) | $2 \cdot (k-1) \cdot d + 2 \log_2(d|S|) \cdot d$ | 4 |
+
+Comparison of the space usage of /skmers, closed syncmers and /hkmers.
+:::
+
+### Counting /kmers using /hkmers {#sec-kfc}
+
+This section proposes /kmer counting as an application of /hkmers to a real-life use case.
+/Hkmers are used as a proxy for storing /kmer counts.
+A simplified overview of the resulting index is presented in @fig-schema-kfc.
 
 :::{#fig-schema-kfc}
 ![](../fig/hkmer/schema-kfc)
@@ -275,12 +283,6 @@ Each entry represents a /hkmer and its count.
 Each /hkmer is represented using pointers (represented as dots) to its left and right parts in the vector of /hkmer parts.
 To retrieve the parts, each pointer consists of the part's position in the vector, a start and end position in that part, and an orientation flag to handle reverse complements.
 :::
-
-### Counting /kmers using /hkmers {#sec-kfc}
-
-This section proposes /kmer counting as an application of /hkmers to a real-life use case.
-/Hkmers are used as a proxy for storing /kmer counts.
-A simplified overview of the resulting index is presented in @fig-schema-kfc.
 
 Our /kmer counter implements a two-pass algorithm.
 In the first stage, we iterate over /skmers in the input sequences.
@@ -300,8 +302,133 @@ The effects of this heuristic are discussed in @sec-kfc-internal.
 As our algorithm works in a streaming fashion, at any time, only the index has to be maintained in memory whereas reads are only loaded on-demand.
 This allows our implementation to have a light memory footprint (see @sec-kfc-evaluation), and to be parallelized (see @fig-plot-ont-100x-multithread in Supplementary Materials).
 
-KFC's algorithm is given in Supplementary Materials (@sec-kfc-algorithm).
+KFC's algorithm is given in @alg-kfc.
 For clarity, we omit some details, such as how KFC handles subsequences in /hkmer parts.
+
+:::{#alg-kfc}
+
+```pseudocode
+#| html-no-end: true
+#| html-indent-lines: true
+#| html-line-number: false
+#| html-comment-delimiter: "//"
+#| pdf-line-number: false
+#| pdf-no-end: true
+#| pdf-indent-lines: true
+#| pdf-italic-comment: true
+#| pdf-right-comment: true
+#| pdf-comment-color: "darkgray"
+#| pdf-comment-delimiter: "//"
+
+\begin{algorithmic}
+\Function{CountHyperkmer}{\texttt{read\_set} $\in (\Sigma^+)^+$; $k, m, t \in \mathbb{N}$ with $m \leq k$}
+    \State \texttt{sk\_count} $\gets$ empty multimap
+    \Comment{maps minimizer to (hash(\texttt{sk}), count(\texttt{sk}))}
+    \State \texttt{hk\_count} $\gets$ empty multimap
+    \Comment{maps minimizer to (\texttt{id\_left}, \texttt{id\_right}, count(\texttt{hk}))}
+    \State \texttt{hk\_parts} $\gets$ empty vector of bitpacked strings
+    \Comment{2 bits per character}
+    \For{\texttt{read} in \texttt{read\_set}}
+    \Comment{First pass, can be parallelized}
+        \For{(\texttt{prev\_sk}, \texttt{sk}, \texttt{next\_sk}) in \texttt{read}}
+            \State \texttt{mini} $\gets$ minimizer of \texttt{sk}
+            \If{(hash(\texttt{sk}), $c$) $\in \texttt{sk\_count}[\texttt{mini}]$}
+                \State $c \gets c + 1$
+                \State increment the corresponding entry in \texttt{sk\_count}[\texttt{mini}]
+            \Else
+                \State $c \gets 1$
+                \State add (hash(\texttt{sk}), 1) to \texttt{sk\_count}[\texttt{mini}]
+            \EndIf
+            \If{$c = t$}
+            \Comment{\texttt{sk} just became solid: insert its hyper-k-mer}
+                \If{\Call{IsSolid}{\texttt{sk\_count}, \texttt{prev\_sk}, $t$}}
+                \Comment{if previous is solid, reuse its right part}
+                    \State \texttt{id\_left} $\gets$ id of right part of \texttt{prev\_sk} in \texttt{hk\_count}
+                \Else
+                    \State \texttt{id\_left} $\gets |\texttt{hk\_parts}|$
+                    \State append left part of \texttt{sk} to \texttt{hk\_parts}
+                \EndIf
+                \If{\Call{IsSolid}{\texttt{sk\_count}, \texttt{next\_sk}, $t$}}
+                \Comment{if next is solid, reuse its left part}
+                    \State \texttt{id\_right} $\gets$ id of left part of \texttt{next\_sk} in \texttt{hk\_count}
+                \Else
+                    \State \texttt{id\_right} $\gets |\texttt{hk\_parts}|$
+                    \State append right part of \texttt{sk} to \texttt{hk\_parts}
+                \EndIf
+                \State add (\texttt{id\_left}, \texttt{id\_right}, $c$) to \texttt{hk\_count}[\texttt{mini}]
+            \ElsIf{$c > t$}
+            \Comment{\texttt{sk} already indexed: update count}
+                \State (\texttt{id\_left}, \texttt{id\_right}, exact) $\gets$ \Call{LookupAndUpdate}{\texttt{hk\_count}, \texttt{hk\_parts}, \texttt{sk}}
+                \If{not exact}
+                    \State add (\texttt{id\_left}, \texttt{id\_right}, 1) to \texttt{hk\_count}[\texttt{mini}]
+                \EndIf
+            \EndIf
+        \EndFor
+    \EndFor
+    \For{\texttt{read} in \texttt{read\_set}}
+    \Comment{Second pass, can be parallelized}
+        \For{\texttt{sk} in \texttt{read}}
+        \Comment{handle non-solid super-k-mers sharing a minimizer with a solid one}
+            \State \texttt{mini} $\gets$ minimizer of \texttt{sk}
+            \If{first or last super-$k$-mer}
+                \State (\texttt{id\_left}, \texttt{id\_right}, exact) $\gets$ \Call{LookupAndUpdate}{\texttt{hk\_count}, \texttt{hk\_parts}, \texttt{sk}}
+                \If{not exact}
+                    \If{$\texttt{id\_left} = -1$}
+                        \State \texttt{id\_left} $\gets |\texttt{hk\_parts}|$
+                        \State append left part of \texttt{sk} to \texttt{hk\_parts}
+                    \EndIf
+                    \If{$\texttt{id\_right} = -1$}
+                        \State \texttt{id\_right} $\gets |\texttt{hk\_parts}|$
+                        \State append right part of \texttt{sk} to \texttt{hk\_parts}
+                    \EndIf
+                    \State add (\texttt{id\_left}, \texttt{id\_right}, 1) to \texttt{hk\_count}[\texttt{mini}]
+                \EndIf
+            \ElsIf{not \Call{IsSolid}{\texttt{sk\_count}, \texttt{sk}, $t$}}
+                \State \Call{LookupAndUpdate}{\texttt{hk\_count}, \texttt{hk\_parts}, \texttt{sk}}
+            \EndIf
+        \EndFor
+    \EndFor
+    \State \Return \texttt{sk\_count}, \texttt{hk\_count}, \texttt{hk\_parts}
+\EndFunction
+\State{$\quad$}
+
+\Function{IsSolid}{\texttt{sk\_count}, \texttt{sk}, $t$}
+\Comment{checks if a super-k-mer has reached threshold $t$}
+    \State \texttt{mini} $\gets$ minimizer of \texttt{sk}
+    \For{$(h, c) \in \texttt{sk\_count}[\texttt{mini}]$}
+        \If{$h = \text{hash}(\texttt{sk})$}
+            \State \Return $c \geq t$
+        \EndIf
+    \EndFor
+    \State \Return \texttt{false}
+\EndFunction
+\State{$\quad$}
+
+\Function{LookupAndUpdate}{\texttt{hk\_count}, \texttt{hk\_parts}, \texttt{sk}}
+\State{\textit{// search if a super-k-mer is indexed in the hyper-k-mer index}}
+\State{\textit{// return the position of the left and right hyper-k-mer parts that include it}}
+\State{\textit{// and a boolean indicating if the super-k-mer is indexed}}
+\State{\textit{// if the super-k-mer is indexed, the count of its entry is increased}}
+    \State \texttt{mini} $\gets$ minimizer of \texttt{sk}
+    \State \texttt{id\_left}, \texttt{id\_right} $\gets -1, -1$
+    \Comment{-1: sentinel for ``not found''}
+    \For{$(l, r, c) \in \texttt{hk\_count}[\texttt{mini}]$}
+        \If{$(\texttt{hk\_parts}[l], \texttt{hk\_parts}[r]) = \texttt{sk}$}
+            \State $c \gets c + 1$
+            \State \Return $(l, r, \texttt{true})$
+        \EndIf
+        \If{\texttt{sk} starts with \texttt{hk\_parts}[$l$]}
+            \State \texttt{id\_left} $ \gets l$ \EndIf
+        \If{\texttt{sk} ends with \texttt{hk\_parts}[$r$]}
+            \State \texttt{id\_right} $ \gets r$ \EndIf
+    \EndFor
+    \State \Return (\texttt{id\_left}, \texttt{id\_right}, \texttt{false})
+\EndFunction
+\end{algorithmic}
+```
+
+KFC's two-pass /kmer counting algorithm using /hkmers.
+:::
 
 ## Experiments {#sec-kfc-evaluation}
 
