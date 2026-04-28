@@ -3,3 +3,508 @@
 :::{.callout-note}
 This chapter is adapted from {{< longcite fhs >}} and {{< longcite fhs-multiset >}}.
 :::
+
+## Introduction {#sec-intro-skmer}
+
+The field of genomics has exploded in recent years, driven by the availability of cheap and easy sequencing data generation.
+The Sequence Read Archive (SRA) is a vast and to some extent under-exploited goldmine of genomic data, containing an enormous amount of genetic information.
+However, one of the biggest challenges in utilizing this data is the lack of efficient indexing and querying tools.
+The GenBank database, for example, already contains 1.2 million bacterial genomes, totaling over 5 Terabases of data.
+In the face of such vast genetic information, a crucial need is to promptly and precisely determine the most similar (or contained) known entry for a given query document (assembled or unassembled reads).
+Specifically, in this work we focus on the metagenomic assessment problem, which entails characterizing microbial communities in a specific environment using DNA sequencing data and potentially large amounts of reference entries.
+The complexity and diversity of the data, which contains sequences from multiple genomes, presents significant challenges.
+
+In the metagenomic context, traditional alignment-based methods such as BLAST are increasingly computationally prohibitive due to the sheer number of potential targets for metagenome mapping.
+A spectrum of alignment-free techniques based on /kmer content have emerged as a viable alternative, with different tradeoffs.
+On one side of the spectrum, exact /kmer indexing offers linear query time [@bifrost; @blight; @sshash], but may be too memory-intensive for large-scale applications.
+Probabilistic structures, when applied to large queries (on the order of kilobases), enable more scalable indexing at the expense of a random false positive rate [@marchet2023scalable; @blackwell2021exploring].
+
+Using large enough query data allows for handling false positive noise since it remains significantly lower than the required matching signal (e.g., 70% of queried /kmers present in the document). It means false positives are not a real issue if query size is adequate.
+For extensive queries at the Megabase level, the signal strength is sufficiently robust, eliminating the need to consider all /kmers and enabling sublinear query time.
+On the other side of the spectrum, fixed-size sketches like Minhash [@broder1997resemblance], Hyperloglog [@meunier2007hyperloglog], and Hyperminhash [@yu2020hyperminhash] have been effectively used for large-scale collection comparison [@ondov2016mash; @baker2019dashing; @baker2022dashing; @zhao2019bindash; @niqki].
+However, they are ill-suited for divergent documents in terms of content or size, a critical limitation considering metagenomic samples typically comprise many organisms with amount of distinct /kmers varying by orders of magnitude.
+
+Scaled sketches, whose size scales linearly with input size, have demonstrated better resilience to such issues.
+sourmash [@pierce2019large], which implements scaledminhash [@pierce2019large] and Fracminhash [@irber2022lightweight], efficiently approximates containment and Jaccard indexes even for documents with size disparities spanning several orders of magnitude.
+sourmash's simplicity is one of its key strengths: it stores each uniformly selected fingerprint as a 32-bit integer and compares them using a dictionary.
+An observation is that this technique is generic and can be applied to any type of data.
+Therefore, computational and memory requirements could benefit from customized selection techniques and index structures.
+
+To this end, we propose capitalizing on the ability to represent overlapping /kmers with a low number of bits per /kmer using a *Spectrum Preserving String Set* [@rahman2020representation].
+The challenge we face is optimizing the overlap of chosen /kmers to achieve maximum space efficiency.
+To address this, we build upon the concept of /skmers [@mspkmercounter], which are sequences of /kmers sharing a common selected $m$-mer called minimizer [@roberts2004reducing].
+Universal Hitting Sets (UHS [@orenstein2017designing]) methods aim to design optimized $m$-mer selection schemes that covers all /kmers while minimizing the density of selected positions. However, our application does not require complete coverage of the /kmer space.
+Therefore, we introduce *Fractional Hitting Sets* that encompass a near-uniform selected fraction of the /kmer space.
+We conduct a study on the achievable density in relation to the selected fraction and present a straightforward minimizer selection scheme that closely approaches optimal bounds.
+We implement this scheme in a tool called supersampler.
+The storage of enhanced /skmer sequences, partitioned by minimizers, facilitates space and time-efficient /kmer set comparisons.
+Our evaluation reveals that supersampler significantly reduces resource usage compared to sourmash while maintaining similar results.
+Overall, this work presents a promising approach to making large-scale genomic data more accessible and manageable.
+
+## Preliminaries {#sec-prelim}
+
+This paper presents results on finite strings on the DNA alphabet $\Sigma=\{A,C,G,T\}$, we use $\sigma$ to denote the size of the alphabet.
+We consider two input multisets of strings longer or equal to $k$, $S_A$ and $S_B$.
+These multisets can in practice be read sets from sequencing experiments or genome sequences.
+We call /kmers strings of size $k$ over strings of the input sets.
+$A=\{x_0, x_1, \ldots, x_{n-1}\}$ is the set of distinct /kmers from $S_A$ and $B=\{y_0, y_1, \ldots, y_{n-1}\}$ is defined similarly for $S_B$.
+The metrics to estimate the similarity between two sets are later defined in @sec-comp onwards.
+
+We first state important definitions that will be used to introduce a first contribution of the paper: in @sec-fhs we present the advantages of a sampling process that depends on minimizers instead of /kmers hashed values. Then in @sec-spsp we describe our second contribution, a method for indexing the sampled elements and comparing them in an efficient manner for set and multiset similarity estimation.
+
+### Minimizers and /skmers
+
+:::{#def-minimizer}
+## minimizer
+
+Given $m < k$, a total order $\mathcal{O}$ on $\Sigma^m$ and a /kmer $u$, the minimizer of $u$ is the smallest $m$-mer of $u$ according to $\mathcal{O}$.
+:::
+
+The way minimizers are selected is referred to as a minimizer scheme.
+From now on, $\mathcal{O}$ is defined on integers by hashing $m$-mers using a random hash function $h$ and minimizers are selected by choosing the smallest hash value.
+We assume that the hash function is chosen such that the hashes are independent and uniformly distributed.
+We use $w = k - m + 1$ to denote the number of $m$-mers inside a /kmer.
+
+:::{#def-superkmer}
+## /Skmer
+
+A /skmer is a maximal substring of a string $s$ ($|s|\geq k$) in which each consecutive /kmers have the same minimizer.
+:::
+
+Spectrum Preserving String Sets [@rahman2020representation] are an efficient /kmer encoding made of a collection of strings whose property is to spell exactly the initial set of /kmers, usually exploiting the fact that /kmers share overlaps.
+
+/Skmers are an interesting *Spectrum Preserving String Set* because a /skmer containing $x$ /kmers is composed of $k+x-1$ bases which incur a cost of $\frac{2(k+x-1)}{x}$ bits per /kmer.
+Therefore longer /skmers provide lighter representation as opposed to classic /kmer representation by simply avoiding to repeat an increasing number of nucleotide while /skmer size increases.
+
+By omitting repeated minimizers inside /kmers, the first /kmer of the longest possible /skmers have their minimizers as a suffix.
+Equally, the last /kmers of these /skmers have their minimizers as a prefix.
+
+:::{#def-maximal-superkmer}
+## maximal /skmer
+
+Let $s$ ($|s|\geq k$) be a string and $v$ a /skmer of $s$.
+Let $i_m$ be the first position of the minimizer on $s$.
+$v$ is a maximal /skmer iff $v$ starts at position $i_m + m - k$ in $s$ and $v$ ends at position $i_m + k - 1$ in $s$.
+It follows that $v$ has a length of $2k-m$ and contains $w=k-m+1$ /kmers.
+:::
+
+Examples of regular and maximal /skmers are shown in @fig-superkmer.
+Since maximal /skmer are the most space-efficient, our approach aims to rely on long /skmers (ideally maximal) in order to have a compact encoding of the /kmer sketch.
+As mentioned in [@lphash] (see the proof of theorem 3), the proportion of maximal /skmers approaches $\frac{1}{4}$ for a large $k$.
+
+![/Skmers extracted from a sequence for $k=6, m=3$. Minimizers are shown in pink, here we use the lexicographic order instead of hashing minimizers for the sake of the simplicity. /Skmers 1 and 4 are maximal (they contain respectively /kmers $\{CTGAAA, TGAAAT, GAAATG, AAATGC\}$ and $\{TGCACA, GCACAT, CACATT, ACATTT\}$, while 2 and 3 are not (and contain respectively /kmers $\{AATGCA\}$ and $\{ATGCAC\}$.](../fig/fhs/1_superkmer){#fig-superkmer}
+
+### Density and universal hitting sets
+
+Since every minimizer corresponds to one /skmer, the proportion of $m$-mers chosen as minimizers is exactly the inverse of the average length of /skmers.
+This proportion, which quantifies the sparsity of a minimizer scheme, is referred to as the *density*.
+
+:::{#def-density}
+## density of a minimizer scheme
+
+The density of a minimizer scheme is the expected number of selected minimizers divided by the total number of $m$-mers.
+The density factor is equal to the density multiplied by $w + 1$.
+:::
+
+The density of a minimizer scheme is lower bounded by $1/w$ since each /kmer contains $w$ $m$-mers and one of them must be selected as a minimizer.
+It is known that the expected density of a minimizer scheme based on a random ordering is $2 / (w+1)$, and that minimizer schemes cannot have a density below $1.5 / (w+1)$ [@schleimer2003winnowing].
+More generally, $m$-mers selection scheme able to cover every /kmer are called *universal hitting sets*.
+
+:::{#def-uhs}
+## universal hitting set or UHS
+
+A set $\mathcal{U} \subseteq \Sigma^m$ is defined as a Universal Hitting Set (UHS) if every sequence of $w$ consecutive $m$-mers has an element contained in $\mathcal{F}$.
+:::
+
+Note in particular that the set of all minimizers of $\Sigma^k$ forms a UHS.
+Recent publications introduced different methods based on UHS to bring the density below $2 / (w+1)$ and closer to the $1.5 / (w+1)$ barrier [@miniception; @pellow2023efficient].
+Thus, a question that naturally arises is: can we cross this barrier by relaxing some constraints on the selection scheme?
+
+## Fractional Hitting Sets {#sec-fhs}
+
+In this section, we introduce the concept of *fractional hitting sets*, which are a relaxation of universal hitting sets.
+These sets are designed to cover a fraction $f$ of the /kmer space on expectation.
+
+:::{#def-fhs}
+## fractional hitting set or FHS
+
+Given $f \le 1$, a set $\mathcal{F} \subseteq \Sigma^m$ is a Fractional Hitting Set (FHS) if a fraction at least $f$ of the sequences of $w$ consecutive $m$-mers have an element contained in $\mathcal{F}$.
+:::
+
+To avoid selection bias in practice, we aim to ensure that $m$-mers are selected randomly and have an equal chance of being chosen by using a random hash function that uniformly distributes the $m$-mers over $\llbracket 1, \sigma^m \rrbracket$.
+
+We introduce a simple probabilistic method to build such fractional hitting sets by selecting minimizers with a hash smaller than a certain threshold.
+We call such selected minimizers *small minimizers*.
+Note that any method selecting a fraction of the minimizers hashes would be suitable here.
+
+:::{#def-smallminimizer}
+## small $m$-mer
+
+Given a fixed threshold $t \in \llbracket 1, \sigma^m \rrbracket$, we say that a $m$-mer is small if its hash is below $t$.
+We denote by $\mathcal{S}$ the set of small $m$-mers, and $p = \frac{t}{\sigma^m}$ the probability that a $m$-mer is small.
+:::
+
+From $p$ we can derive the proportion of covered /kmers.
+
+:::{#prp-burger-king}
+Given $t \in \llbracket 1, \sigma^m \rrbracket$ and $p = \frac{t}{\sigma^m}$, the expected fraction of /kmers with distinct $m$-mers containing a small $m$-mer is
+$$f = 1 - (1 - p)^w$$
+where $w = k - m + 1$ and $p$ is the probability that a $m$-mer is small.
+:::
+
+:::{.proof}
+Given a /kmer with $w$ distinct $m$-mers $x_1, \dots, x_{w}$,
+$$\Pr(\forall i \in \llbracket 1, w \rrbracket, h(x_i) > t) = \prod_{i=1}^{w} \Pr(h(x_i) > t) = (1 - p)^w$$
+because the hashes of distinct $m$-mers are independent, so
+$$f = \Pr\left(\min_{i \in \llbracket 1, w \rrbracket} h(x_i) \le t\right) = 1 - (1 - p)^w$$
+:::
+
+Note that this property is valid for /kmers with distinct $m$-mers; /kmers with duplicated $m$-mers (i.e. /kmers containing repetitions) have a lower coverage since they have less candidates for small minimizers.
+Fortunately, as shown in [@miniception] (see lemma 9), the proportion of /kmers with duplicated $m$-mers is negligible for a sufficiently large $m$ ($> (3 + \varepsilon) \log_\sigma w$).
+Thus, our selection method is uniform for /kmers with distinct $m$-mers, and almost uniform in the entire /kmer space.
+
+Conversely, if we want a given fraction $f$ of the /kmers to be covered, the threshold should be chosen as
+$$t = \left[1 - (1 - f)^{1/w}\right] \cdot \sigma^m$$ {#eq-threshold}
+
+Related to this, let us define the subsampling rate as $s = \frac{1}{f}$. For instance, a desired subsampling rate of 1000 will give $f=\frac{1}{1000}$.
+
+### Density of small minimizers
+
+We showed that selecting /kmers with a small minimizer induces an FHS.
+By considering the usual definition of density (from @def-density) for this scheme (which covers a fraction $f$ of all /kmers), we obtain the following bound (proven in supplementary materials):
+
+:::{#thm-density}
+Given $f \le 1$ and $t = \left[1 - (1 - f)^{1/w}\right] \cdot \sigma^m$, assuming $m > (3 + \varepsilon) \log_\sigma w$, the expected density of small minimizers in a random sequence is upper bounded by
+$$\frac{2 f}{w + 1} + o(1/w)$$
+:::
+
+At first glance, the results may be surprising, as the density is smaller than the lower bound of $1/w$ for $f < 1/2$ and can approach zero.
+This is because some /kmers may not contain any small minimizers and are therefore not covered, and the proportion of such /kmers increases as $f$ approaches 0.
+However, it is worth noting that this bound does match the $2/(w+1)$ density when $f=1$ (i.e., when every /kmer is covered).
+
+To obtain a more meaningful metric, we can compute the density on the fraction of the sequence that is covered, instead of the entire sequence. With this approach, we obtain the following theorem, which has been proven in the supplementary materials:
+
+:::{#thm-density-sub}
+## (restricted density)
+
+If we restrict to sequences in which every /kmer contains a small minimizer, then given $f \le 1$ and $t = \left[1 - (1 - f)^{1/w}\right] \cdot \sigma^m$, assuming $m > (3 + \varepsilon) \log_\sigma w$, the expected density of small minimizers is upper bounded by
+$$2 \cdot \frac{f + (1 - f) \ln (1 - f)}{f^2 (w+1)} + o(1/w)$$
+:::
+
+Although less intuitive than the previous one, this result provides valuable insights into the density within the covered portion of the sequence.
+As shown in @fig-density (see supplementary materials), the associated density factor ranges from 2 when $f=1$ (consistent with existing results) to 1 when $f=0$.
+Therefore, as $f$ approaches 0, we can approach the optimal density.
+
+### Proportion of maximal /skmers
+
+Although measuring the density provides an overview of the average length of /skmers, it does not indicate how many of them are maximal (i.e., of length $2k-m$). The following result (proven in the supplementary materials) answers this question:
+
+:::{#thm-max-skmers}
+Given $f \le 1$ and $t = \left[1 - (1 - f)^{1/w}\right] \cdot \sigma^m$, the average proportion of maximal /skmers (with respect to all /skmers) built from small minimizers in a random sequence is given by
+$$\left[\left(1 - \frac{1}{w}\right) \frac{f}{1 + f}\right]^2 + \frac{1 - f(1 - 2/w)}{1 + f}$$
+:::
+
+Note that this result generalizes theorem 2 from [@lphash], which corresponds to $f = 1$.
+As shown in @fig-max-skmers (see supplementary materials), the proportion increases towards 100% as $f$ approaches 0.
+
+### Improving the density of fractional hitting sets using UHS
+
+This effect is more pronounced for smaller values of $f$. This observation raises a natural question: what is the lowest achievable density for a given $f$? Since universal hitting sets (UHS) with a density lower than 2 have been proposed for $f=1$, it is possible that they may also improve the density for smaller $f$ values by considering only the $m$-mers selected by the UHS as potential minimizers.
+
+:::{#thm-density-uhs}
+Given a UHS $\mathcal{U}$ with density $d_\mathcal{U}$, $f \le 1$ and $t = \left[1 - (1 - f)^{1/w}\right] \cdot \sigma^m$, assuming $m > (3 + \varepsilon) \log_\sigma w$, the expected density of small minimizers selected from $\mathcal{U}$ (that is, $\mathcal{S} \cap \mathcal{U}$) in a random sequence is upper bounded by
+$$f \cdot d_\mathcal{U} + o(1/w)$$
+:::
+
+The proof is given in supplementary materials.
+Note that this result generalizes @thm-density since the UHS of minimizers selected using a random ordering has a density of $2/(w+1)$ [@schleimer2003winnowing].
+
+## Sketching technique in supersampler {#sec-spsp}
+
+### supersampler's sketch construction {#ssec-sketch}
+
+:::{#def-spsp-sketch}
+## supersampler's sketch
+
+Given a sequence $S$, each /skmer whose minimizer's hash is lower or equal to a threshold $t$ is selected, and all its surrounding /kmers are kept in the sketch as a /skmer.
+A supersampler sketch can therefore be represented as a /skmer set.
+:::
+
+In sourmash, /kmers are represented as integer fingerprints through hashing (using a default of 32-bit). This approach reduces space requirements compared to employing $2k$ bits per /kmer, but it also introduces the potential for false positives due to hash collisions. However, the false positive rate is exponentially low, depending on the fingerprint size, which allows for efficient control.
+
+In contrast, supersampler explicitly stores /kmers as /skmers, offering two significant advantages over the conventional method:
+First, the fingerprints are represented exactly, eliminating false matches and enabling the output of shared /kmers when they are of interest to users.
+Second, this technique enables a more space-efficient representation of /kmers, typically requiring less than the 32-bit per /kmer space cost of sourmash.
+@fig-sketch illustrates an example of sketch construction in supersampler.
+In the following sections, we propose a model to evaluate the space efficiency of a supersampler sketch.
+
+In the regular case with hashed minimizer with a density factor of 2 we can expect $(k-m+1)/2$ /kmers per /skmers [@lphash].
+This results in a mean /skmer length of $(3k-m-1)/2$ bases.
+We can give a lower bound of the cost in bit per /kmer to encode such /skmers: $$\frac{2(3k-m-1)}{k-m+1}$$
+However we need to encode the length of each /skmer to avoid considering artefactual /kmers created by two successive /skmers so we can add $\log_2(k-m+1)$ bits per /skmer (encoding the number of /kmers).
+This leads to a bits per /kmer ratio of $$2 \cdot \frac{3k - m - 1 + \log_2(k - m + 1)}{k - m + 1}$$
+
+In practice we use the formula [-@eq-threshold] to select a /kmer fraction chosen by the user.
+As a side effect, since we used an FHS, selected /skmers are longer than those selected by regular hashed minimizer scheme as our hitting set provides a lower density.
+Importantly for low selected fraction a very large proportion of /skmers are maximal.
+This property is of prime interest because maximal /skmers can be efficiently encoded for two reasons.
+First they are all of the same size so we do not need to encode their respective length or any kind of separator.
+Second, they represent $2k-m$ bases encoding for $k-m+1$ /kmers, they provide a lower bits per /kmers ratio $$\frac{2(2k-m)}{k-m+1}$$
+
+![supersampler's sketching strategy. In order to build sketches, supersampler computes /skmers over the input sequence. Fingerprints are associated with each /skmer by hashing their minimizers to an integer, hence an integer per /skmer. /Skmers associated to sufficiently low integers are kept in the sketch. /Skmers are put into partitions according to their minimizer.](../fig/fhs/2_spsp_sketch){#fig-sketch}
+
+### Partitioned sketches
+
+Minimizers naturally splits the /skmer space into $\mathcal{O}(4^m)$ partitions.
+Since only a subset of the minimizer space is selected, a smaller number of partitions are actually considered.
+supersampler relies on the fact that /skmers are centered around a shared minimizer to build a partitioned sketch.
+In practice, we examine all non-empty selected partitions, each storing a minimizer with their corresponding /skmers independently.
+This strategy offers several crucial advantages.
+First, when encoding maximal /skmers, we know the position of the minimizer within each /skmer.
+By storing the minimizer sequence once in the partition, we can omit it in all maximal /skmers.
+This results in an even lower bit per /kmer ratio: $$\frac{4(k-m)}{k-m+1}$$
+@fig-bitperkmer shows the space cost of the different encoding: /skmer, maximal /skmer and partitioned /skmer according to the minimizer size along with the actual performances of supersampler.
+This mechanism, by enhancing space efficiency, implies that storing larger /kmers as maximal /skmers helps reducing memory usage.
+When comparing document sketches, matching /kmers between documents are necessarily found in the same partition, so only a given partition is needed in memory at a time.
+For sufficiently large $m$, such partitions should be orders of magnitude smaller than the total amount of fingerprints, as the expected partition size decreases exponentially with $m$.
+This partitioning technique also allows for substantial speed-ups, notably in sketch comparison time, which are discussed later on.
+
+#### Abundance Filtering
+
+When working with raw read sets, a practical feature is the ability to filter out low-abundance $k$-mers, which are likely attributable to sequencing errors.
+Notably, sourmash lacks this feature and requires users to handle such filtering independently.
+Our approach is both user-friendly and efficient, as we store only fingerprints abundances, a process considerably less resource-intensive than standard /kmer counting.
+
+However, a potential issue arises when applying abundance filtering: certain /kmer within a chosen /skmer might be excluded, effectively "breaking" them.
+To address this, we initiate an "assembly" phase for all /kmers not already part of a maximal /skmer.
+The goal is to produce as many maximal /skmers as possible, while minimizing non-maximal /skmers. We commence with /kmers having minimizers as suffixes and attempt to extend them, using a greedy method, until a maximal /skmer is obtained.
+When no more maximal /skmers can be constructed, we aim to build the largest possible sequences in a greedy fashion to minimize the total base number similarly to simplitigs [@bvrinda2021simplitigs].
+
+![Theoretical space cost of different encodings in bits per /kmer according the /kmer size size along with practical space usage of super-sampler sketches on random sequences.](../fig/fhs/3_bpk_m11_practical){#fig-bitperkmer}
+
+### Set comparisons {#sec-comp}
+
+![How supersampler and sourmash perform their respective sketch comparison. Colored rectangles represent /kmers. Those sharing the same color are sharing a common minimizer. In supersampler sketches, /kmers sharing their minimizers are stored in the same partition. In this example, we discuss the comparison of one document against a collection, although other use cases can be inferred. supersampler is capable of skipping certain partitions that are not relevant to the query. By focusing on smaller sub-parts of the collection one at a time, supersampler effectively improves practical performance and reduces memory usage.](../fig/fhs/4_query1v_all){#fig-query1}
+
+#### Jaccard and containment indexes
+
+For two finite, non empty sets of /kmers $A$ and $B$, the Jaccard index [@broder1997resemblance] gives a measure of the similarity $A$ and $B$ by comparing the relative size of the $A \cap B$ intersection over the $A \cup B$ union,
+$$ 0 \leq J_{A,B} = \frac{|A \cap B|}{|A \cup B|} \leq 1$$
+
+The containment index $C$ of the previously defined sets A and B measures the relative size of $A\cap B$ intersection over the size of A, i.e., the proportion of distinct /kmers of A that are present in B.
+$$ 0 \leq C_{A,B} = \frac{|A \cap B|}{|A|} \leq 1$$
+
+supersampler's sketch comparison, in line with previous works, produces an estimator for both Jaccard and containment indexes.
+
+#### Speed up sketch comparisons
+
+Unlike sourmash that treats sketches in their entirety (algorithm @alg-comp-sourmash), supersampler focuses on small related partitions.
+One partition corresponding to every /skmers sharing a common minimizer.
+This allows for two distinct computational improvements.
+First, a partition that is specific to a file can be skipped as we know that no /kmer present in such partition will be found in another file so no matching /kmer exists for this partition, e.g. a minimizer not seen anywhere else.
+Second, the size of the partitions stored in memory being small, we expect few cache-misses when comparing partitions unlike sourmash for which a cache-miss for each queried fingerprint can be expected.
+See algorithm @alg-comp-spsp for the sketch comparison for supersampler.
+In other words, as illustrated in @fig-query1, supersampler concentrates exclusively on small, relevant partitions and processes each of them only once.
+The efficiency benefits of this approach are magnified when comparing one or multiple documents against a large collection, as supersampler processes only a specific partition of the relevant documents at a given time.
+This targeted processing reduces the computational load and enhances the overall performance of the comparison.
+
+::: {#alg-comp-sourmash}
+
+```pseudocode
+#| html-no-end: true
+#| html-indent-lines: true
+#| html-line-number: false
+#| html-comment-delimiter: "//"
+#| pdf-line-number: false
+#| pdf-no-end: true
+#| pdf-indent-lines: true
+#| pdf-italic-comment: true
+#| pdf-right-comment: true
+#| pdf-comment-color: "darkgray"
+#| pdf-comment-delimiter: "//"
+#| pdf-placement: "ht!"
+
+\begin{algorithmic}
+\State{Let $Q$ be a list of query files $Q_0..Q_i..Q_{s-1}$}
+\State{Let $T$ be a list of target files $T_0..T_i..T_{p-1}$}
+\State{$HQ$ is an array of $s$ sets of fingerprints, one for each query file}
+\State{$HT$ is built similarly for each target}
+\State{$M$ is a matrix of size $s \times p$ filled with $0$}
+\ForAll{$i \in HQ$}
+    \ForAll{$j \in HT$}
+        \State{$M[i][j] = |HQ[i] \cap HT[j]|$} \Comment{time linear in the size of the smallest set}
+    \EndFor
+\EndFor
+\end{algorithmic}
+```
+
+Sketch comparison in sourmash.
+:::
+
+::: {#alg-comp-spsp}
+
+```pseudocode
+#| html-no-end: true
+#| html-indent-lines: true
+#| html-line-number: false
+#| html-comment-delimiter: "//"
+#| pdf-line-number: false
+#| pdf-no-end: true
+#| pdf-indent-lines: true
+#| pdf-italic-comment: true
+#| pdf-right-comment: true
+#| pdf-comment-color: "darkgray"
+#| pdf-comment-delimiter: "//"
+#| pdf-placement: "ht!"
+
+\begin{algorithmic}
+\State{Let $Q$ be a list of Query files $Q_0..Q_i..Q_{s-1}$}
+\State{$HQ$ is a hashtable of hashtables}
+\State{$HQ$ maps any minimizer in a file $Q_i$ from $Q$ to a hashtable}
+\State{The second hashtable maps fingerprints from a given minimizer to a list of indexes of source files in $0..s-1$}
+\State{Similarly, a hashtable of hashtables $HT$ is built for each target dataset $T_0..T_{p-1}$}
+\State{$M$ is a matrix of size $s \times p$ filled with $0$s}
+\ForAll{minimizer $m=\mathrm{key}$ in $HQ$}
+    \If{$m \in HT$}
+        \ForAll{fingerprint $f=\mathrm{key}$ in $HQ[m]$}
+            \If{$f \in HT[m]$} \Comment{Partition $HT[m]$ is loaded only if necessary}
+                \ForAll{index $dq \in HQ[m][f]$}
+                    \ForAll{index $dt \in HT[m][f]$}
+                        \State{$M[dq][dt] \mathrel{+}= 1$}
+                    \EndFor
+                \EndFor
+            \EndIf
+        \EndFor
+    \EndIf
+\EndFor
+\end{algorithmic}
+```
+
+Sketch comparison in supersampler.
+:::
+
+### Multiset comparisons
+
+#### Angular similarity
+
+When considering the multiplicities of /kmers, the similarity between two /kmer multisets can be determined using cosine similarity, which is derived from the Euclidean dot product formula.
+This metric has already been used in sourmash and *simka*. Simka's authors showed this distance was strongly correlated to taxonomic distance ([@benoit2016multiple] page 15-17). it then felt logical to add it in supersampler to offer the same range of computations as sourmash.
+
+The cosine similarity between vectors $A = \lbrace A_1, \dots, A_n \rbrace$ and $B = \lbrace B_1, \dots, B_n \rbrace$ is described by:
+$$CS_{A,B}= \cos(\theta) = \frac{A \cdot B}{|A||B|}= \frac{\sum_{i=1}^{n} A_i B_i}{\sqrt{\sum_{i=1}^{n} A_i^2\sum_{i=1}^{n} B_i^2}}$$
+Often, the term "cosine distance" is introduced:
+$$CD_{A,B}=1-CS_{A,B}$$
+However, it is noteworthy that the cosine distance is not a true distance metric because it does not adhere to the triangle inequality. To acquire the triangle inequality property, one can use the angular distance:
+$$AD_{A,B} = \frac{\arccos\left(CS_{A,B}\right)}{\pi}$$
+Thus, angular similarity becomes:
+$$AS_{A,B}=1-AD_{A,B}$$
+
+In supersampler, we've introduced a specific mode to compute angular similarity. A distinguishing feature of this mode is that it counts the abundances of fingerprints using a memory-efficient hashmap based on robinhood hashing <https://github.com/martinus/unordered_dense>.
+Because each /kmer in the sketch is associated with its abundance, it results in a greater disk space usage as reported in @fig-strat-bench. During the comparison stage, this information allows for the computation and display of Jaccard, Containment, and Angular similarities.
+
+#### Reducing space overhead
+
+Storing an integer for every /kmer can be resource-intensive, especially for large sketch collections.
+To mitigate this, we introduce two heuristic methods designed to drastically reduce overhead, yet still offer a reasonable approximation of angular distance.
+Given that applications such as metagenomics and RNA-seq can exhibit abundance variations spanning several orders of magnitude, precise abundance values are not always crucial.
+Instead, logarithmic abundances are more commonly examined.
+Consequently, we offer a mode that stores log abundances, which substantially decreases disk usage by compressing minuscule values.
+Log abundances are computed by simply applying a log scaling of the abundance counts for each /kmer.
+Another strategy is to retain just one abundance value for each /skmer, representing the average abundance of its constituent /kmers.
+This technique slashes the number of integers stored by a significant factor as showed in @fig-strat-bench.
+
+![Comparison of different sketch heuristics and base storage of a 100X simulated C. elegans reads. sourmash and supersampler represent regular /kmer abundance encodings, while "Log" represents a logarithmic /kmer abundance encoding. "Super" is used to denote /skmer abundance encoding, "Super log" denotes /skmer logarithmic abundance encoding, and "Jaccard" indicates the absence of abundance encoding.](../fig/fhs/5_methods){#fig-strat-bench}
+
+Comparisons have been made using a 100X simulated sequencing with a 1% substitution rate of *C. elegans* with a subsampling rate of 1000.
+The table compares the size of storing the whole dataset raw and zipped versus the dataset subsampled with several heuristics detailed earlier. It shows that sourmash's sketch stored with abundance uses 16Mbytes in memory when supersampler's equivalent uses around 1Mbyte. It then shows the evolution of memory consumption with different manners of storing /kmers and /skmers abundances with several /kmer abundance filters.
+
+## Results {#sec-results}
+
+All scalability and performance experiments were performed on a single cluster node running with Intel(R) Xeon(R) Gold 6130 CPU @ 2.10GHz and 2 64GiB DIMM DDR4 Synchronous 2666 MHz ram. Experiments about disk consumption and error for Angular similarity were performed on a HP elitebook running with Intel(R) core i7 12th generation with 32Gb RAM.
+
+In the first section, we evaluate supersampler sketches space usage.
+In the second section, we evaluate the precision and performance of supersampler in comparison to sourmash, the current state-of-the-art solution.
+Finally, in the last section, we demonstrate supersampler's scalability when indexing extensive collections.
+
+### Space efficiency of supersampler.
+
+As previously discussed, the lower bound of memory cost for storing /kmers as /skmers is given by $$2 \cdot \frac{3k - m - 1 + \log_2(k - m + 1)}{k - m + 1}$$ bits per /kmer, assuming we store the size of each /skmer in the index.
+For $m = 15$, this bound equates to 9.2 bits/$k$-mer with $k=31$ and 7.1 bits/$k$-mer with $k = 63$. However, in practice, supersampler exhibits lower space usage. @fig-bitperkmervssubsampling in the supplementary materials reveals that approximately 6.5 bits/$k$-mer and 5 bits/$k$-mer are achieved for $k = 31$ and $63$, respectively.
+
+These results can be attributed to the low density permitted by supersampler's minimizer selection scheme. As illustrated in @fig-density, the density factor quickly diminishes as the subsampling rate increases, respectively as the fraction $f$ diminishes. When the subsampling rate is 2, the density factor falls below 1.5, the lower bound of the minimizer scheme, and continues to decline toward 1. In general, subsampling tools seldom apply rates below 100, with sourmash defaulting to a rate of 1000 i.e. $f = 1/1000$.
+Consequently, supersampler consistently remains close to the lower bound for the density factor, since the density factor for a subsampling rate of 100 is already below 1.04. This facilitates the indexing of longer /skmers, which are stored more efficiently as their length increases.
+
+To further reduce memory costs, supersampler offers an option to use its selection scheme in conjunction with existing UHS-based minimizer schemes, specifically the modified double decycling sets introduced in [@pellow2023efficient]. As depicted in @fig-decyclingeffet, this approach marginally improves the bit/$k$-mer cost, particularly for smaller values of $k$.
+
+A high proportion of maximal /skmers in a sketch is advantageous for supersampler, as it lowers the bit/$k$-mer cost. @fig-maximalsuperkmerrate demonstrates that the percentage of maximal /skmers increases rapidly with the subsampling rate, reaching 90%, 99%, and 99.9% of indexed /skmers when the subsampling rate is around 10, 100, and 1000, respectively. This feature is particularly significant because it enables a rapid and considerable reduction in the bit/$k$-mer cost by efficiently encoding maximal /skmers. Therefore, with the subsampling rates commonly used in practice, which involve a very high proportion of maximal /skmers, the actual bound is determined by the following formula $$\frac{2(2k-m)}{k-m+1}$$
+
+::: {#fig-density layout-ncol=2}
+![](../fig/fhs/6_density_subsampling_31)
+
+![](../fig/fhs/6_density_subsampling_63)
+
+Measured density factor compared to the model.
+:::
+
+![Space cost in bits per /kmer according to the subsampling rate with and without using decycling sets (yellow and red lines).](../fig/fhs/7_decyclingeffect){#fig-decyclingeffet}
+
+![Fraction of maximal /skmers according to the subsampling rate.](../fig/fhs/8_max_skmers_m11){#fig-maximalsuperkmerrate}
+
+### Performance Comparison
+
+In our qualitative experiment, we compared the performance of supersampler with sourmash, which implements FracMinHash. We evaluated both tools on two distinct datasets: 1024 Salmonella genomes from GenBank and 1024 bacterial genomes from RefSeq. These collections were chosen due to their differing containment indexes; Salmonella genomes are highly similar to each other, while the bacterial genomes in RefSeq exhibit much greater dissimilarity (Jaccard similarity close to 0).
+
+We carried out an all-versus-all comparison of these collections using both tools and monitored RAM and disk usage, as well as computation time during the sketch comparisons. To assess the precision of the approximated scores, we calculated the exact Jaccard and containment similarity values using Simka [@benoit2016multiple], which performs efficient /kmer counting operations on large collections. With these scores as a reference, the precision of the approximation can be evaluated.
+
+RAM and computation time were measured using the benchmark flag from Snakemake, with one run per command. Disk usage was determined by comparing the sketch sizes of sourmash (using the *zip* option for *sourmash sketch*) and supersampler, with the latter's sketch sizes examined through a Python script. supersampler sketches were stored in a tar archive and compressed using `gzip -9`.
+
+![Resource consumption results for 1024 bacterial genomes from RefSeq. For these results, k = 31. For results on Salmonella genomes and k = 63, see @fig-ressalmok31, @fig-ressalmok63 and @fig-resRefseqk63 on the appendix.](../fig/fhs/9_RAM_TIME_SIZE_refseq1k_k31){#fig-resRefseqk31}
+
+#### RAM, time, and sketch size
+
+@fig-ressalmok31 and @fig-resRefseqk31 demonstrate that, for $k=31$, supersampler generally consumes 5 times less RAM and requires generally 16 times less space than sourmash. Additionally, supersampler performs computations 50 times faster than sourmash when comparing highly dissimilar genomes. However, when genomes are very similar, such as with Salmonella, comparison times are comparable since supersampler's time optimization does not apply on very similar documents.
+We also note that minimizer size has little to no impact on these metrics.
+
+@fig-resRefseqk63 and @fig-ressalmok63 reveal that the improvement in sketch disk size is even more significant with larger values of $k$. supersampler uses in general 50 times less disk space than sourmash with $k=63$, while maintaining similar differences in RAM and computation time.
+
+#### Error
+
+As depicted in @fig-errors, supersampler's error performance is on par with sourmash, though it does display a marginally lower accuracy. This slight dip in accuracy can be attributed to a clustering effect, which arises when supersampler selects overlapping /kmers around small minimizers. However, this effect is offset by supersampler's proficiency in indexing and comparing a larger number of /kmers using equivalent memory and typically in a shorter computation time. In @fig-errors2, we further assess the trade-off between accuracy and compressed sketch size by measuring the error relative to sketches compressed at gzip's maximum compression level. Our findings indicate that, in terms of the precision-to-cost ratio, supersampler holds a favorable position against sourmash.
+
+Additionally, supersampler stores /kmers in plain text without any loss of information, which means that /kmers of interest can actually be retrieved. While sourmash could rely on invertible hash functions and larger hashes to match this ability, doing so would effectively increase their space usage.
+
+![Error Jaccard similarity approximation for sourmash and supersampler against the compressed sketch sizes. This plot shows the results for 20 files of salmonellas simulated reads with $k = 31$, $m = 13$. Reads are 150bp long for a 100X coverage. Dashed lines represent the sizes of the sketches indexing all /kmers.](../fig/fhs/10_error_jaccard_tradeoff_dashed){#fig-errors}
+
+![Error against Simka on Containment similarity approximation for sourmash (red line) and supersampler with different minimizer sizes. This plot is for 1024 Salmonellas genoms with $k = 63$. Other results for RefSeq and Salmonellas are available at @fig-resErrorContainment. Jaccard similarity error is available at @fig-resErrorJaccard on the appendix.](../fig/fhs/11_ERROR_CONTAINMENT_salmonelle_k63){#fig-errors2}
+
+#### Massive collection indexing
+
+As a scalability experiment, supersampler and sourmash were monitored on their performances while analysing growing collection of RefSeq bacterial genomes.
+Result are displayed in @fig-refseq-2k-128k.
+We can see that our tool is able to handle all versus all comparison very large scale collection comparison effectively. For the biggest amount of files, supersampler took 25 CPU hours.
+We observe that the gap between sourmash and supersampler is diminishing for larger collection as the output matrix itself become large and generate cache-miss for every update.
+The sketch creation step is essentially cheap as both tools only took a couple CPU hours the actual bottleneck being IO.
+
+![Computational time for comparisons on different amounts of bacterial genomes from RefSeq. From 100 to 128,000 genomes with $k = 63$, $s = 1000$ and $m = 15$. sourmash was run up to 32,000 genomes as it was taking too much time for the 2 last experiments.](../fig/fhs/12_refsek_100_128k){#fig-refseq-2k-128k}
+
+#### Angular similarity
+
+To benchmark our tool directly against the angular similarity estimator of sourmash, we simulated 20 read sets, each 150bp in length, from 20 Salmonella genomes at a 100X coverage with a 0.1% error rate.
+We then evaluated each tool based on the deviation in their estimations from the original, unsubsampled sets.
+This provided insight into how each tool's accuracy varied as the subsampling rate increased. It is worth noting that while SPSP can apply an abundance cutoff, we did not utilize this feature in our experiment to ensure a fair comparison with sourmash, which lacks this capability. Thus, any /kmer could be selected in our tests, irrespective of its abundance.
+
+![Error on Angular similarity approximation for sourmash and the different supersampler strategies. This plot shows the results for 20 files of salmonellas simulated reads with $k = 31$, $m = 13$. Reads are 150bp long for a 100X coverage. Dashed lines represent the sizes of the sketches indexing all /kmers.](../fig/fhs/13_precision_cost_tradeoff_single_dashed){#fig-errors-angular}
+
+We observe in @fig-errors-angular that whilst SPSP is still less precise than sourmash, the gain in disk, time and RAM is largely compensating for this loss of precision, even when taking abundances into account.
+
+## Conclusion {#sec-conclusion}
+
+In this paper, we present both theoretical and practical results of an innovative subsampling scheme based on /skmers. We introduce the fractional hitting sets framework and propose a straightforward sketching method to highlight its benefits. This approach offers improved density compared to other schemes and tends to select /kmers that contribute to better space usage. Capitalizing on this scheme, we propose supersampler, an open-source sketching method for metagenomic assessment.
+
+Through comprehensive experimental evaluation, we demonstrate that supersampler enables efficient and lightweight analysis of extensive genomic data sets with fewer resource requirements compared to the state-of-the-art tool sourmash.
+More generally our results confirm the validity of our methodology from both theoretical and experimental standpoints.
+
+We recognize several potential enhancements for our study.
+First, concerning supersampler's implementation, we aim to refine the tool for increased user-friendliness and adaptability for routine analysis while augmenting its capabilities. Implementation of such improvements will lead to more thorough experiments with existing sampling methods [@yi2021kssd] as well as new comparisons with sourmash using the same amount of disk memory in order to better show supersampler's capacity with regard to both fixed-size and scalable sketches. Other, more distant methods and different metrics such as ANI are used to answer the same problems. Comparing supersampler to such metrics and methods is the next step to further support supersampler's interest.
+
+We plan to investigate alternative methods for sketch comparison, like sorted fingerprints, which could potentially reduce the complexity of the comparison process. From a theoretical perspective, delving deeper into the properties of Fractional Hitting Sets and gaining a better understanding of density and restricted density bounds for various values of $f$ may lead to even more efficient and robust sketching techniques.

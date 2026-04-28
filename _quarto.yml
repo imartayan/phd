@@ -53,6 +53,7 @@ book:
     - appendix/simd-parsing.qmd
     - appendix/hkmer.qmd
     - appendix/multimini.qmd
+    - appendix/skmer-sketch.qmd
   draft-mode: gone
 
 bibliography: references.bib
