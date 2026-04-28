@@ -381,13 +381,23 @@ local function configure(meta)
       and stringify(conf['output-dir'])
       or 'tikz-output'
   local project_dir = os.getenv('QUARTO_PROJECT_DIR') or ''
-  local output_dir = project_dir ~= ''
-      and pandoc.path.join { project_dir, rel_output_dir }
-      or rel_output_dir
   -- Build the image src prefix relative to the chapter dir.
   -- QUARTO_DOCUMENT_PATH is the chapter directory; use it rather than CWD since
   -- CWD may be the project root (not the chapter dir) during a full book render.
   local doc_dir = os.getenv('QUARTO_DOCUMENT_PATH') or system.get_working_directory()
+  -- Quarto sometimes adjusts rel_output_dir to be relative to the chapter dir
+  -- (e.g. "fig/tikz" → "../fig/tikz"). Detect this by a leading ".." and
+  -- resolve from doc_dir; otherwise use the original project_dir join.
+  local output_dir
+  if pandoc.path.is_absolute(rel_output_dir) then
+    output_dir = rel_output_dir
+  elseif rel_output_dir:match('^%.%.') then
+    output_dir = pandoc.path.normalize(pandoc.path.join { doc_dir, rel_output_dir })
+  elseif project_dir ~= '' then
+    output_dir = pandoc.path.join { project_dir, rel_output_dir }
+  else
+    output_dir = rel_output_dir
+  end
   local chapter_rel = project_dir ~= '' and doc_dir:sub(#project_dir + 2) or ''
   local depth = 0
   for _ in chapter_rel:gmatch('[^/\\]+') do depth = depth + 1 end
