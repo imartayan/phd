@@ -444,35 +444,48 @@ The experiments were performed on a common laptop computer (Dell Inc. Precision 
 
 #### Long reads whole genome sequencing datasets {#sec-kfc-longreads}
 
-:::{#fig-combined-benchmark-all layout-ncol=2}
-![](../fig/hkmer/plots/ecoliduplex100xmem)
+:::{#fig-combined-benchmark-all}
 
-![](../fig/hkmer/plots/ecoliduplex100xtime)
+:::{#fig-plot-duplex layout-ncol=2}
+![Memory usage](../fig/hkmer/plots/ecoliduplex100xmem){#fig-sub-mem}
 
-![](../fig/hkmer/plots/ecolihifi100xmem)
+![Running time](../fig/hkmer/plots/ecoliduplex100xtime){#fig-sub-time}
 
-![](../fig/hkmer/plots/ecolihifi100xtime)
+ONT Duplex *E. coli* datasets (`SRX23975767` and `SRX23975758`) at approximately 100X depth
+:::
 
-![](../fig/hkmer/plots/ecoliont100xmem)
+:::{#fig-plot-hifi layout-ncol=2}
+![Memory usage](../fig/hkmer/plots/ecolihifi100xmem){#fig-sub-mem}
 
-![](../fig/hkmer/plots/ecoliont100xtime)
+![Running time](../fig/hkmer/plots/ecolihifi100xtime){#fig-sub-time}
 
-Comparison of /kmer benchmarks on different *E. coli* datasets.
+HiFi *E. coli* dataset (`SRR11434954`) downsampled at  100X depth
+:::
+
+:::{#fig-plot-ont layout-ncol=2}
+![Memory usage](../fig/hkmer/plots/ecoliont100xmem){#fig-sub-mem}
+
+![Running time](../fig/hkmer/plots/ecoliont100xtime){#fig-sub-time}
+
+ONT Simplex *E. coli* dataset (`SRR28370668`) downsampled at 100X coverage
+:::
+
+Comparison of /kmer counting benchmarks on different *E. coli* datasets, with unique \kmer filtering.
 Each subfigure shows the memory usage and timing plots for different sequencing technologies.
 :::
 
 :::{#fig-plot-zymo-hifi layout-ncol=2}
-![](../fig/hkmer/plots/zymohifi100xmem)
+![Memory usage](../fig/hkmer/plots/zymohifi100xmem){#fig-sub-mem}
 
-![](../fig/hkmer/plots/zymohifi100xtime)
+![Running time](../fig/hkmer/plots/zymohifi100xtime){#fig-sub-time}
 
 /kmer counting benchmark on HiFi Zymo community dataset (SRR13128014) downsampled at 5 gigabases, with unique /kmer filtering.
 :::
 
 :::{#fig-plot-gut-hifi layout-ncol=2}
-![](../fig/hkmer/plots/guthifimem)
+![Memory usage](../fig/hkmer/plots/guthifimem){#fig-sub-mem}
 
-![](../fig/hkmer/plots/guthifitime)
+![Running time](../fig/hkmer/plots/guthifitime){#fig-sub-time}
 
 /kmer counting benchmark on HiFi human gut datasets (SRR15275210, SRR15275211, SRR15275212, SRR15275213) downsampled at 15 gigabases, with unique /kmer filtering.
 :::
@@ -515,9 +528,9 @@ Additionally, FastK's runtime increases rapidly with k.
 These findings highlight the advantage of KFC in handling genome collections without filtering.
 
 :::{#fig-plot-salmo layout-ncol=2}
-![](../fig/hkmer/plots/salmomem)
+![Memory usage](../fig/hkmer/plots/salmomem){#fig-sub-mem}
 
-![](../fig/hkmer/plots/salmotime)
+![Running time](../fig/hkmer/plots/salmotime){#fig-sub-time}
 
 /kmer counting benchmark on one thousand *S. enterica* complete genomes.
 :::
@@ -539,9 +552,9 @@ This confirms that the /skmer abundance threshold, while slightly more aggressiv
 We also report the efficiency of KFC's multithreading in the Supplementary Materials, @sec-kfc-multithread.
 
 :::{#fig-plot-lost layout-ncol=2}
-![](../fig/hkmer/plots/losthifi100x.png)
+![HiFi dataset](../fig/hkmer/plots/losthifi100x.png){#fig-sub-hifi}
 
-![](../fig/hkmer/plots/lostont100x.png)
+![ONT dataset](../fig/hkmer/plots/lostont100x.png){#fig-sub-ont}
 
 Percentage of /kmers lost by removing unique /skmers, as a function of the abundance threshold and /kmer size.
 Left: simulated HiFi dataset with 100× coverage and 0.1% error rate.

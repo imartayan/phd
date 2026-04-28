@@ -35,13 +35,13 @@ Multi-core usage efficiency of KFC on the 100× HiFi E. coli dataset.
 
 ![](../fig/hkmer/plots/ecolihifi50xtime)
 
-![](../fig/hkmer/plots/ecoliont200xtime)
-
 ![](../fig/hkmer/plots/ecoliont200xmem)
 
-![](../fig/hkmer/plots/ecoliont500xtime)
+![](../fig/hkmer/plots/ecoliont200xtime)
 
 ![](../fig/hkmer/plots/ecoliont500xmem)
+
+![](../fig/hkmer/plots/ecoliont500xtime)
 
 /kmer counting benchmark on ONT Simplex E. coli dataset (SRR28370668) for various coverage.
 :::
