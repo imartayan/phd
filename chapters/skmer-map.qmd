@@ -191,7 +191,7 @@ However all other cases benefit from exponential reduction of the search space f
 
 ![Toy example of the AAAAAAA bucket associated to four /skmers turned into their interleaved representation.](../fig/brisk/interleaved){#fig-brisk-interleaved}
 
-![Examples of /kmer search in a bucket of 32 /skmers. M denotes the bucket minimizer. The colored bars indicate the successive possible search spaces after each step. /Kmer 1 search represented by blue bars starts with A, then C that reduces the search space and G that limits the search to one /kmer and ends it. /Kmer 2 search represented by green bars starts with T but the next char is a N so it is not useful and the search space is unchanged, the next character is a G that provides several smaller search spaces, once again a N char that cannot be used and finally the C limits the search to one /kmer and ends it. /Kmer 3 search represented by red bars starts with a N so every position is a possible match, the second character T provides four distinct search spaces, the next char N does not help, the next char G limits the search to one position and ends it.](../fig/brisk/SortedSuperkmers){#fig-brisk-supersort}
+![Examples of /kmer search in a bucket of 32 /skmers. M denotes the bucket minimizer. The colored bars indicate the successive possible search spaces after each step. /kmer 1 search represented by blue bars starts with A, then C that reduces the search space and G that limits the search to one /kmer and ends it. /kmer 2 search represented by green bars starts with T but the next char is a N so it is not useful and the search space is unchanged, the next character is a G that provides several smaller search spaces, once again a N char that cannot be used and finally the C limits the search to one /kmer and ends it. /kmer 3 search represented by red bars starts with a N so every position is a possible match, the second character T provides four distinct search spaces, the next char N does not help, the next char G limits the search to one position and ends it.](../fig/brisk/SortedSuperkmers){#fig-brisk-supersort}
 
 ### Superbuckets
 
@@ -243,7 +243,7 @@ The effects of this buffering strategy on performance are further analyzed and d
 
 ## Results {#sec-results-skmer-map}
 
-We implemented the aforementioned strategies in a C++ open-source software named **Brisk** (Brisk Reduced Index for Sequence of /Kmers), available at <https://github.com/Malfoy/Brisk>. Brisk is designed as a C++ library to serve as a dictionary for /kmer sequences. Its interface is straightforward and includes the following functionalities:
+We implemented the aforementioned strategies in a C++ open-source software named **Brisk** (Brisk Reduced Index for Sequence of /kmers), available at <https://github.com/Malfoy/Brisk>. Brisk is designed as a C++ library to serve as a dictionary for /kmer sequences. Its interface is straightforward and includes the following functionalities:
 
 - **Query Function**: Queries /kmers from a sequence and returns a pointer to the associated value of each present /kmer.
 - **Insert Function**: Inserts /kmers from a sequence and returns the associated pointers.
