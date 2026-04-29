@@ -4,6 +4,21 @@
 This chapter is adapted from {{< longcite cbl >}} and {{< longcite grimr >}}.
 :::
 
+TBA
+
+- present CBL set operations, and some implementation tricks
+- impact of iterating (un)sorted values vs full random access
+- mention log log search, and when it can be used
+- bigger focus on the implementation, rather than just optimizing queries
+- simplify the formalism?
+- discuss the relevance of database query engines for this task (open discussion)
+
+---
+
+:::{.callout-caution}
+Unedited draft from {{< longcite grimr >}}.
+:::
+
 A few years ago, the feasibility of indexing comprehensive genomic or transcriptomic datasets seemed beyond reach.
 However, recent advances in the indexing of large-scale biological sequence datasets have brought solutions leading to different large scale queryable indexes.
 Examples include the entirety of assembled bacterial genomes [@allthebacteria], or creating a searchable, quantitative index for RNA-seq data in cancer research [@transipedia].

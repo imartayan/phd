@@ -4,6 +4,19 @@
 This chapter is partially adapted from {{< longcite brisk >}}.
 :::
 
+TBA
+
+- trim the article to focus on interleaved /skmer representation
+- discuss load balancing strategies, when (not) to sort
+- pros and cons compared to CBL (/kmer level vs /skmer level representation)
+- the challenge of deduplicating /kmers with this representation (ongoing work)
+
+---
+
+:::{.callout-caution}
+Unedited draft from {{< longcite brisk >}}.
+:::
+
 ## Introduction {#sec-intro-skmer-map}
 
 Handling sequencing and genomic data is among the most memory-intensive tasks routinely performed in computational biology [@stephens2015big; @cremin2022big].

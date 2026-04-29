@@ -4,8 +4,10 @@
 This is still a work in progress.
 :::
 
+<!--
 The management and analysis of large collections of DNA sequences, which are increasing in volume and number thanks to advances in sequencing technologies, represent a challenge for bioinformatics.
 Although there is a massive amount of data available (e.g. several petabytes of sequenced data on public servers), it is not easily analyzed due to computational storage and indexing limitations.
 
 This PhD project proposes several lines of research to solve this problem, such as improving the compact string representation of genomic words, designing new static indexing methods for genomic texts, developing new dynamic indexes that preserve word locality, and exploring the use of locality-sensitive hashing to generate associative functions for genomic words.
 In addition to theoretical work on string sets, the proposed solutions aim to optimize the storage and indexing of DNA sequences, making them more readily accessible for downstream biological analysis.
+-->

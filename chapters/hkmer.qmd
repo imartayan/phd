@@ -4,6 +4,19 @@
 This chapter is adapted from {{< longcite hyperkmers >}}.
 :::
 
+TBA
+
+- trim introduction
+- highlight pros and cons compared to /skmers (more compact but split, more bookkeeping)
+- emphasize differences with unitigs-based approaches (esp. the need to deduplicate)
+- discuss the contexts in which large *k* values are (not) relevant
+
+---
+
+:::{.callout-caution}
+Unedited draft from {{< longcite hyperkmers >}}.
+:::
+
 Representing DNA sequences as sets of /kmers, fixed-length sub-strings of length $k$, is a simple yet highly efficient approach in sequence bioinformatics by enabling accurate estimation of sequence similarity in linear time, circumventing the need for computationally intensive alignment steps.
 Moreover, it naturally handles redundancy, as each unique /kmer is stored only once, regardless of its frequency in the DNA sequence.
 This property is particularly beneficial when dealing with sequencing datasets that are inherently redundant due to high coverage depths (in the order of 1000x in large sequencing datasets).

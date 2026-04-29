@@ -4,6 +4,18 @@
 This chapter is adapted from {{< longcite multiminimizers >}}.
 :::
 
+TBA
+
+- trim the introduction
+- discuss the "power of two choices" in other contexts
+- highlight the space vs time tradeoff, and its limitations
+
+---
+
+:::{.callout-caution}
+Unedited draft from {{< longcite multiminimizers >}}.
+:::
+
 ## Introduction
 
 Efficient sequence comparison is a central computational pillar of modern genomics.

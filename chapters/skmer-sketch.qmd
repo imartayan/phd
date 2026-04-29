@@ -4,6 +4,19 @@
 This chapter is adapted from {{< longcite fhs >}} and {{< longcite fhs-multiset >}}.
 :::
 
+TBA
+
+- trim introduction
+- focus on why sketching /skmers is interesting (more information but less conservation?)
+- keep the formalism on FHS, less focus on software / experiments
+- mention new work on Onika?
+
+---
+
+:::{.callout-caution}
+Unedited draft from {{< longcite fhs-multiset >}}.
+:::
+
 ## Introduction {#sec-intro-skmer}
 
 The field of genomics has exploded in recent years, driven by the availability of cheap and easy sequencing data generation.
