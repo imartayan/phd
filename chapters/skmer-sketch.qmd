@@ -21,19 +21,19 @@ Probabilistic structures, when applied to large queries (on the order of kilobas
 
 Using large enough query data allows for handling false positive noise since it remains significantly lower than the required matching signal (e.g., 70% of queried /kmers present in the document). It means false positives are not a real issue if query size is adequate.
 For extensive queries at the Megabase level, the signal strength is sufficiently robust, eliminating the need to consider all /kmers and enabling sublinear query time.
-On the other side of the spectrum, fixed-size sketches like Minhash [@broder1997resemblance], Hyperloglog [@meunier2007hyperloglog], and Hyperminhash [@yu2020hyperminhash] have been effectively used for large-scale collection comparison [@ondov2016mash; @baker2019dashing; @baker2022dashing; @zhao2019bindash; @niqki].
+On the other side of the spectrum, fixed-size sketches like Minhash [@minhash], Hyperloglog [@hyperloglog], and Hyperminhash [@hyperminhash] have been effectively used for large-scale collection comparison [@mash; @dashing1; @dashing2; @bindash; @niqki].
 However, they are ill-suited for divergent documents in terms of content or size, a critical limitation considering metagenomic samples typically comprise many organisms with amount of distinct /kmers varying by orders of magnitude.
 
 Scaled sketches, whose size scales linearly with input size, have demonstrated better resilience to such issues.
-sourmash [@pierce2019large], which implements scaledminhash [@pierce2019large] and Fracminhash [@irber2022lightweight], efficiently approximates containment and Jaccard indexes even for documents with size disparities spanning several orders of magnitude.
+sourmash [@sourmash], which implements scaledminhash [@sourmash] and Fracminhash [@fracminhash], efficiently approximates containment and Jaccard indexes even for documents with size disparities spanning several orders of magnitude.
 sourmash's simplicity is one of its key strengths: it stores each uniformly selected fingerprint as a 32-bit integer and compares them using a dictionary.
 An observation is that this technique is generic and can be applied to any type of data.
 Therefore, computational and memory requirements could benefit from customized selection techniques and index structures.
 
-To this end, we propose capitalizing on the ability to represent overlapping /kmers with a low number of bits per /kmer using a *Spectrum Preserving String Set* [@rahman2020representation].
+To this end, we propose capitalizing on the ability to represent overlapping /kmers with a low number of /bpk using a *Spectrum Preserving String Set* [@rahman2021representation].
 The challenge we face is optimizing the overlap of chosen /kmers to achieve maximum space efficiency.
 To address this, we build upon the concept of /skmers [@mspkmercounter], which are sequences of /kmers sharing a common selected $m$-mer called minimizer [@roberts2004reducing].
-Universal Hitting Sets (UHS [@orenstein2017designing]) methods aim to design optimized $m$-mer selection schemes that covers all /kmers while minimizing the density of selected positions. However, our application does not require complete coverage of the /kmer space.
+Universal Hitting Sets [@orenstein2017designing], or UHS, methods aim to design optimized $m$-mer selection schemes that covers all /kmers while minimizing the density of selected positions. However, our application does not require complete coverage of the /kmer space.
 Therefore, we introduce *Fractional Hitting Sets* that encompass a near-uniform selected fraction of the /kmer space.
 We conduct a study on the achievable density in relation to the selected fraction and present a straightforward minimizer selection scheme that closely approaches optimal bounds.
 We implement this scheme in a tool called supersampler.
@@ -71,9 +71,9 @@ We use $w = k - m + 1$ to denote the number of $m$-mers inside a /kmer.
 A /skmer is a maximal substring of a string $s$ ($|s|\geq k$) in which each consecutive /kmers have the same minimizer.
 :::
 
-Spectrum Preserving String Sets [@rahman2020representation] are an efficient /kmer encoding made of a collection of strings whose property is to spell exactly the initial set of /kmers, usually exploiting the fact that /kmers share overlaps.
+Spectrum Preserving String Sets [@rahman2021representation] are an efficient /kmer encoding made of a collection of strings whose property is to spell exactly the initial set of /kmers, usually exploiting the fact that /kmers share overlaps.
 
-/Skmers are an interesting *Spectrum Preserving String Set* because a /skmer containing $x$ /kmers is composed of $k+x-1$ bases which incur a cost of $\frac{2(k+x-1)}{x}$ bits per /kmer.
+/Skmers are an interesting *Spectrum Preserving String Set* because a /skmer containing $x$ /kmers is composed of $k+x-1$ bases which incur a cost of $\frac{2(k+x-1)}{x}$ /bpk.
 Therefore longer /skmers provide lighter representation as opposed to classic /kmer representation by simply avoiding to repeat an increasing number of nucleotide while /skmer size increases.
 
 By omitting repeated minimizers inside /kmers, the first /kmer of the longest possible /skmers have their minimizers as a suffix.
@@ -92,7 +92,7 @@ Examples of regular and maximal /skmers are shown in @fig-superkmer.
 Since maximal /skmer are the most space-efficient, our approach aims to rely on long /skmers (ideally maximal) in order to have a compact encoding of the /kmer sketch.
 As mentioned in [@lphash] (see the proof of theorem 3), the proportion of maximal /skmers approaches $\frac{1}{4}$ for a large $k$.
 
-![/Skmers extracted from a sequence for $k=6, m=3$. Minimizers are shown in pink, here we use the lexicographic order instead of hashing minimizers for the sake of the simplicity. /Skmers 1 and 4 are maximal (they contain respectively /kmers $\{CTGAAA, TGAAAT, GAAATG, AAATGC\}$ and $\{TGCACA, GCACAT, CACATT, ACATTT\}$, while 2 and 3 are not (and contain respectively /kmers $\{AATGCA\}$ and $\{ATGCAC\}$.](../fig/fhs/1_superkmer){#fig-superkmer}
+![/Skmers extracted from a sequence for $k=6, m=3$. Minimizers are shown in pink, here we use the lexicographic order instead of hashing minimizers for the sake of the simplicity. /Skmers 1 and 4 are maximal (they contain respectively /kmers {`CTGAAA`, `TGAAAT`, `GAAATG`, `AAATGC`} and {`TGCACA`, `GCACAT`, `CACATT`, `ACATTT`}, while 2 and 3 are not (and contain respectively /kmers {`AATGCA`} and {`ATGCAC`}.](../fig/fhs/1_superkmer){#fig-superkmer}
 
 ### Density and universal hitting sets
 
@@ -185,7 +185,7 @@ However, it is worth noting that this bound does match the $2/(w+1)$ density whe
 To obtain a more meaningful metric, we can compute the density on the fraction of the sequence that is covered, instead of the entire sequence. With this approach, we obtain the following theorem, which has been proven in the supplementary materials:
 
 :::{#thm-density-sub}
-## (restricted density)
+## restricted density
 
 If we restrict to sequences in which every /kmer contains a small minimizer, then given $f \le 1$ and $t = \left[1 - (1 - f)^{1/w}\right] \cdot \sigma^m$, assuming $m > (3 + \varepsilon) \log_\sigma w$, the expected density of small minimizers is upper bounded by
 $$2 \cdot \frac{f + (1 - f) \ln (1 - f)}{f^2 (w+1)} + o(1/w)$$
@@ -230,7 +230,7 @@ Given a sequence $S$, each /skmer whose minimizer's hash is lower or equal to a 
 A supersampler sketch can therefore be represented as a /skmer set.
 :::
 
-In sourmash, /kmers are represented as integer fingerprints through hashing (using a default of 32-bit). This approach reduces space requirements compared to employing $2k$ bits per /kmer, but it also introduces the potential for false positives due to hash collisions. However, the false positive rate is exponentially low, depending on the fingerprint size, which allows for efficient control.
+In sourmash, /kmers are represented as integer fingerprints through hashing (using a default of 32-bit). This approach reduces space requirements compared to employing $2k$ /bpk, but it also introduces the potential for false positives due to hash collisions. However, the false positive rate is exponentially low, depending on the fingerprint size, which allows for efficient control.
 
 In contrast, supersampler explicitly stores /kmers as /skmers, offering two significant advantages over the conventional method:
 First, the fingerprints are represented exactly, eliminating false matches and enabling the output of shared /kmers when they are of interest to users.
@@ -242,14 +242,14 @@ In the regular case with hashed minimizer with a density factor of 2 we can expe
 This results in a mean /skmer length of $(3k-m-1)/2$ bases.
 We can give a lower bound of the cost in bit per /kmer to encode such /skmers: $$\frac{2(3k-m-1)}{k-m+1}$$
 However we need to encode the length of each /skmer to avoid considering artefactual /kmers created by two successive /skmers so we can add $\log_2(k-m+1)$ bits per /skmer (encoding the number of /kmers).
-This leads to a bits per /kmer ratio of $$2 \cdot \frac{3k - m - 1 + \log_2(k - m + 1)}{k - m + 1}$$
+This leads to a /bpk ratio of $$2 \cdot \frac{3k - m - 1 + \log_2(k - m + 1)}{k - m + 1}$$
 
 In practice we use the formula [-@eq-threshold] to select a /kmer fraction chosen by the user.
 As a side effect, since we used an FHS, selected /skmers are longer than those selected by regular hashed minimizer scheme as our hitting set provides a lower density.
 Importantly for low selected fraction a very large proportion of /skmers are maximal.
 This property is of prime interest because maximal /skmers can be efficiently encoded for two reasons.
 First they are all of the same size so we do not need to encode their respective length or any kind of separator.
-Second, they represent $2k-m$ bases encoding for $k-m+1$ /kmers, they provide a lower bits per /kmers ratio $$\frac{2(2k-m)}{k-m+1}$$
+Second, they represent $2k-m$ bases encoding for $k-m+1$ /kmers, they provide a lower /bpks ratio $$\frac{2(2k-m)}{k-m+1}$$
 
 ![supersampler's sketching strategy. In order to build sketches, supersampler computes /skmers over the input sequence. Fingerprints are associated with each /skmer by hashing their minimizers to an integer, hence an integer per /skmer. /Skmers associated to sufficiently low integers are kept in the sketch. /Skmers are put into partitions according to their minimizer.](../fig/fhs/2_spsp_sketch){#fig-sketch}
 
@@ -280,7 +280,7 @@ To address this, we initiate an "assembly" phase for all /kmers not already part
 The goal is to produce as many maximal /skmers as possible, while minimizing non-maximal /skmers. We commence with /kmers having minimizers as suffixes and attempt to extend them, using a greedy method, until a maximal /skmer is obtained.
 When no more maximal /skmers can be constructed, we aim to build the largest possible sequences in a greedy fashion to minimize the total base number similarly to simplitigs [@simplitigs].
 
-![Theoretical space cost of different encodings in bits per /kmer according the /kmer size size along with practical space usage of super-sampler sketches on random sequences.](../fig/fhs/3_bpk_m11_practical){#fig-bitperkmer}
+![Theoretical space cost of different encodings in /bpk according the /kmer size size along with practical space usage of super-sampler sketches on random sequences.](../fig/fhs/3_bpk_m11_practical){#fig-bitperkmer}
 
 ### Set comparisons {#sec-comp}
 
@@ -288,7 +288,7 @@ When no more maximal /skmers can be constructed, we aim to build the largest pos
 
 #### Jaccard and containment indexes
 
-For two finite, non empty sets of /kmers $A$ and $B$, the Jaccard index [@broder1997resemblance] gives a measure of the similarity $A$ and $B$ by comparing the relative size of the $A \cap B$ intersection over the $A \cup B$ union,
+For two finite, non empty sets of /kmers $A$ and $B$, the Jaccard index [@minhash] gives a measure of the similarity $A$ and $B$ by comparing the relative size of the $A \cap B$ intersection over the $A \cup B$ union,
 $$ 0 \leq J_{A,B} = \frac{|A \cap B|}{|A \cup B|} \leq 1$$
 
 The containment index $C$ of the previously defined sets A and B measures the relative size of $A\cap B$ intersection over the size of A, i.e., the proportion of distinct /kmers of A that are present in B.
@@ -388,7 +388,7 @@ Sketch comparison in supersampler.
 #### Angular similarity
 
 When considering the multiplicities of /kmers, the similarity between two /kmer multisets can be determined using cosine similarity, which is derived from the Euclidean dot product formula.
-This metric has already been used in sourmash and *simka*. Simka's authors showed this distance was strongly correlated to taxonomic distance ([@benoit2016multiple] page 15-17). it then felt logical to add it in supersampler to offer the same range of computations as sourmash.
+This metric has already been used in sourmash and *simka*. Simka's authors showed this distance was strongly correlated to taxonomic distance [@simka, see page 15-17]. it then felt logical to add it in supersampler to offer the same range of computations as sourmash.
 
 The cosine similarity between vectors $A = \lbrace A_1, \dots, A_n \rbrace$ and $B = \lbrace B_1, \dots, B_n \rbrace$ is described by:
 $$CS_{A,B}= \cos(\theta) = \frac{A \cdot B}{|A||B|}= \frac{\sum_{i=1}^{n} A_i B_i}{\sqrt{\sum_{i=1}^{n} A_i^2\sum_{i=1}^{n} B_i^2}}$$
@@ -428,8 +428,8 @@ Finally, in the last section, we demonstrate supersampler's scalability when ind
 
 ### Space efficiency of supersampler.
 
-As previously discussed, the lower bound of memory cost for storing /kmers as /skmers is given by $$2 \cdot \frac{3k - m - 1 + \log_2(k - m + 1)}{k - m + 1}$$ bits per /kmer, assuming we store the size of each /skmer in the index.
-For $m = 15$, this bound equates to 9.2 bits/$k$-mer with $k=31$ and 7.1 bits/$k$-mer with $k = 63$. However, in practice, supersampler exhibits lower space usage. @fig-bitperkmervssubsampling in the supplementary materials reveals that approximately 6.5 bits/$k$-mer and 5 bits/$k$-mer are achieved for $k = 31$ and $63$, respectively.
+As previously discussed, the lower bound of memory cost for storing /kmers as /skmers is given by $$2 \cdot \frac{3k - m - 1 + \log_2(k - m + 1)}{k - m + 1}$$ /bpk, assuming we store the size of each /skmer in the index.
+For $m = 15$, this bound equates to 9.2 /bpk with $k=31$ and 7.1 /bpk with $k = 63$. However, in practice, supersampler exhibits lower space usage. @fig-bitperkmervssubsampling in the supplementary materials reveals that approximately 6.5 /bpk and 5 /bpk are achieved for $k = 31$ and $63$, respectively.
 
 These results can be attributed to the low density permitted by supersampler's minimizer selection scheme. As illustrated in @fig-density, the density factor quickly diminishes as the subsampling rate increases, respectively as the fraction $f$ diminishes. When the subsampling rate is 2, the density factor falls below 1.5, the lower bound of the minimizer scheme, and continues to decline toward 1. In general, subsampling tools seldom apply rates below 100, with sourmash defaulting to a rate of 1000 i.e. $f = 1/1000$.
 Consequently, supersampler consistently remains close to the lower bound for the density factor, since the density factor for a subsampling rate of 100 is already below 1.04. This facilitates the indexing of longer /skmers, which are stored more efficiently as their length increases.
@@ -446,7 +446,7 @@ A high proportion of maximal /skmers in a sketch is advantageous for supersample
 Measured density factor compared to the model.
 :::
 
-![Space cost in bits per /kmer according to the subsampling rate with and without using decycling sets (yellow and red lines).](../fig/fhs/7_decyclingeffect){#fig-decyclingeffet}
+![Space cost in /bpk according to the subsampling rate with and without using decycling sets (yellow and red lines).](../fig/fhs/7_decyclingeffect){#fig-decyclingeffet}
 
 ![Fraction of maximal /skmers according to the subsampling rate.](../fig/fhs/8_max_skmers_m11){#fig-maximalsuperkmerrate}
 
@@ -454,7 +454,7 @@ Measured density factor compared to the model.
 
 In our qualitative experiment, we compared the performance of supersampler with sourmash, which implements FracMinHash. We evaluated both tools on two distinct datasets: 1024 Salmonella genomes from GenBank and 1024 bacterial genomes from RefSeq. These collections were chosen due to their differing containment indexes; Salmonella genomes are highly similar to each other, while the bacterial genomes in RefSeq exhibit much greater dissimilarity (Jaccard similarity close to 0).
 
-We carried out an all-versus-all comparison of these collections using both tools and monitored RAM and disk usage, as well as computation time during the sketch comparisons. To assess the precision of the approximated scores, we calculated the exact Jaccard and containment similarity values using Simka [@benoit2016multiple], which performs efficient /kmer counting operations on large collections. With these scores as a reference, the precision of the approximation can be evaluated.
+We carried out an all-versus-all comparison of these collections using both tools and monitored RAM and disk usage, as well as computation time during the sketch comparisons. To assess the precision of the approximated scores, we calculated the exact Jaccard and containment similarity values using Simka [@simka], which performs efficient /kmer counting operations on large collections. With these scores as a reference, the precision of the approximation can be evaluated.
 
 RAM and computation time were measured using the benchmark flag from Snakemake, with one run per command. Disk usage was determined by comparing the sketch sizes of sourmash (using the *zip* option for *sourmash sketch*) and supersampler, with the latter's sketch sizes examined through a Python script. supersampler sketches were stored in a tar archive and compressed using `gzip -9`.
 
@@ -505,6 +505,6 @@ Through comprehensive experimental evaluation, we demonstrate that supersampler 
 More generally our results confirm the validity of our methodology from both theoretical and experimental standpoints.
 
 We recognize several potential enhancements for our study.
-First, concerning supersampler's implementation, we aim to refine the tool for increased user-friendliness and adaptability for routine analysis while augmenting its capabilities. Implementation of such improvements will lead to more thorough experiments with existing sampling methods [@yi2021kssd] as well as new comparisons with sourmash using the same amount of disk memory in order to better show supersampler's capacity with regard to both fixed-size and scalable sketches. Other, more distant methods and different metrics such as ANI are used to answer the same problems. Comparing supersampler to such metrics and methods is the next step to further support supersampler's interest.
+First, concerning supersampler's implementation, we aim to refine the tool for increased user-friendliness and adaptability for routine analysis while augmenting its capabilities. Implementation of such improvements will lead to more thorough experiments with existing sampling methods [@kssd] as well as new comparisons with sourmash using the same amount of disk memory in order to better show supersampler's capacity with regard to both fixed-size and scalable sketches. Other, more distant methods and different metrics such as ANI are used to answer the same problems. Comparing supersampler to such metrics and methods is the next step to further support supersampler's interest.
 
 We plan to investigate alternative methods for sketch comparison, like sorted fingerprints, which could potentially reduce the complexity of the comparison process. From a theoretical perspective, delving deeper into the properties of Fractional Hitting Sets and gaining a better understanding of density and restricted density bounds for various values of $f$ may lead to even more efficient and robust sketching techniques.
