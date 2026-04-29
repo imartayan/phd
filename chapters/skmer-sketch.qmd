@@ -278,7 +278,7 @@ Our approach is both user-friendly and efficient, as we store only fingerprints 
 However, a potential issue arises when applying abundance filtering: certain /kmer within a chosen /skmer might be excluded, effectively "breaking" them.
 To address this, we initiate an "assembly" phase for all /kmers not already part of a maximal /skmer.
 The goal is to produce as many maximal /skmers as possible, while minimizing non-maximal /skmers. We commence with /kmers having minimizers as suffixes and attempt to extend them, using a greedy method, until a maximal /skmer is obtained.
-When no more maximal /skmers can be constructed, we aim to build the largest possible sequences in a greedy fashion to minimize the total base number similarly to simplitigs [@bvrinda2021simplitigs].
+When no more maximal /skmers can be constructed, we aim to build the largest possible sequences in a greedy fashion to minimize the total base number similarly to simplitigs [@simplitigs].
 
 ![Theoretical space cost of different encodings in bits per /kmer according the /kmer size size along with practical space usage of super-sampler sketches on random sequences.](../fig/fhs/3_bpk_m11_practical){#fig-bitperkmer}
 

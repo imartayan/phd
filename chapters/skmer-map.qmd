@@ -11,16 +11,16 @@ Superlatives abound in this field, with the mistletoe genome nearing 100 gigabas
 Additionally, genome databases like GenBank are rapidly expanding, now encompassing over 29 terabases of data.
 Managing these massive datasets demands significant computational resources, driving the development of high-performance tools for commonly performed tasks such as alignment, assembly, and genotyping.
 
-Since the advent of BLAST, a fundamental need has emerged to index /kmers and associate information with them [@jenike2024guide; @marchet2024advancementsc; @marchet2024advancements].
+Since the advent of BLAST, a fundamental need has emerged to index /kmers and associate information with them [@jenike2024guide; @survey-colored-kmer-sets; @survey-kmer-sets].
 While /kmers offer several advantages, including efficient filtering, sensitivity/specificity trade-offs, and convenient representation as integers, they exacerbate memory usage challenges.
 A text of $N$ bases generates $\mathcal{O}(N)$ /kmers (assuming no repeats), which represent $\mathcal{O}(N \cdot K)$ DNA bases.
 With commonly used /kmer sizes ranging from 17 to 31, /kmers are often represented by 64-bit integers, leading to an 8-byte per /kmer footprint.
 Consequently, handling gigabase-sized documents, which are already extremely memory-intensive, typically requires workstation-level resources.
 
 Surprisingly, most tools still utilize generic dictionary/hashmap structures for /kmer indexing, despite their high memory costs, as the 8-byte per /kmer footprint is further multiplied due to the load factor [@moeckel2024survey; @breitwieser2018krakenuniq; @ren2017virfinder; @georgakopoulos2021leveraging; @mouratidis2025identification].
-A viable solution to mitigate this memory usage is to avoid indexing all /kmers, instead using minimizers to ensure the scalability of tools [@minimap2; @benoit2024high; @fhs; @agret2021toward].
+A viable solution to mitigate this memory usage is to avoid indexing all /kmers, instead using minimizers to ensure the scalability of tools [@minimap2; @metamdbg; @fhs; @niqki].
 Recently, indexes capable of associating /kmers with additional information have been proposed.
-These indexes generally fall into two categories: full-text indexes based on the Burrows-Wheeler Transform (BWT) (e.g., BOSS [@bowe2012succinct], Themisto [@alanko2023themisto]) or Minimal Perfect Hash Functions (MPHF) (e.g., BBHash [@limasset2017fast], PTHash [@pibiri2021pthash], Pufferfish [@almodaresi2018space], Blight [@blight], SShash [@sshash]).
+These indexes generally fall into two categories: full-text indexes based on the Burrows-Wheeler Transform (BWT) (e.g., BOSS [@bowe2012succinct], Themisto [@themisto]) or Minimal Perfect Hash Functions (MPHF) (e.g., BBHash [@bbhash], PTHash [@pthash], Pufferfish [@pufferfish], Blight [@blight], SShash [@sshash]).
 
 While these structures can achieve very low memory footprints (below 8 bits per /kmer) and high throughput, they present two major caveats.
 To reduce the memory footprint, these methods rely on assembling /kmers into sequences that can contain them in a memory-efficient manner.
@@ -36,7 +36,7 @@ As a result, the construction of such indexes is often avoided, as it would be t
 
 Another significant issue with static indexes is the need for complete rebuilding when incorporating new datasets.
 If updates are frequent, the building costs become overwhelming.
-Some semi-dynamic approaches have been proposed, using temporary buffers and partitions to delay reconstruction as much as possible [@alanko2021buffering; @almodaresi2022incrementally].
+Some semi-dynamic approaches have been proposed, using temporary buffers and partitions to delay reconstruction as much as possible [@alanko2021buffering; @dynamic-mantis].
 However, these approaches introduce latency, as some insertions trigger costly rebuilding operations, leading to periods when the index is unavailable.
 Moreover, these methods are typically unsuitable for streaming applications, as they require multiple passes over the dataset.
 
@@ -59,8 +59,8 @@ In this work, we aim to propose a drop-in replacement for /kmer dictionaries for
 ### Outline
 
 In order to minimize the memory footprint of our dictionary, we aim to represent /kmers as SPSS.
-However, most SPSS representations such as simplitigs [@rahman2021representation; @bvrinda2021simplitigs], matchtigs [@matchtigs], eulertigs [@eulertigs], and masked superstrings [@sladky2023masked] are defined globally from a complete /kmer set.
-Updating such SPSS structures remains an open problem, making their use in dynamic structures even more challenging [@hannoush2024cdbgtricks].
+However, most SPSS representations such as simplitigs [@rahman2021representation; @simplitigs], matchtigs [@matchtigs], eulertigs [@eulertigs], and masked superstrings [@masked-superstring-kmer] are defined globally from a complete /kmer set.
+Updating such SPSS structures remains an open problem, making their use in dynamic structures even more challenging [@cdbgtricks].
 Interestingly, one of the first SPSS used was /skmers, which are successive /kmers sharing a minimizer [@kmc2].
 While this structure is more memory-intensive than other SPSS types, it remains lighter than plain /kmer representation by several folds.
 
@@ -71,7 +71,7 @@ By grouping all /skmers associated with the same minimizer, we can efficiently d
 Furthermore, since all /skmers in a bucket contain the same minimizer, we can skip the encoding of the minimizer in the /skmers, only encoding the prefixes and suffixes before and after the minimizer [@fhs].
 
 However, within a set of $S$ /skmers sharing a minimizer (often referred to as a bucket), checking the presence of a given /kmer requires $\mathcal{O}(S)$ comparisons, which can be costly.
-To complicate matters, buckets are known to have skewed size distributions, as lower minimizers tend to gather more /kmers than others leading to expensive search for a large number of /kmers [@chikhi2014representation; @kmc2; @marchet2023scalable].
+To complicate matters, buckets are known to have skewed size distributions, as lower minimizers tend to gather more /kmers than others leading to expensive search for a large number of /kmers [@unitigs; @kmc2; @marchet2023scalable].
 Another challenge is that a /kmer may have multiple occurrences of its minimizers, potentially causing issues if a /kmer//skmer encoding depends on which minimizer is selected during parsing.
 Therefore, we need a deterministic method to select a "canonical" minimizer when multiple occurrences arise.
 
@@ -125,7 +125,7 @@ For practical values of $k$ and $m$, $\frac{8(k-m)}{k-m+1} \approx 8$, which is 
 
 Although this lazy encoding strategy reduces memory usage, it requires each /kmer's minimizer position and strand within its sequence to be determined consistently.
 While this is not an issue in most cases where the minimal $m$-mer sequence occurs only once within its /kmer, situations with multiple occurrences are often overlooked and labeled as edge cases.
-Additionally, some studies disregard the reverse complement aspect of DNA sequences, which can have a significant impact in practice [@marcais2024k].
+Additionally, some studies disregard the reverse complement aspect of DNA sequences, which can have a significant impact in practice [@knonical].
 
 Selecting a minimizer position also implies choosing the strand of the /kmer, as a /kmer and its reverse complement can have the same, canonical, minimizer at different positions, leading to ambiguity in how the /kmer is stored.
 In the following, we define a complete and deterministic method to select a given occurrence of the minimal $m$-mer across a /kmer sequence or its reverse complement.
