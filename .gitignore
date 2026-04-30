@@ -1,5 +1,7 @@
 /.quarto/
 /_book/
+/_book_html/
+/_book_pdf/
 /index_files/
 /site_libs/
 /.luarc.json
@@ -21,10 +23,10 @@
 *.xdv
 *.xml
 
-index.tex
-index.pdf
-thesis.tex
-thesis.pdf
+/index.tex
+/index.pdf
+/thesis.tex
+/thesis.pdf
 
 .brename_detail.txt
 .cspell.json
