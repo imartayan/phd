@@ -279,6 +279,12 @@ local function code_to_figure(conf)
       return nil
     end
 
+    -- For LaTeX output, embed tikz code directly instead of pre-rendering to SVG
+    if quarto.doc.is_format('latex') then
+      local code = block.text:gsub('%%%%[^\n]*\n', '')
+      return pandoc.RawBlock('latex', code)
+    end
+
     -- Get options from code block
     local dgr_opt = diagram_options(block)
 
