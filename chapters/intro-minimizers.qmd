@@ -72,7 +72,8 @@ An example of lexicographic minimizer selection is given in @fig-minimizers-over
 ### Random ordering
 
 Another popular solution is to order /kmers randomly, typically using a pseudo-random hash function.
-@miniception proved that random minimizers achieve a density of $2 / (w+1) + o(1/w)$ as long as $k > 3 \log_{|\Sigma|}(w+1)$.
+Randomizing the order reduces the impact of poly-`A`s and spreads out the distribution of minimizer values [@vigemers].
+@miniception proved that random minimizers achieve a density of $2 / (w+1) + o(1/w)$, a ~10% improvement over lexicographic density, as long as $k > 3 \log_{|\Sigma|}(w+1)$.
 In practice this condition is almost always satisfied and random ordering is the default choice in most bioinformatics tools.
 
 This gap between the density of $2 / (w+1)$ and the $1/w$ lower bound motivated the design of improved orderings and low-density schemes, which we discuss in more details in @sec-low-density-minimizers.
