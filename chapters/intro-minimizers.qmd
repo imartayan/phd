@@ -88,7 +88,15 @@ An example of /skmer is depicted in @fig-minimizers-overview.
 Note that, in the context of /skmers, the minimizer size is often denoted $m$ while $k$ denotes the number of bases in a window, i.e. $w + m - 1$.
 Using these notations, two consecutive /skmers always overlap by $k - 1$ bases.
 
+/Skmers have been widely adopted in bioinformatics tools for two main reasons.
+First, storing /skmers is much more compact that storing each /kmer individually (by avoiding duplicated overlaps).
+We will see in @sec-hkmer that transforming a sequence into a set of /skmers roughly increases its space usage by a factor 3, while individual /kmers lead to a factor *k*, and that we can reduce it further.
+Second, /skmers naturally induce a partition of the original sequence, which is useful to distribute /kmers in memory and balance the computational load, and this partitioning preserves locality by grouping consecutive /kmers sharing the same minimizer.
+
 ## Improving conservation {#sec-minimizer-conservation}
+
+While we have seen that density directly impacts the space usage of minimizers and /skmers, *conservation* is an important complementary metric that measures how well minimizers are preserved under mutations.
+Formally, conservation is defined as the expected fraction of bases covered when matching selected /kmers from the original sequence to those in the mutated version [@syncmers;@shaw-conservation].
 
 ### Syncmers
 
