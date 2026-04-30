@@ -1,4 +1,4 @@
-# From super‑k‑mers to hyper-k-mers
+# From super‑k‑mers to hyper-k-mers {#sec-hkmer}
 
 :::{.callout-note}
 This chapter is adapted from {{< longcite hyperkmers >}}.
