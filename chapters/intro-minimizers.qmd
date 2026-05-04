@@ -87,7 +87,7 @@ In the context of /skmers, the minimizer size is usually denoted $m$ (instead of
 
 /Skmers have been widely adopted in bioinformatics tools for two main reasons.
 First, storing /skmers is much more compact that storing each /kmer individually (by avoiding duplicated overlaps).
-We will see in @sec-hkmer that transforming a sequence into a set of /skmers roughly increases its space usage by a factor 3, while individual /kmers lead to a factor *k*, and that we can reduce it further.
+We will see in @sec-hkmer that transforming a sequence into a set of /skmers roughly increases its space usage by a factor 3 (while individual /kmers lead to a factor *k*) and that we can reduce it further with /hkmers.
 Second, since each /kmer belongs to a single /skmer, this induces a natural partition of the original sequence.
 This partitioning method is useful to distribute /kmers in memory and balance the computational load, and preserves locality by grouping consecutive /kmers sharing the same minimizer.
 
