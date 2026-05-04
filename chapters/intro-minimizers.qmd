@@ -102,6 +102,7 @@ Formally, conservation is defined as the expected fraction of bases covered when
 Rather than selecting the minimizer of each window, syncmers select the *window itself* if its minimizer is located at a specific position within the window.
 In *closed syncmers*, the minimizer must appear at the first or last position of the window.
 In *open syncmers*, it must appear at a fixed interior position, typically the middle one (assuming an odd number of elements).
+Examples of open and closed syncmers are shown in @fig-minimizers-overview.
 
 :::{.callout-caution}
 ## Different notations
