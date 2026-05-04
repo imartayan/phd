@@ -121,8 +121,7 @@ On the other hand, since each window selects a unique minimizer, this minimizer 
 
 *Strobemers* were introduced by @strobemers to address a different limitation of /kmer-based sampling: a single mutation invalidates *k* consecutive /kmers, preventing any match within these $2 k - 1$ bases.
 Instead of selecting a single contiguous /kmers, strobemers link two or more shorter /kmers (called *strobes*) sampled at variable offsets to produce a spaced /kmer.
-This spaced /kmer can still be selected if a mutation occurs in the gaps between the strobes, making it more robust.
-
+In particular, this spaced /kmer can still be selected if a mutation occurs in the gaps between the strobes, thus making it more robust.
 Strobemers have been shown to improve sensitivity in read alignment, and are the basis of the strobealign aligner [@strobealign].
 
 ## Practical applications {#sec-minimizer-applications}
