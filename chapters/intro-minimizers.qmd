@@ -119,7 +119,7 @@ On the other hand, since each window selects a unique minimizer, a minimizer can
 ### Strobemers
 
 *Strobemers* were introduced by @strobemers to address a different limitation of /kmer-based sampling: any insertion or deletion (*indel*) invalidates *k* consecutive /kmers, preventing any match within these $2 k - 1$ bases.
-Instead a single contiguous /kmers, strobemers link two or more shorter /kmers (called *strobes*) sampled at variable offsets, producing a *linked seed* that is more robust to indels.
+Instead of selecting a single contiguous /kmers, strobemers link two or more shorter /kmers (called *strobes*) sampled at variable offsets to produce a spaced /kmer that is more robust to indels.
 
 Strobemers have been shown to improve sensitivity in read alignment, and are the basis of the strobealign aligner [@strobealign].
 
