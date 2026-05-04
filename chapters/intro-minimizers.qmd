@@ -133,13 +133,3 @@ Strobemers have been shown to improve sensitivity in read alignment, and are the
 ### Partitioning indexes
 
 ### Genome assembly
-
----
-
-TBA
-
-- historical context [@schleimer2003winnowing;@roberts2004reducing]
-- random vs lexicographic
-- practical use cases [@survey-minimizers-ndiaye]
-- improving conservation [@syncmers;@shaw-conservation;@strobemers;@strobealign]
-- low density schemes detailed in @sec-low-density-minimizers
