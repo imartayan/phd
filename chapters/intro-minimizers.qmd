@@ -109,13 +109,13 @@ In *open syncmers*, it must appear at a fixed interior position, typically the m
 In the context of syncmers, the minimizer size is usually denoted $s$ (instead of $k$ previously) while $k$ denotes the number of bases in a window (previously denoted as $\ell$), i.e. $k = w + s - 1$.
 :::
 
-Closed syncmers are known to have a density of $\frac{2}{k - s + 1} = \frac{2}{w}$ and a window guarantee of $k - s = w - 1$ [@syncmers;@shaw-conservation]: any window of $w - 1$ consecutive /kmers contains at least one closed syncmer.
+Closed syncmers are known to have a density of $\frac{2}{k - s + 1} = \frac{2}{w}$ and a window guarantee of $k - s = w - 1$ [@syncmers;@shaw-conservation]: any window of $w - 1$ consecutive /kmers (i.e. $2 w - 2$ consecutive /smers) contains at least one closed syncmer.
 Open syncmers, on the other hand, achieve half the density at $\frac{1}{k - s + 1} = \frac{1}{w}$, but have no window guarantee [@shaw-conservation].
 
 The distinction between selecting a subword versus selecting a window gives minimizers and syncmers different properties and use cases.
 While a minimizer depends on the context around it and may change if another /kmer in the window becomes smaller after a mutation, a syncmer is guaranteed to stay selected even if the context around it is altered.
 Because of this, syncmers achieve a higher conservation than random minimizers, with open syncmers performing better than closed syncmers, making them a better option for anchor selection in mappers [@shaw-conservation].
-On the other hand, since each window selects a unique minimizer, a minimizer can serve as a fingerprint for the whole window, while there is no equivalent with syncmers.
+On the other hand, since each window selects a unique minimizer, this minimizer can serve as a fingerprint of the whole window for partitioning, while syncmers do not serve the same role.
 
 ### Strobemers
 
