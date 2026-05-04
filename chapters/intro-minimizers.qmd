@@ -16,13 +16,6 @@ A *window* of size $w$ is a set of $w$ consecutive /kmers, spanning a substring 
 The *minimizer* of a window is the /kmer that is smallest according to $\prec$, with ties broken by selecting the leftmost occurrence^[Choosing the leftmost occurrence is a convention, some schemes use the rightmost one or select all tied /kmers.].
 Sliding the window one position at a time along the sequence yields the *minimizer sketch* of that sequence: the (deduplicated) sequence of minimizer positions.
 
-:::{.callout-caution}
-## Different notations
-
-Depending on the context, multiple notations are used in the literature.
-The parameters that we defined above as $k$ and $\ell$ are sometimes denoted $m$ and $k$ respectively, meaning that one minimizer of size $m$ is selected from each substring of size $k = w + m - 1$.
-:::
-
 :::{#fig-minimizers-overview}
 ![](../fig/intro/minimizers)
 
@@ -37,7 +30,7 @@ An essential property of minimizers is the so-called *window guarantee*.
 ::: {#pty-window-guarantee}
 ## Window guarantee
 
-Any window of *w* consecutive /kmers, i.e. any substring of length $\ell = w + k - 1$, contains at least one minimizer.
+Any window of *w* consecutive /kmers, i.e. any substring of length $\ell = w + k - 1$, selects one minimizer.
 :::
 
 This property has two important consequences that make minimizers especially useful in practice.
@@ -65,7 +58,7 @@ We'll see in the following subsections that the ordering used to compare /kmers 
 ### Lexicographic ordering
 
 The simplest ordering we can use is the lexicographic order on /kmer strings.
-While it requires no precomputation and is straightforward to implement, lexicographic ordering has well-known limitations: homopolymers (especially repeated `A`s) tend to select adjacent /kmers, thus increasing the density and skewing the distribution of minimizer values [@minimizers-ordering;@survey-minimizers-zheng].
+While it requires no precomputation and is straightforward to implement, lexicographic ordering has well-known limitations: homopolymers (especially repeated `A`s) tend to select adjacent /kmers, thus increasing the density and skewing the distribution of minimizer values [@minimizers-ordering;@survey-minimizers-zheng;@lex-minimizer-distribution].
 In particular, @minimizers-ordering report an empirical density of $2.24 / (w+1)$ for lexicographic minimizers with $k=10$ and $w=10$.
 An example of lexicographic minimizer selection is given in @fig-minimizers-overview.
 
@@ -85,8 +78,12 @@ More precisely, random minimizers are shared between $(w+1) / 2$ windows on aver
 Therefore, instead of being represented independently, the windows associated to a given minimizer occurrence can be merged into a compact representation called /skmer.
 Formally, a /skmer is the smallest substring covering all windows selecting a given minimizer position.
 An example of /skmer is depicted in @fig-minimizers-overview.
-Note that, in the context of /skmers, the minimizer size is often denoted $m$ while $k$ denotes the number of bases in a window, i.e. $w + m - 1$.
-Using these notations, two consecutive /skmers always overlap by $k - 1$ bases.
+
+:::{.callout-caution}
+## Different notations
+
+In the context of /skmers, the minimizer size is usually denoted $m$ (instead of $k$ previously) while $k$ denotes the number of bases in a window (previously denoted as $\ell$), i.e. $k = w + m - 1$.
+:::
 
 /Skmers have been widely adopted in bioinformatics tools for two main reasons.
 First, storing /skmers is much more compact that storing each /kmer individually (by avoiding duplicated overlaps).
@@ -99,6 +96,25 @@ While we have seen that density directly impacts the space usage of minimizers a
 Formally, conservation is defined as the expected fraction of bases covered when matching selected /kmers from the original sequence to those in the mutated version [@syncmers;@shaw-conservation].
 
 ### Syncmers
+
+*Syncmers* were introduced by @syncmers as an alternative to minimizers that improve conservation.
+Rather than selecting the minimizer of each window, syncmers select the *window itself* if its minimizer is located at a specific position within the window.
+In *closed syncmers*, the minimizer must appear at the first or last position of the window.
+In *open syncmers*, it must appear at a fixed interior position, typically the middle one (assuming an odd number of elements).
+
+:::{.callout-caution}
+## Different notations
+
+In the context of syncmers, the minimizer size is usually denoted $s$ (instead of $k$ previously) while $k$ denotes the number of bases in a window (previously denoted as $\ell$), i.e. $k = w + s - 1$.
+:::
+
+Closed syncmers are known to have a density of $\frac{2}{k - s + 1} = \frac{2}{w}$ and a window guarantee of $k - s = w - 1$ [@syncmers;@shaw-conservation]: any window of $w - 1$ consecutive /kmers contains at least one closed syncmer.
+Open syncmers, on the other hand, achieve half the density at $\frac{1}{k - s + 1} = \frac{1}{w}$, but have no window guarantee [@shaw-conservation].
+
+The distinction between selecting a subword versus selecting a window gives minimizers and syncmers different properties and use cases.
+While a minimizer depends on the context around it and may change if another /kmer in the window becomes smaller after a mutation, a syncmer is guaranteed to stay selected even if the context around it is altered.
+Because of this, syncmers achieve a higher conservation than random minimizers, with open syncmers performing better than closed syncmers, making them a better option for anchor selection in mappers [@shaw-conservation].
+On the other hand, since each window selects a unique minimizer, a minimizer can serve as a fingerprint for the whole window, while there is no equivalent with syncmers.
 
 ### Strobemers
 
