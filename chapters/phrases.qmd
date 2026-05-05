@@ -1,3 +1,8 @@
 # Locally-consistent phrases
 
 TBA
+- spectrum of anchor selection methods
+- tradeoff between regularity of the distance distribution and context dependence / conservation
+- least context-dependent: hashed-based criteria independent of the context (e.g. PFP)
+- most regular distribution: sample every *k* position, but no conservation at all
+- middleground: minimizer-like, sample in a window
