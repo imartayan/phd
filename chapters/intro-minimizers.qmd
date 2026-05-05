@@ -142,6 +142,10 @@ The best chain is finally *extended* into a complete alignment, reducing the qua
 
 ### Sequence classification and metagenomics
 
+Another application that also uses minimizers as fingerprints is sequence classification, especially in the context of metagenomics.
+Kraken2 [@kraken2] is a popular example that classifies reads against a reference database by hashing its minimizers and mapping each of them to a lowest common ancestor in a phylogenetic tree.
+Storing only minimizers instead of all /kmers reduces the database size by 85% compared to the original Kraken [@kraken1], enabling taxonomic classification of millions of reads.
+
 ### Partitioning indexes
 
 ### Genome assembly
