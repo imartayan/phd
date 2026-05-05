@@ -15,6 +15,7 @@ A minimizer scheme is parameterized by three values: the /kmer length $k$, the w
 A *window* of size $w$ is a set of $w$ consecutive /kmers, spanning a substring of length $\ell = w + k - 1$.
 The *minimizer* of a window is the /kmer that is smallest according to $\prec$, with ties broken by selecting the leftmost occurrence^[Choosing the leftmost occurrence is a convention, some schemes use the rightmost one or select all tied /kmers.].
 Sliding the window one position at a time along the sequence yields the *minimizer sketch* of that sequence: the (deduplicated) sequence of minimizer positions.
+We discuss efficient implementations of this sliding window algorithm in more details in @sec-simd-minimizers.
 
 :::{#fig-minimizers-overview}
 ![](../fig/intro/minimizers)
@@ -116,7 +117,7 @@ Open syncmers, on the other hand, achieve half the density at $\frac{1}{k - s + 
 The distinction between selecting a subword versus selecting a window gives minimizers and syncmers different properties and use cases.
 While a minimizer depends on the context around it and may change if another /kmer in the window becomes smaller after a mutation, a syncmer is guaranteed to stay selected even if the context around it is altered.
 Because of this, syncmers achieve a higher conservation than random minimizers, with open syncmers performing better than closed syncmers, making them a better option for anchor selection in mappers [@shaw-conservation].
-On the other hand, since each window selects a unique minimizer, this minimizer can serve as a fingerprint of the whole window for partitioning, while syncmers do not serve the same role.
+On the other hand, since each window selects a unique minimizer, this minimizer can serve as a representative of the whole window for partitioning, while syncmers do not serve the same role.
 
 ### Strobemers
 
@@ -127,7 +128,17 @@ Strobemers have been shown to improve sensitivity in read alignment, and are the
 
 ## Practical applications {#sec-minimizer-applications}
 
-### Read alignment
+A careful reader may notice that it took more than a decade after the introduction of minimizers for them to appear in widely-used tools [@kraken1;@minimap1;@bcalm2].
+This delay is not coincidental, and actually follows the rise of third-generation sequencing that made long reads largely available.
+Minimizers are particularly well-suited for long reads, where /kmer sampling is essential to reduce the computational cost, and it was only once such data became accessible that minimizers reached their full practical potential.
+In the following subsections, we briefly survey the main applications built on top of minimizers.
+
+### Pairwise alignment
+
+One the main applications of minimizers is pairwise alignment, with the *seed-chain-align* paradigm popularized by minimap [@minimap1;@minimap2;@survey-mapping].
+In this paradigm, both the reference and the query use minimizers as *seeds*, and index them along with their position.
+Matching minimizers are then identified as *anchors*, corresponding to potentially large matches, and the anchors are *chained* using dynamic programming.
+The best chain is finally *extended* into a complete alignment, reducing the quadratic cost of a single large alignment to a more efficient succession of short alignments.
 
 ### Sequence classification and metagenomics
 
