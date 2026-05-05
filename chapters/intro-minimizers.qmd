@@ -129,7 +129,7 @@ Strobemers have been shown to improve sensitivity in read alignment, and are the
 ## Practical use cases {#sec-minimizer-applications}
 
 A careful reader may notice that it took more than a decade after the introduction of minimizers for them to appear in widely-used tools [@kraken1;@minimap1;@bcalm2].
-This delay is not entirely coincidental, and actually follows the development of third-generation sequencing that made long reads largely available.
+This delay is not entirely coincidental, and actually follows the development of third-generation sequencing that made long reads widely available.
 Minimizers are particularly well-suited for long reads, where /kmer sampling is essential to reduce the computational cost, and it was only once such data became accessible that minimizers reached their full practical potential.
 In the following subsections, we briefly survey the main use cases of minimizers in practical applications.
 
@@ -143,7 +143,7 @@ The best chain of anchors is finally *extended* into a complete alignment, reduc
 ### Minimizers for partitioning
 
 Another important use of minimizers is that they can act as a representative of their window, which is useful to distribute /kmers in memory.
-This property is used for building compacted de Bruijn graphs [@bcalm2;@bifrost;@ggcat] or counting /kmers [@kmc2;@kmc3;@superbloom], where each partition correspond to a given minimizer or subset of minimizers.
+This property is used for building compacted de Bruijn graphs [@bcalm2;@bifrost;@ggcat] or counting /kmers [@kmc2;@kmc3;@superbloom], where each partition corresponds to a given minimizer or subset of minimizers.
 
 ### Minimizers as lossy fingerprints
 
@@ -156,6 +156,6 @@ Needle [@needle] uses the same trick to accelerate transcript quantification, wh
 
 Finally, another idea that emerged recently is to transform the original sequence into its sequence of minimizers, making it shorter but with a larger alphabet, and work directly in this *minimizer space*.
 @mdbg successfully applied this technique to accelerate genome assembly by building a minimizer-space de Bruijn graph, where *k*-min-mers correspond to a chain of *k* consecutive minimizers.
-@mapquik later use the same technique to speedup long read mapping.
+@mapquik later used the same technique to speedup long read mapping.
 It should be noted, however, that the term "minimizer" used in these two contributions does not correspond to our definition and is actually closer to a FracMinHash sketch (presented in @sec-intro-sketching).
-@uindex generalized this idea to build other string data structures in sketch space, giving the example of a minimizer-space suffix array to improve its space usage.
+@uindex generalized this idea to build other string data structures in sketch space, illustrating the approach with a minimizer-space suffix array that improves space efficiency.
