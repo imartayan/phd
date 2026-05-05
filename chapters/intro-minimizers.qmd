@@ -126,26 +126,36 @@ Instead of selecting a single contiguous /kmers, strobemers link two or more sho
 In particular, this spaced /kmer can still be selected if a mutation occurs in the gaps between the strobes, thus making it more robust.
 Strobemers have been shown to improve sensitivity in read alignment, and are the basis of the strobealign aligner [@strobealign].
 
-## Practical applications {#sec-minimizer-applications}
+## Practical use cases {#sec-minimizer-applications}
 
 A careful reader may notice that it took more than a decade after the introduction of minimizers for them to appear in widely-used tools [@kraken1;@minimap1;@bcalm2].
-This delay is not coincidental, and actually follows the rise of third-generation sequencing that made long reads largely available.
+This delay is not entirely coincidental, and actually follows the development of third-generation sequencing that made long reads largely available.
 Minimizers are particularly well-suited for long reads, where /kmer sampling is essential to reduce the computational cost, and it was only once such data became accessible that minimizers reached their full practical potential.
-In the following subsections, we briefly survey the main applications built on top of minimizers.
+In the following subsections, we briefly survey the main use cases of minimizers in practical applications.
 
-### Pairwise alignment
+### Minimizers as anchors
 
-One the main applications of minimizers is pairwise alignment, with the *seed-chain-align* paradigm popularized by minimap [@minimap1;@minimap2;@survey-mapping].
-In this paradigm, both the reference and the query use minimizers as *seeds*, and index them along with their position.
-Matching minimizers are then identified as *anchors*, corresponding to potentially large matches, and the anchors are *chained* using dynamic programming.
-The best chain is finally *extended* into a complete alignment, reducing the quadratic cost of a single large alignment to a more efficient succession of short alignments.
+One of the main applications of minimizers is read mapping, with the *seed-chain-align* paradigm popularized by minimap [@minimap1;@minimap2;@survey-mapping].
+In this paradigm, both the reference and the query use minimizers as *seeds*, and index them along with their positions.
+Matching minimizers are then identified as *anchors*, indicating potentially large matches, and these anchors are *chained* using dynamic programming.
+The best chain of anchors is finally *extended* into a complete alignment, reducing the quadratic cost of a single large alignment to a more efficient succession of short alignments.
 
-### Sequence classification and metagenomics
+### Minimizers for partitioning
 
-Another application that also uses minimizers as fingerprints is sequence classification, especially in the context of metagenomics.
-Kraken2 [@kraken2] is a popular example that classifies reads against a reference database by hashing its minimizers and mapping each of them to a lowest common ancestor in a phylogenetic tree.
-Storing only minimizers instead of all /kmers reduces the database size by 85% compared to the original Kraken [@kraken1], enabling taxonomic classification of millions of reads.
+Another important use of minimizers is that they can act as a representative of their window, which is useful to distribute /kmers in memory.
+This property is used for building compacted de Bruijn graphs [@bcalm2;@bifrost;@ggcat] or counting /kmers [@kmc2;@kmc3;@superbloom], where each partition correspond to a given minimizer or subset of minimizers.
 
-### Partitioning indexes
+### Minimizers as lossy fingerprints
 
-### Genome assembly
+While minimizers are often used as part of a bigger exhaustive index, they can also be used on their own as a lossy sketch of the original sequence.
+For instance, Kraken2 [@kraken2] classifies reads against a reference database by mapping each minimizer to a lowest common ancestor in a phylogenetic tree.
+While this is less accurate than having this information for all /kmers, storing only minimizers reduces the database size by 85% compared to the original Kraken [@kraken1].
+Needle [@needle] uses the same trick to accelerate transcript quantification, while Kaminari [@kaminari] uses it to build a lightweight colored de Bruijn graph.
+
+### Minimizer-space data structures
+
+Finally, another idea that emerged recently is to transform the original sequence into its sequence of minimizers, making it shorter but with a larger alphabet, and work directly in this *minimizer space*.
+@mdbg successfully applied this technique to accelerate genome assembly by building a minimizer-space de Bruijn graph, where *k*-min-mers correspond to a chain of *k* consecutive minimizers.
+@mapquik later use the same technique to speedup long read mapping.
+It should be noted, however, that the term "minimizer" used in these two contributions does not correspond to our definition and is actually closer to a FracMinHash sketch (presented in @sec-intro-sketching).
+@uindex generalized this idea to build other string data structures in sketch space, giving the example of a minimizer-space suffix array to improve its space usage.
