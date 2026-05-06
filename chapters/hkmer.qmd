@@ -37,17 +37,17 @@ Another approach to reduce memory is to partition /kmers into buckets.
 Buckets can be safely stored on disk and independently processed thus limiting the number of /kmers in main memory [@kmc2; @dsk].
 Finally, some methods have attempted to accelerate /kmer counting by leveraging GPUs [@suzuki2014accelerating; @gerbil].
 
-A significant advancement in reducing the memory footprint of /kmer storage was the introduction of /skmers [@mspkmercounter; @kmc2].
-/Skmers encode $N$ successive /kmers sharing the same minimizer---the smallest sub-string of length $m$ within a /kmer, for a given ordering [@schleimer2003winnowing; @roberts2004reducing; @unitigs]---into $k + N - 1$ nucleotides.
+A significant advancement in reducing the memory footprint of /kmer storage was the introduction of /skmers [@superkmers;@mspkmercounter;@kmc2].
+/Skmers encode $N$ successive /kmers sharing the same minimizer---the smallest sub-string of length $m$ within a /kmer, for a given ordering [@schleimer2003winnowing; @roberts2004reducing; @bcalm1]---into $k + N - 1$ nucleotides.
 Minimizers exhibit locality-sensitive hashing properties, functioning as a special case of MinHash with a single fingerprint, and have been widely used in /kmer partitioning [@bcalm2; @marchet2023scalable].
 With the behavior of minimizers now well understood [@fhs], we can accurately estimate the representation cost of /skmers, leading to significant improvements in efficiency.
 The adoption of /skmers has mitigated the memory issues of /kmer counting, and /skmer-based tools such as KMC3 [@kmc3] and FASTK [@fastk] are among the best tools of this competitive field.
 
 Even in the absence of errors, efficient /kmer representations are still required to minimize memory footprint.
 However, /skmers are still far from the optimal space efficiency, due to overlaps at their extremities, leading to unwanted redundancies.
-Over the years, multiple efficient encodings of /kmer sets have been proposed [@unitigs; @eulertigs; @matchtigs], and allowed lightweight /kmer based tools [@ggcat; @sshash; @fulgor].
+Over the years, multiple efficient encodings of /kmer sets have been proposed [@bcalm1; @eulertigs; @matchtigs], and allowed lightweight /kmer based tools [@ggcat; @sshash; @fulgor].
 The common underlying principle is that redundancy can be decreased by merging overlapping /kmers.
-One of the most well-known instances of this idea is the concept of *unitigs*, which are sequences formed by non-branching paths in de Bruijn graphs [@unitigs].
+One of the most well-known instances of this idea is the concept of *unitigs*, which are sequences formed by non-branching paths in de Bruijn graphs [@bcalm1].
 Unitigs are one of the most well-known de Bruijn graph representations, with duplications only occurring near branching paths.
 Subsequent representation proposed to allow more merging even if they may be unsure biologically to be more succinct.
 Such representations are essentially static, as they are constructed once from a complete set of /kmers.

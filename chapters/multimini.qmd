@@ -60,7 +60,7 @@ This suggests that substantial further improvements in local schemes are unlikel
 Recent schemes such as @greedymini attain densities extremely close to the @density-lower-bound bound for practical parameter ranges, as do the aforementioned constructions of @pellow2023efficient and @mod-mini.
 
 To escape the limitations of universal forward local schemes, which are designed to perform well on any input, the community has also designed sequence-specific schemes that tailor minimizer selection to the properties of a given genome.
-These include frequency-based selection [@unitigs], spacing-based strategies [@polar-sets], and machine-learning approaches [@deep-minimizer].
+These include frequency-based selection [@bcalm1], spacing-based strategies [@polar-sets], and machine-learning approaches [@deep-minimizer].
 While these methods can substantially reduce density on real genomes, they cannot be computed in a streaming fashion, making them impractical at very large scales.
 
 Despite the extensive effort devoted to low-density minimizer schemes, several aspects of density behavior remain poorly understood.

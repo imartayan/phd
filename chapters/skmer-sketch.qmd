@@ -45,7 +45,7 @@ Therefore, computational and memory requirements could benefit from customized s
 
 To this end, we propose capitalizing on the ability to represent overlapping /kmers with a low number of /bpk using a *Spectrum Preserving String Set* [@rahman2021representation].
 The challenge we face is optimizing the overlap of chosen /kmers to achieve maximum space efficiency.
-To address this, we build upon the concept of /skmers [@mspkmercounter], which are sequences of /kmers sharing a common selected $m$-mer called minimizer [@roberts2004reducing].
+To address this, we build upon the concept of /skmers [@superkmers], which are sequences of /kmers sharing a common selected $m$-mer called minimizer [@roberts2004reducing].
 Universal Hitting Sets [@orenstein2017designing], or UHS, methods aim to design optimized $m$-mer selection schemes that covers all /kmers while minimizing the density of selected positions. However, our application does not require complete coverage of the /kmer space.
 Therefore, we introduce *Fractional Hitting Sets* that encompass a near-uniform selected fraction of the /kmer space.
 We conduct a study on the achievable density in relation to the selected fraction and present a straightforward minimizer selection scheme that closely approaches optimal bounds.

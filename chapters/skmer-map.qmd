@@ -84,7 +84,7 @@ By grouping all /skmers associated with the same minimizer, we can efficiently d
 Furthermore, since all /skmers in a bucket contain the same minimizer, we can skip the encoding of the minimizer in the /skmers, only encoding the prefixes and suffixes before and after the minimizer [@fhs].
 
 However, within a set of $S$ /skmers sharing a minimizer (often referred to as a bucket), checking the presence of a given /kmer requires $\mathcal{O}(S)$ comparisons, which can be costly.
-To complicate matters, buckets are known to have skewed size distributions, as lower minimizers tend to gather more /kmers than others leading to expensive search for a large number of /kmers [@unitigs; @kmc2; @marchet2023scalable].
+To complicate matters, buckets are known to have skewed size distributions, as lower minimizers tend to gather more /kmers than others leading to expensive search for a large number of /kmers [@bcalm1; @kmc2; @marchet2023scalable].
 Another challenge is that a /kmer may have multiple occurrences of its minimizers, potentially causing issues if a /kmer//skmer encoding depends on which minimizer is selected during parsing.
 Therefore, we need a deterministic method to select a "canonical" minimizer when multiple occurrences arise.
 

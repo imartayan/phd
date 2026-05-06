@@ -76,7 +76,7 @@ This gap between the density of $2 / (w+1)$ and the $1/w$ lower bound motivated 
 
 An important property of minimizer schemes is that consecutive windows tend to share the same minimizer.
 More precisely, random minimizers are shared between $(w+1) / 2$ windows on average (i.e. the inverse of the density).
-Therefore, instead of being represented independently, the windows associated to a given minimizer occurrence can be merged into a compact representation called /skmer.
+Therefore, instead of being represented independently, the windows associated to a given minimizer occurrence can be merged into a compact representation called /skmer [@superkmers].
 Formally, a /skmer is the smallest substring covering all windows selecting a given minimizer position.
 An example of /skmer is depicted in @fig-minimizers-overview.
 
@@ -143,7 +143,7 @@ The best chain of anchors is finally *extended* into a complete alignment, reduc
 ### Minimizers for partitioning
 
 Another important use of minimizers is that they can act as a representative of their window, which is useful to distribute /kmers in memory.
-This property is used for building compacted de Bruijn graphs [@bcalm2;@bifrost;@ggcat] or counting /kmers [@kmc2;@kmc3;@superbloom], where each partition corresponds to a given minimizer or subset of minimizers.
+This property is used for building compacted de Bruijn graphs [@bcalm2;@bifrost;@ggcat] or counting /kmers [@mspkmercounter;@kmc2;@kmc3], where each partition corresponds to a given minimizer or subset of minimizers.
 
 ### Minimizers as lossy fingerprints
 
@@ -156,6 +156,6 @@ Needle [@needle] uses the same trick to accelerate transcript quantification, wh
 
 Finally, another idea that emerged recently is to transform the original sequence into its sequence of minimizers, making it shorter but with a larger alphabet, and work directly in this *minimizer space*.
 @mdbg successfully applied this technique to accelerate genome assembly by building a minimizer-space de Bruijn graph, where *k*-min-mers correspond to a chain of *k* consecutive minimizers.
-@mapquik later used the same technique to speedup long read mapping.
+@mapquik later used the same technique to speed up long read mapping.
 It should be noted, however, that the term "minimizer" used in these two contributions does not correspond to our definition and is actually closer to a FracMinHash sketch (presented in @sec-intro-sketching).
 @uindex generalized this idea to build other string data structures in sketch space, illustrating the approach with a minimizer-space suffix array that improves space efficiency.
