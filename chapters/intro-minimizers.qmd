@@ -128,7 +128,7 @@ Strobemers have been shown to improve sensitivity in read alignment, and are the
 
 ## Practical use cases {#sec-minimizer-applications}
 
-A careful reader may notice that it took more than a decade after the introduction of minimizers for them to appear in widely-used tools [@kraken1;@minimap1;@bcalm2].
+A careful reader may notice that it took more than a decade after the introduction of minimizers for them to appear in widely-used tools [@kraken1;@bcalm1;@minimap1].
 This delay is not entirely coincidental, and actually follows the development of third-generation sequencing that made long reads widely available.
 Minimizers are particularly well-suited for long reads, where /kmer sampling is essential to reduce the computational cost, and it was only once such data became accessible that minimizers reached their full practical potential.
 In the following subsections, we briefly survey the main use cases of minimizers in practical applications.
