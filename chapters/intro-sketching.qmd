@@ -1,7 +1,43 @@
 # Sketching sequences {#sec-intro-sketching}
 
-TBA
+*Sketching* is the idea of summarizing a (large) dataset into a (small) set of fingerprints, called a *sketch*.
+A sketch is designed to be much cheaper to store and compare, while still providing good approximations for properties of interest.
+In this chapter, we treat sequences as sets of /kmers (without accounting for positions or repetitions) and we focus on sketches approximating the *similarity* of two sequences.
 
-- why do we need to sketch in the first place?
-- approximating similarity, Jaccard index
-- MinHash and friends (bottom, frac, bucket, HLL fingerprints...)
+## Why do we want to sketch sequences?
+
+The main reason to do sketching in the first place is, of course, the colossal amount of sequencing data we have to deal with.
+What is especially limiting is not just the length the sequences themselves but mainly how many of them we have to compare, for instance when comparing an unknown sample against millions of genomes to find the closest matches.
+In other words, sketching is generally used as an efficient *filtering* step prior to more expensive operations on a restricted set of sequences [@survey-sketching-rowe].
+Therefore, we really focus on two goals when designing sketching methods: having *lightweight* sketches (because of how many of them we have to store), and supporting *fast* estimation of similarity (because of how many comparisons we have to make).
+The memory footprint of a sketch is always a tradeoff with the *accuracy* of the estimation it can produce.
+
+## Approximating similarity
+
+:::{#fig-jaccard-mash}
+![](https://media.springernature.com/full/springer-static/image/art%3A10.1186%2Fs13059-016-0997-x/MediaObjects/13059_2016_997_Fig1_HTML.gif?as=webp)
+
+Overview of Jaccard similarity, from @mash.
+:::
+
+## MinHash and its variations
+
+### MinHash
+
+### Bottom MinHash
+
+### FracMinHash
+
+## Bucketed sketches and smaller fingerprints
+
+### Bucketed MinHash
+
+### Low bits and HyperLogLog
+
+## Other types of sketches
+
+### SimHash and filters for set membership
+
+### DotHash for intersection
+
+### Sequence reduction for mapping and assembly
