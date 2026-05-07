@@ -3,7 +3,6 @@
 /_book_html/
 /_book_pdf/
 /index_files/
-/site_libs/
 /.luarc.json
 /.luacheckrc
 **/.quarto
