@@ -1,3 +1,0 @@
-# Lexicographic-informed sampling
-
-TBA

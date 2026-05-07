@@ -44,7 +44,6 @@ book:
       - chapters/multimini.qmd
       - chapters/skmer-sketch.qmd
       - chapters/phrases.qmd
-      - chapters/lexic.qmd
       - chapters/sampling-discussion.qmd
     - chapters/discussion.qmd
     - references.qmd

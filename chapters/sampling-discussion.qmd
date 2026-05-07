@@ -1,3 +1,6 @@
 # Discussion {.unnumbered}
 
 TBA
+
+- merge @sec-phrases ?
+- lexicographic-informed sampling
