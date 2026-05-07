@@ -143,7 +143,7 @@ The best chain of anchors is finally *extended* into a complete alignment, reduc
 ### Minimizers for partitioning
 
 Another important use of minimizers is that they can act as a representative of their window, which is useful to distribute /kmers in memory.
-This property is used for building compacted de Bruijn graphs [@bcalm2;@bifrost;@ggcat] or counting /kmers [@mspkmercounter;@kmc2;@kmc3], where each partition corresponds to a given minimizer or subset of minimizers.
+This property is used for building compacted de Bruijn graphs [@bcalm1;@bifrost;@ggcat] or counting /kmers [@mspkmercounter;@kmc2;@kmc3], where each partition corresponds to a given minimizer or subset of minimizers.
 
 ### Minimizers as lossy fingerprints
 
