@@ -34,7 +34,19 @@ Dots filled in blue represent the sketch of $A$, while those filled in red repre
 
 ## MinHash and its variations
 
+Now that we know we want to sketch /kmer sets to quickly estimate their Jaccard similarity, the main question becomes: how do we design sketching methods that are as accurate as possible with a tight memory budget?
+
 ### MinHash
+
+MinHash [@minhash] is one of the simplest solutions to this problem.
+Given a regular hash function $h$, it computes the sketch of a set $A$ as
+$$
+h(A) = \min_{x \in A} h(x)
+$$
+The nice property of this definition is that the probability for the minimum hashes of two sets to be equal exactly matches their Jaccard index, in other words it is an *unbiased estimator*:
+$$
+\mathbb{P}(h(A) = h(B)) = J(A, B)
+$$
 
 ### Bottom MinHash
 
