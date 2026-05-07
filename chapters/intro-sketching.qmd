@@ -2,7 +2,7 @@
 
 *Sketching* is the idea of summarizing a (large) dataset into a (small) set of fingerprints, called a *sketch*.
 A sketch is designed to be much cheaper to store and compare, while still providing good approximations for properties of interest.
-In this chapter, we treat sequences as sets of /kmers (without accounting for positions or repetitions) and we focus on sketches approximating the *similarity* of two sequences.
+In this chapter, we treat sequences as sets of /kmers (without accounting for their number of occurrences or positions) and we focus on sketches approximating the *similarity* of two sequences.
 
 ## Why do we want to sketch sequences?
 
