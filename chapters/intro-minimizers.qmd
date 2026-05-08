@@ -115,7 +115,7 @@ Closed syncmers are known to have a density of $\frac{2}{k - s + 1} = \frac{2}{w
 Open syncmers, on the other hand, achieve half the density at $\frac{1}{k - s + 1} = \frac{1}{w}$, but have no window guarantee [@shaw-conservation].
 
 The distinction between selecting a subword versus selecting a window gives minimizers and syncmers different properties and use cases.
-While a minimizer depends on the context around it and may change if another /kmer in the window becomes smaller after a mutation, a syncmer is guaranteed to stay selected even if the context around it is altered.
+While a minimizer depends on the context around it and may change if another /kmer in the window becomes smaller after a mutation, a syncmer is guaranteed to stay selected even if the context around it is altered (we say that it is *1-local*).
 Because of this, syncmers achieve a higher conservation than random minimizers, with open syncmers performing better than closed syncmers, making them a better option for anchor selection in mappers [@shaw-conservation].
 On the other hand, since each window selects a unique minimizer, this minimizer can serve as a representative of the whole window for partitioning, while syncmers do not serve the same role.
 
