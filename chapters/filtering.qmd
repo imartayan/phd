@@ -11,7 +11,7 @@ Assembled datasets have reached the Petabase scale, as seen in the 2 Petabytes o
 Identifying matches to a query sequence in large collections, a fundamental task exemplified by BLAST [@blast], has evolved.
 Traditional alignment tools were overwhelmed by data growth, leading to the use of strings of fixed length *k*, or /kmers [@zielezinski2017alignment].
 To improve scalability, indexing structures allowing false positives were adopted, making shared  /kmer fingerprints a necessary, though not sufficient, condition for a match [@marchet2021data;@marchet2023scalable;@lemane2024indexing].
-Some methods further enhance scalability by indexing only a fraction of /kmers, relying on detecting substantial matches from partial signals [@needle;@rahman2025estimating;@niqki].
+Some methods further enhance scalability by indexing only a fraction of /kmers, relying on detecting substantial matches from partial signals [@needle;@fracminhash-estimators;@niqki].
 
 Large-scale indexes can thus efficiently identify a small, relevant subset of documents (e.g., read sets, unitigs, contigs).
 However, this initial filtering isn't final.

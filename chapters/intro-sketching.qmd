@@ -76,6 +76,12 @@ This approach has been used in Mash [@mash] to define a distance approximating A
 
 ### FracMinHash
 
+[@fracminhash]
+$$
+\widehat{J}(A, B) = \frac{J(S_t(A), S_t(B))}{1 - (1 - t)^{|A \cup B|}}
+$$
+[@fracminhash-jaccard]
+
 ## Bucketed sketches and smaller fingerprints
 
 ### Bucketed MinHash
