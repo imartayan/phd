@@ -53,7 +53,7 @@ Thus, in order to reduce the variance, we want to average multiple independent s
 One way to do this is to generate $s$ independent hash functions $h_1, \dots, h_s$ by using multiple seeds:
 $$
 S(A) = (\min_{x \in A} h_1(x), \dots, \min_{x \in A} h_s(x)) \\
-\widehat{J}(A, B) = \sum_{i=1}^{s} \mathbf{1}_{h_i(A) = h_i(B)}
+\widehat{J}(A, B) = \frac{1}{s} \sum_{i=1}^{s} \mathbf{1}_{h_i(A) = h_i(B)}
 $$
 
 ### Bottom MinHash
