@@ -24,7 +24,7 @@ J(A, B) = \frac{|A \cap B|}{|A \cup B|}
 $$
 
 Nevertheless, we still want to avoid having to intersect large /kmer sets.
-Thus, instead of working with the original sets, we sample them into smaller sketches $S(A)$ and $S(B)$ for faster intersection.
+Thus, instead of working with the original sets, we sample them into smaller sketches $S(A)$ and $S(B)$ for faster comparison.
 @fig-jaccard-mash illustrate this idea for "bottom MinHash" sketching that we present in the next section.
 
 :::{#fig-jaccard-mash}
@@ -57,12 +57,22 @@ $$
 S(A) = (\min_{x \in A} h_1(x), \dots, \min_{x \in A} h_s(x)) \\
 \widehat{J}(A, B) = \frac{1}{s} \sum_{i=1}^{s} \mathbf{1}_{h_i(A) = h_i(B)}
 $$
+This estimator is still unbiased and its standard deviation decreases in $\mathcal{O}\!\left( \frac{1}{\sqrt{s}} \right)$.
 
 ### Bottom MinHash
 
-One drawback of using $s$ hash functions is that building the sketch takes $\mathcal{O}(ns)$ time for a sequence of size $n$, compared to $\mathcal{O}(n)$ before.
-What we can do instead is to select the $s$ smallest hashes rather a single one, which we refer to as *bottom-$s$ MinHash*.
-Maintaining the $s$ smallest values values can be done in $\mathcal{O}(n \log s)$ using a min-heap.
+One drawback of using $s$ hash functions is that building the sketch takes $\mathcal{O}(ns)$ time for a sequence of size $n$.
+What we can do instead is to select the $s$ smallest hashes using a single hash function, which we refer to as *bottom-$s$ MinHash*.
+
+A common way to maintain the $s$ smallest values is to use a max-heap, only updating it if the incoming hash is smaller than the current max of the sketch.
+While the construction time can be upper-bounded by $\mathcal{O}(n \log s)$, @minhash obtained a better bound in $\mathcal{O}(n + s \log n \log s)$ by arguing that there are only $\mathcal{O}(s \log n)$ such updates on average.
+
+@minhash proved that this sketch also provides an unbiased estimator of Jaccard similarity^[Note that $J(S(A), S(B))$ is *not* a correct estimator.]
+$$
+\widehat{J}(A, B) = \frac{|S(A \cup B) \cap S(A) \cap S(B)|}{|S(A \cup B)|}
+$$
+where $S(A)$ denotes the set of the $s$ smallest hashes in $A$.
+This approach has been used in Mash [@mash] to define a distance approximating ANI for genomes and metagenomes.
 
 ### FracMinHash
 
