@@ -76,7 +76,11 @@ This approach has been used in Mash [@mash] to define a distance approximating A
 
 ### FracMinHash
 
-[@fracminhash]
+One limitation of fixed-sized sketches like (bottom) MinHash is that they perform poorly on sets of very dissimilar sizes [@survey-sketching-rowe].
+To address this limitation, we can create a sketch whose size is proportional to the /kmer set.
+Given a threshold $t \in [0,1]$, and assuming the hash values are in $[0,1]$, we select any hash smaller than $t$.
+This method is now known in the literature as FracMinHash [@fracminhash], but has appeared under different names such as scaled MinHash, universe minimizers or mincode submer in the past.
+
 $$
 \widehat{J}(A, B) = \frac{J(S_t(A), S_t(B))}{1 - (1 - t)^{|A \cup B|}}
 $$
