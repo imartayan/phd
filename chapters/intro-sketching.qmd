@@ -65,7 +65,7 @@ One drawback of using $s$ hash functions is that building the sketch takes $\mat
 What we can do instead is to select the $s$ smallest hashes using a single hash function, which we refer to as *bottom-$s$ MinHash*.
 
 A common way to maintain the $s$ smallest values is to use a max-heap, only updating it if the incoming hash is smaller than the current max of the sketch.
-While the construction time can be upper-bounded by $\mathcal{O}(n \log s)$, @minhash obtained a better bound in $\mathcal{O}(n + s \log n \log s)$ by arguing that there are only $\mathcal{O}(s \log n)$ such updates on average.
+While the construction time can be upper-bounded by $\mathcal{O}(n \log s)$, @minhash refined the bound down to $\mathcal{O}(n + s \log n \log s)$ by noting that the heap is only updated $\mathcal{O}(s \log n)$ times on average.
 
 @minhash proved that this sketch also provides an unbiased estimator of Jaccard similarity^[Note that $J(S(A), S(B))$ is *not* a correct estimator.]
 $$
