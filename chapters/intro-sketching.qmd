@@ -115,7 +115,7 @@ Note that densification is not mandatory and that some sketching schemes simply 
 
 One thing we may notice when computing min hashes is that the low bits carry much more information than the high ones (which are more likely to be zeros).
 Based on this observation, we can restrict the selected hashes to their $b$ lowest bits to save space [@minhash-b-bit].
-However, this introduces a (usually small) collision probability which must be taken into account to correct the estimator: two distinct hashes might share the same lowest $b$ bits, which would lead to an overestimated similarity.
+However, this introduces a collision probability which must be taken into account to correct the estimator: two distinct hashes might share the same $b$ lowest bits, which would lead to an overestimated similarity.
 
 ### HyperMinHash
 
