@@ -111,7 +111,13 @@ One limitation of using many partitions is that some of them may end up being em
 Some articles addressed this issue by designing *densification* strategies [@densification]: each empty slot is filled with other values from the sketch.
 Note that densification is not mandatory and that some sketching schemes simply skip empty slots during comparison, at the cost of a slightly worse precision [@hyperminhash].
 
-### Low bits and HyperLogLog
+### *b*-bit MinHash
+
+One thing we may notice when computing min hashes is that the low bits carry much more information than the high ones (which are more likely to be zeros).
+Based on this observation, we can restrict the selected hashes to their $b$ lowest bits to save space [@minhash-b-bit].
+However, this introduces a (usually small) collision probability which must be taken into account to correct the estimator: two distinct hashes might share the same lowest $b$ bits, which would lead to an overestimated similarity.
+
+### HyperMinHash
 
 ## Other types of sketches
 
