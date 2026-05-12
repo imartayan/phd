@@ -61,11 +61,11 @@ This estimator is still unbiased and its standard deviation decreases in $\mathc
 
 ### Bottom MinHash
 
-One drawback of using $s$ hash functions is that building the sketch takes $\mathcal{O}(ns)$ time for a sequence of size $n$.
+One drawback of using $s$ hash functions is that building the sketch takes $\mathcal{O}(Ns)$ time for a sequence of size $N$.
 What we can do instead is to select the $s$ smallest hashes using a single hash function, which we refer to as *bottom-$s$ MinHash*.
 
 A common way to maintain the $s$ smallest values is to use a max-heap, only updating it if the incoming hash is smaller than the current max of the sketch.
-While the construction time can be upper-bounded by $\mathcal{O}(n \log s)$, @minhash refined the bound down to $\mathcal{O}(n + s \log n \log s)$ by noting that the heap is only updated $\mathcal{O}(s \log n)$ times on average.
+While the construction time can be upper-bounded by $\mathcal{O}(N \log s)$, @minhash refined the bound down to $\mathcal{O}(N + s \log N \log s)$ by noting that the heap is only updated $\mathcal{O}(s \log N)$ times on average.
 
 @minhash proved that this sketch also provides an unbiased estimator of Jaccard similarity^[Note that $J(S(A), S(B))$ is *not* a correct estimator.]
 $$
@@ -78,13 +78,24 @@ This approach has been used in Mash [@mash] to define a distance approximating A
 
 One limitation of fixed-sized sketches like (bottom) MinHash is that they perform poorly on sets of very dissimilar sizes [@survey-sketching-rowe].
 To address this limitation, we can create a sketch whose size is proportional to the /kmer set.
-Given a threshold $t \in [0,1]$, and assuming the hash values are in $[0,1]$, we select any hash smaller than $t$.
+Given a threshold $t \in [0,1]$, and assuming the hash values are in $[0,1]$, we select any hash smaller than $t$:
+$$
+S_t(A) = \lbrace h(x) : x \in A, h(x) < t \rbrace
+$$
 This method is now known in the literature as FracMinHash [@fracminhash], but has appeared under different names such as scaled MinHash, universe minimizers or mincode submer in the past.
 
+Given a sequence of size $N$, and the corresponding /kmer set of size $n$, a FracMinHash sketch contains $nt$ elements in expectation and can be built in $\mathcal{O}(N)$ time with a linear scan on the hash values.
+This approach has the benefit of being simple and efficient, and supports straightforward set operations such as union or intersection (for instance $S_t(A \cup B) = S_t(A) \cup S_t(B)$).
+
+@fracminhash-jaccard showed that the naive estimator $J(S_t(A), S_t(B))$ is biased, and that it can be corrected as follows:
 $$
 \widehat{J}(A, B) = \frac{J(S_t(A), S_t(B))}{1 - (1 - t)^{|A \cup B|}}
 $$
-[@fracminhash-jaccard]
+However, one may notice that this formula depends on $|A \cup B|$, which is precisely what we were trying to avoid with $J(A,B)$ in the first place.
+As a workaround, @fracminhash-jaccard suggested to approximate $|A \cup B|$ by $|S_t(A \cup B)| / t$, leading to the following approximation:
+$$
+\widehat{J}(A, B) = \frac{J(S_t(A), S_t(B))}{1 - (1 - t)^{|S_t(A) \cup S_t(B)| / t}}
+$$
 
 ## Bucketed sketches and smaller fingerprints
 
