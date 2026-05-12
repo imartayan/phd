@@ -97,6 +97,8 @@ $$
 \widehat{J}(A, B) = \frac{J(S_t(A), S_t(B))}{1 - (1 - t)^{|S_t(A) \cup S_t(B)| / t}}
 $$
 
+Among practical use cases, FracMinHash is implemented as part of the popular sourmash toolchain [@sourmash;@fracminhash] and has been used to index all public metagenomes from the Sequence Read Archive [@branchwater].
+
 ## Partitioned sketches and smaller fingerprints
 
 ### Partitioned sketches
