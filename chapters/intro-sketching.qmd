@@ -97,9 +97,19 @@ $$
 \widehat{J}(A, B) = \frac{J(S_t(A), S_t(B))}{1 - (1 - t)^{|S_t(A) \cup S_t(B)| / t}}
 $$
 
-## Bucketed sketches and smaller fingerprints
+## Partitioned sketches and smaller fingerprints
 
-### Bucketed MinHash
+### Partitioned sketches
+
+An intuitive idea to increase the number of samples without using multiple hash functions is to partition the universe of hash values into $s$ parts, and compute a sketch for each of them.
+This technique is sometimes referred to as *one permutation hashing* in the literature [@one-permutation-hashing].
+
+A simple way to implement this is to set $s = 2^p$ and use the first $p$ bits of a hash to select its partition.
+This has two main benefits: first, this is efficient to compute with bitwise operations and second, this allows us to save $p$ bits for each element of the sketch since they are implicitly encoded by the partition.
+
+One limitation of using many partitions is that some of them may end up being empty if the input is not large enough.
+Some articles addressed this issue by designing *densification* strategies [@densification]: each empty slot is filled with other values from the sketch.
+Note that densification is not mandatory and that some sketching schemes simply skip empty slots during comparison, at the cost of a slightly worse precision [@hyperminhash].
 
 ### Low bits and HyperLogLog
 
