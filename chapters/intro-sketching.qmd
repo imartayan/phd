@@ -114,8 +114,8 @@ Note that densification is not mandatory and that some sketching schemes simply 
 ### *b*-bit MinHash
 
 One thing we may notice when computing min hashes is that the low bits carry much more information than the high ones (which are more likely to be zeros).
-Based on this observation, we can restrict the selected hashes to their $b$ lowest bits to save space [@minhash-b-bit].
-However, this introduces a collision probability which must be taken into account to correct the estimator: two distinct hashes might share the same $b$ lowest bits, which would lead to an overestimated similarity.
+Based on this observation, we can restrict the selected hashes to their lowest $b$ bits to save space [@minhash-b-bit].
+However, this introduces a collision probability which must be taken into account to correct the estimator: two distinct hashes might share the same lowest $b$ bits, which would lead to an overestimated similarity.
 This technique is used in tools such as BinDash [@bindash] to estimate genome distance.
 
 ### HyperMinHash
@@ -124,6 +124,20 @@ This technique is used in tools such as BinDash [@bindash] to estimate genome di
 Each hash is thus represented by both its number of leading zeros and the $b$ bits that follow this run of zeros (skipping the first one).
 Compared to $b$-bit hashing, HyperMinHash has the benefit of being updatable after construction and provides a precise cardinality estimator with HyperLogLog.
 This technique inspired the Dashing [@dashing1;@dashing2] toolkit.
+
+### MaxGeomHash
+
+MaxGeomHash [@maxgeomhash] is a recent method that draws inspiration from many of the previous techniques to design a sketch that scales sublinearly with the input size.
+Its main idea is to partition the hash values by their number of leading zeros instead of their first $p$ bits, and select the largest^[Using the smallest hashes would work just as well.] $s$ hash values of each partition.
+For a fixed $s$, this leads to a sketch of $\mathcal{O}(\log n)$ elements.
+
+Moreover, @maxgeomhash also introduced a variant called $\alpha$-MaxGeomHash, which changes the number of elements selected in each partition: given $\alpha \in (0,1)$, the partition with $i$ leading zeros will select $2^{i \frac{\alpha}{1 - \alpha}}$ elements to correct the imbalance of partition sizes.
+With this change, the size of the sketch becomes $\mathcal{O}(n^\alpha)$, for any desired $\alpha \in (0, 1)$.
+
+These two methods offer a middleground between fixed-sized sketches such as (bottom) MinHash and linear ones such as FracMinHash, while providing similar unbiased estimators for Jaccard similarity:
+$$
+\widehat{J}(A, B) = \frac{\sum_{i=1}^{\log n} |S_i(A \cup B) \cap S_i(A) \cap S_i(B)|}{\sum_{i=1}^{\log n} |S_i(A \cup B)|}
+$$
 
 ## Other types of sketches
 
