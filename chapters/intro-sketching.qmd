@@ -116,8 +116,14 @@ Note that densification is not mandatory and that some sketching schemes simply 
 One thing we may notice when computing min hashes is that the low bits carry much more information than the high ones (which are more likely to be zeros).
 Based on this observation, we can restrict the selected hashes to their $b$ lowest bits to save space [@minhash-b-bit].
 However, this introduces a collision probability which must be taken into account to correct the estimator: two distinct hashes might share the same $b$ lowest bits, which would lead to an overestimated similarity.
+This technique is used in tools such as BinDash [@bindash] to estimate genome distance.
 
 ### HyperMinHash
+
+@hyperminhash extended this idea with an additional trick: instead of discarding the high bits, use them in a *HyperLogLog* counter [@hyperloglog].
+Each hash is thus represented by both its number of leading zeros and the $b$ bits that follow this run of zeros (skipping the first one).
+Compared to $b$-bit hashing, HyperMinHash has the benefit of being updatable after construction and provides a precise cardinality estimator with HyperLogLog.
+This technique inspired the Dashing [@dashing1;@dashing2] toolkit.
 
 ## Other types of sketches
 
