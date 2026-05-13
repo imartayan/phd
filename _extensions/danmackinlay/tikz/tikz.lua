@@ -14,7 +14,6 @@ local stringify                = utils.stringify
 local with_temporary_directory = system.with_temporary_directory
 local with_working_directory   = system.with_working_directory
 
--- Functions to read and write files
 local function read_file(filepath)
   local fh = io.open(filepath, 'rb')
   if not fh then return nil end
@@ -31,7 +30,57 @@ local function write_file(filepath, content)
   return true
 end
 
--- Function to check if a command exists
+-- ── Cache ─────────────────────────────────────────────────────────────────────
+
+local image_cache = nil -- absolute path to cache directory, or nil when disabled
+
+local function cache_default_dir()
+  local cache_home = os.getenv 'XDG_CACHE_HOME'
+  if not cache_home or cache_home == '' then
+    local user_home = system.os == 'windows'
+        and os.getenv 'USERPROFILE'
+        or os.getenv 'HOME'
+    if not user_home or user_home == '' then return nil end
+    cache_home = pandoc.path.join { user_home, '.cache' }
+  end
+  local dir = pandoc.path.join { cache_home, 'tikz-diagram-filter' }
+  pandoc.system.make_directory(dir, true)
+  return dir
+end
+
+local function cache_entry_path(hash, options)
+  if not image_cache then return nil end
+  local key = pandoc.sha1(hash .. stringify(options))
+  return pandoc.path.join { image_cache, key .. '.svg' }
+end
+
+local function get_cached_image(hash, options)
+  local path = cache_entry_path(hash, options)
+  return path and read_file(path)
+end
+
+local function cache_image(hash, options, imgdata)
+  local path = cache_entry_path(hash, options)
+  if path then write_file(path, imgdata) end
+end
+
+-- Initialises image_cache from tikz metadata; returns true when cache is active.
+local function init_cache(tikz_conf)
+  if tikz_conf.cache ~= true then
+    image_cache = nil
+    return false
+  end
+  image_cache = tikz_conf['cache-dir']
+      and stringify(tikz_conf['cache-dir'])
+      or cache_default_dir()
+  if image_cache then
+    pandoc.system.make_directory(image_cache, true)
+  end
+  return image_cache ~= nil
+end
+
+-- ── Utilities ─────────────────────────────────────────────────────────────────
+
 local function check_dependency(cmd)
   local handle = io.popen("command -v " .. cmd .. " 2>/dev/null")
   if not handle then return false end
@@ -40,42 +89,17 @@ local function check_dependency(cmd)
   return result ~= ""
 end
 
--- Returns a filter-specific directory in which cache files can be stored, or nil if not available.
-local function cachedir()
-  local cache_home = os.getenv 'XDG_CACHE_HOME'
-  if not cache_home or cache_home == '' then
-    local user_home = system.os == 'windows'
-        and os.getenv 'USERPROFILE'
-        or os.getenv 'HOME'
-
-    if not user_home or user_home == '' then
-      return nil
-    end
-    cache_home = pandoc.path.join { user_home, '.cache' }
-  end
-
-  -- Create filter cache directory
-  local cache_dir = pandoc.path.join { cache_home, 'tikz-diagram-filter' }
-  pandoc.system.make_directory(cache_dir, true)
-  return cache_dir
-end
-
-local image_cache = nil -- Path holding the image cache, or `nil` if the cache is not used.
-
--- Function to parse properties from code comments
 local function properties_from_code(code, comment_start)
   local props = {}
   local pattern = comment_start:gsub('%p', '%%%1') .. '| ?' ..
       '([-_%w]+): ([^\n]*)\n'
   for key, value in code:gmatch(pattern) do
     if key == 'fig-attr' then
-      -- Handle nested attributes for fig-attr
       local attr_value = ''
       local subpattern = comment_start:gsub('%p', '%%%1') .. '|   ([^\n]+)\n'
       for subvalue in code:gmatch(subpattern) do
         attr_value = attr_value .. subvalue .. '\n'
       end
-      -- Parse the YAML-like subattributes
       local parsed = pandoc.read(attr_value, 'yaml').blocks
       if #parsed > 0 then
         props[key] = pandoc.utils.block_to_lua(parsed[1])
@@ -87,7 +111,6 @@ local function properties_from_code(code, comment_start)
   return props
 end
 
--- Function to process code block attributes and options
 local function diagram_options(cb)
   local attribs = properties_from_code(cb.text, '%%')
   for key, value in pairs(cb.attributes) do
@@ -105,7 +128,6 @@ local function diagram_options(cb)
     if attr_name == 'alt' then
       alt = value
     elseif attr_name == 'caption' then
-      -- Read caption attribute as Markdown
       caption = pandoc.read(value, 'markdown').blocks
     elseif attr_name == 'filename' then
       filename = value
@@ -118,7 +140,6 @@ local function diagram_options(cb)
     elseif attr_name == 'name' then
       fig_attr.name = value
     elseif attr_name ~= 'fig-attr' then
-      -- Check for prefixed attributes
       local prefix, key = attr_name:match '^(%a+)%-(%a[-%w]*)$'
       if prefix == 'fig' then
         fig_attr[key] = value
@@ -127,7 +148,6 @@ local function diagram_options(cb)
       elseif prefix == 'opt' then
         user_opt[key] = value
       else
-        -- Use as image attribute
         image_attr[attr_name] = value
       end
     end
@@ -143,33 +163,9 @@ local function diagram_options(cb)
   }
 end
 
--- Function to get cached image
-local function get_cached_image(hash, options)
-  if not image_cache then
-    return nil
-  end
-  -- Include options in the hash to ensure cache invalidation when options change
-  local cache_key = pandoc.sha1(hash .. stringify(options))
-  local filename = cache_key .. '.svg' -- We will use SVG output
-  local imgpath = pandoc.path.join { image_cache, filename }
-  return read_file(imgpath)
-end
+-- ── Compilation ───────────────────────────────────────────────────────────────
 
--- Function to cache image
-local function cache_image(hash, options, imgdata)
-  -- Do nothing if caching is disabled or not possible.
-  if not image_cache then
-    return
-  end
-  local cache_key = pandoc.sha1(hash .. stringify(options))
-  local filename = cache_key .. '.svg'
-  local imgpath = pandoc.path.join { image_cache, filename }
-  write_file(imgpath, imgdata)
-end
-
--- Function to compile TikZ code to SVG
 local function compile_tikz_to_svg(code, user_opts, conf, basename)
-  -- Ensure required dependencies are available
   if not check_dependency('latex') then
     error("latex not found. Please install LaTeX to compile TikZ diagrams.")
   end
@@ -179,14 +175,11 @@ local function compile_tikz_to_svg(code, user_opts, conf, basename)
 
   local function process_in_dir(dir)
     return with_working_directory(dir, function()
-      -- Define file names:
-      -- Use the provided basename or default to "tikz-image"
       local base_filename = basename or "tikz-image"
-      local tikz_file = base_filename .. ".tex"
-      local dvi_file = base_filename .. ".dvi"
-      local svg_file = base_filename .. ".svg"
+      local tikz_file     = base_filename .. ".tex"
+      local dvi_file      = base_filename .. ".dvi"
+      local svg_file      = base_filename .. ".svg"
 
-      -- Build the LaTeX document
       local tikz_template = pandoc.template.compile [[
 \documentclass[dvisvgm,tikz]{standalone}
 $additional-packages$
@@ -197,7 +190,7 @@ $endfor$
 $body$
 \end{document}
       ]]
-      local meta = {
+      local meta          = {
         ['header-includes'] = { pandoc.RawInline(
           'latex',
           stringify(user_opts['header-includes'] or '')
@@ -207,59 +200,48 @@ $body$
           stringify(user_opts['additional-packages'] or '')
         ) },
       }
-      local tex_code = pandoc.write(
+      local tex_code      = pandoc.write(
         pandoc.Pandoc({ pandoc.RawBlock('latex', code) }, meta),
         'latex',
         { template = tikz_template }
       )
       write_file(tikz_file, tex_code)
 
-      -- Execute the LaTeX compiler (DVI mode — no Ghostscript dependency for dvisvgm):
-      local success, latex_result = pcall(
-        pandoc.pipe,
-        'latex',
-        { '-interaction=nonstopmode', tikz_file },
-        ''
+      -- DVI mode: no Ghostscript dependency for dvisvgm
+      local ok, latex_err = pcall(
+        pandoc.pipe, 'latex', { '-interaction=nonstopmode', tikz_file }, ''
       )
-      if not success then
-        local log_file = base_filename .. ".log"
-        local log_content = read_file(log_file) or ""
+      if not ok then
+        local log_content = read_file(base_filename .. ".log") or ""
         error("Error compiling TikZ figure '" .. base_filename .. "':\n" ..
-          tostring(latex_result) .. "\nLaTeX Log:\n" .. log_content ..
+          tostring(latex_err) .. "\nLaTeX Log:\n" .. log_content ..
           "\nTikZ Code:\n" .. code)
       end
 
-      -- Convert DVI to SVG using dvisvgm (ships with TeX Live, no Ghostscript needed)
-      local args = {
-        '--no-fonts',
-        '--output=' .. svg_file,
-      }
+      local args = { '--no-fonts', '--output=' .. svg_file }
       if user_opts['zoom'] then
         table.insert(args, '--zoom=' .. user_opts['zoom'])
       end
       table.insert(args, dvi_file)
-      local success_dvisvgm, dvisvgm_result = pcall(pandoc.pipe, 'dvisvgm', args, '')
-      if not success_dvisvgm then
-        error("Error converting PDF to SVG for TikZ figure '" .. base_filename .. "':\n" ..
-          tostring(dvisvgm_result) .. "\nTikZ Code:\n" .. code)
+      local ok_svg, svg_err = pcall(pandoc.pipe, 'dvisvgm', args, '')
+      if not ok_svg then
+        error("Error converting DVI to SVG for TikZ figure '" .. base_filename .. "':\n" ..
+          tostring(svg_err) .. "\nTikZ Code:\n" .. code)
       end
 
-      -- Read the SVG file
       local imgdata = read_file(svg_file)
       if not imgdata then
-        error("Failed to read generated SVG file for TikZ figure '" .. base_filename .. "'.\nTikZ Code:\n" .. code)
+        error("Failed to read generated SVG file for TikZ figure '" .. base_filename ..
+          "'.\nTikZ Code:\n" .. code)
       end
       return imgdata
     end)
   end
 
   if conf.save_tex then
-    local dir = conf.tex_dir
-    -- Use the basename or hash to create a subdirectory
-    local subdir_name = basename or pandoc.sha1(code)
-    local diagram_dir = pandoc.path.join { dir, subdir_name }
-    pandoc.system.make_directory(diagram_dir, true)
-    return process_in_dir(diagram_dir)
+    local subdir = pandoc.path.join { conf.tex_dir, basename or pandoc.sha1(code) }
+    pandoc.system.make_directory(subdir, true)
+    return process_in_dir(subdir)
   else
     return with_temporary_directory("tikz", function(tmpdir)
       return process_in_dir(tmpdir)
@@ -267,17 +249,12 @@ $body$
   end
 end
 
--- Function to process code blocks and generate figures
+-- ── Filter ────────────────────────────────────────────────────────────────────
+
 local function code_to_figure(conf)
   return function(block)
-    if block.t ~= 'CodeBlock' then
-      return nil
-    end
-
-    -- Check if it's a TikZ code block
-    if not block.classes:includes('tikz') then
-      return nil
-    end
+    if block.t ~= 'CodeBlock' then return nil end
+    if not block.classes:includes('tikz') then return nil end
 
     -- For LaTeX output, embed tikz code directly instead of pre-rendering to SVG
     if quarto.doc.is_format('latex') then
@@ -285,100 +262,57 @@ local function code_to_figure(conf)
       return pandoc.RawBlock('latex', code)
     end
 
-    -- Get options from code block
-    local dgr_opt = diagram_options(block)
-
-    -- Get basename for file naming
+    local dgr_opt  = diagram_options(block)
     local basename = dgr_opt.filename or pandoc.sha1(block.text)
+    local fname    = basename .. '.svg'
 
-    -- Use the block's filename attribute or create a new name by hashing the image content.
-    local fname = basename .. '.svg'
-
-    -- Write SVG to disk instead of mediabag: Quarto rewrites mediabag srcs
-    -- after the lightbox filter runs, causing href/src mismatches.
-    -- Quarto relativizes output-dir from the project root to the chapter dir.
-    local tikz_dir = conf.output_dir
-
-    -- Check if image is cached
-    local hash = block.text
-    local imgdata = nil
-    if conf.cache then
-      imgdata = get_cached_image(hash, dgr_opt.opt)
-    end
+    -- Try cache first, then compile, then fall back to an existing on-disk file.
+    local imgdata = conf.cache and get_cached_image(block.text, dgr_opt.opt)
 
     if not imgdata then
-      -- No cached image; compile TikZ code
-      local success, result = pcall(function()
-        return compile_tikz_to_svg(block.text, dgr_opt.opt, conf, basename)
-      end)
-      if not success or not result then
-        -- Compilation failed (e.g. pdflatex/inkscape not installed); fall back
-        -- to the on-disk SVG so CI can use pre-committed files without the tools.
-        imgdata = read_file(tikz_dir .. '/' .. fname)
+      local ok, result = pcall(compile_tikz_to_svg, block.text, dgr_opt.opt, conf, basename)
+      if ok and result then
+        imgdata = result
+        cache_image(block.text, dgr_opt.opt, imgdata)
+      else
+        -- Fall back to a previously compiled SVG in the source tree so that a
+        -- local render without the LaTeX toolchain can still succeed.
+        imgdata = read_file(conf.source_dir .. '/' .. fname)
         if imgdata then
           quarto.log.warning("TikZ figure '" .. basename .. "': using existing file (compilation unavailable)")
         else
-          quarto.log.error("Error compiling TikZ figure '" .. basename .. "': " .. tostring(result))
-          return nil -- Return the original block unchanged
+          error("Error compiling TikZ figure '" .. basename .. "': " .. tostring(result))
         end
-      else
-        imgdata = result
-        cache_image(hash, dgr_opt.opt, imgdata)
       end
     end
 
-    pandoc.system.make_directory(tikz_dir, true)
-    write_file(tikz_dir .. '/' .. fname, imgdata)
+    -- Write to the book output directory so the rendered HTML can load the file.
+    pandoc.system.make_directory(conf.write_dir, true)
+    write_file(conf.write_dir .. '/' .. fname, imgdata)
 
     local img_path = conf.img_path_prefix .. fname
-
-    -- Create the image object.
     local image = pandoc.Image(dgr_opt.alt, img_path, "", dgr_opt['image-attr'])
 
-    -- Create a figure if the diagram has a caption; otherwise return just the image.
     return dgr_opt.caption and
-        pandoc.Figure(
-          pandoc.Plain { image },
-          dgr_opt.caption,
-          dgr_opt['fig-attr']
-        ) or
+        pandoc.Figure(pandoc.Plain { image }, dgr_opt.caption, dgr_opt['fig-attr']) or
         pandoc.Plain { image }
   end
 end
 
--- Function to configure the filter based on metadata and format
 local function configure(meta)
-  local conf = meta.tikz or {}
-  meta.tikz = nil -- Remove tikz metadata to avoid processing it further
+  local conf         = meta.tikz or {}
+  meta.tikz          = nil -- prevent further processing of tikz metadata
 
-  -- cache for image files
-  if conf.cache == true then
-    image_cache = conf['cache-dir']
-        and stringify(conf['cache-dir'])
-        or cachedir()
-    if image_cache then
-      pandoc.system.make_directory(image_cache, true)
-    end
-  else
-    image_cache = nil
-  end
+  local cache_active = init_cache(conf)
 
-  -- Handle save-tex option
-  local save_tex = conf['save-tex'] or false
-  local tex_dir = nil
+  local save_tex     = conf['save-tex'] or false
+  local tex_dir      = nil
   if save_tex then
-    if image_cache then
-      -- Both cache and save-tex are enabled; raise a warning and disable save-tex
+    if cache_active then
       quarto.log.warning("Both 'cache' and 'save-tex' are enabled. Disabling 'save-tex' since caching is active.")
       save_tex = false
     else
-      tex_dir = conf['tex-dir']
-      if tex_dir then
-        tex_dir = pandoc.utils.stringify(tex_dir)
-      else
-        -- Use a default directory, e.g., 'tikz-tex'
-        tex_dir = 'tikz-tex'
-      end
+      tex_dir = stringify(conf['tex-dir'] or 'tikz-tex')
       pandoc.system.make_directory(tex_dir, true)
     end
   end
@@ -387,34 +321,55 @@ local function configure(meta)
       and stringify(conf['output-dir'])
       or 'tikz-output'
   local project_dir = os.getenv('QUARTO_PROJECT_DIR') or ''
-  -- Build the image src prefix relative to the chapter dir.
-  -- QUARTO_DOCUMENT_PATH is the chapter directory; use it rather than CWD since
-  -- CWD may be the project root (not the chapter dir) during a full book render.
+  -- QUARTO_DOCUMENT_PATH is the chapter *directory* (confirmed by inspection).
   local doc_dir = os.getenv('QUARTO_DOCUMENT_PATH') or system.get_working_directory()
-  -- Quarto sometimes adjusts rel_output_dir to be relative to the chapter dir
-  -- (e.g. "fig/tikz" → "../fig/tikz"). Detect this by a leading ".." and
-  -- resolve from doc_dir; otherwise use the original project_dir join.
-  local output_dir
-  if pandoc.path.is_absolute(rel_output_dir) then
-    output_dir = rel_output_dir
-  elseif rel_output_dir:match('^%.%.') then
-    output_dir = pandoc.path.normalize(pandoc.path.join { doc_dir, rel_output_dir })
-  elseif project_dir ~= '' then
-    output_dir = pandoc.path.join { project_dir, rel_output_dir }
-  else
-    output_dir = rel_output_dir
+
+  -- Quarto may pass output-dir as chapter-relative (e.g. "../fig/tikz") even though
+  -- _quarto.yml specifies it project-relative ("fig/tikz").
+  -- Strip any leading "../" to recover the project-relative form.
+  -- NOTE: pandoc.path.normalize does NOT resolve ".." on all platforms, so we
+  -- must strip manually rather than relying on normalise(doc_dir + rel_output_dir).
+  local proj_rel_output_dir = rel_output_dir
+  while proj_rel_output_dir:match('^%.%./') do
+    proj_rel_output_dir = proj_rel_output_dir:sub(4)
   end
+
+  local source_dir
+  if pandoc.path.is_absolute(rel_output_dir) then
+    source_dir = rel_output_dir
+  elseif project_dir ~= '' then
+    source_dir = pandoc.path.join { project_dir, proj_rel_output_dir }
+  else
+    source_dir = proj_rel_output_dir
+  end
+
+  -- depth: directory levels from the chapter source dir to the project root.
   local chapter_rel = project_dir ~= '' and doc_dir:sub(#project_dir + 2) or ''
   local depth = 0
   for _ in chapter_rel:gmatch('[^/\\]+') do depth = depth + 1 end
-  local img_path_prefix = string.rep('../', depth) .. rel_output_dir .. '/'
+  local img_path_prefix = string.rep('../', depth) .. proj_rel_output_dir .. '/'
+
+  -- write_dir: where SVGs must land so the rendered HTML can load them.
+  -- Walk up `depth` levels from the HTML output file's directory to reach _book,
+  -- then append the project-relative output dir.
+  -- Falls back to source_dir when quarto.doc.output_file is unavailable.
+  local write_dir = source_dir
+  local output_file = quarto.doc.output_file
+  if output_file then
+    local html_dir = pandoc.path.directory(output_file)
+    local book_root = html_dir
+    for _ = 1, depth do
+      book_root = pandoc.path.directory(book_root)
+    end
+    write_dir = pandoc.path.join { book_root, proj_rel_output_dir }
+  end
 
   return {
-    cache = image_cache and true,
-    image_cache = image_cache,
-    save_tex = save_tex,
-    tex_dir = tex_dir,
-    output_dir = output_dir,
+    cache           = cache_active,
+    save_tex        = save_tex,
+    tex_dir         = tex_dir,
+    source_dir      = source_dir,
+    write_dir       = write_dir,
     img_path_prefix = img_path_prefix,
   }
 end

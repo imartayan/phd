@@ -1,7 +1,5 @@
 project:
   type: book
-  resources:
-    - fig/tikz/**
 
 book:
   title: "Locality-preserving representation of k‑mer sets"
