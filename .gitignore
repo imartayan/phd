@@ -6,7 +6,7 @@
 /.luarc.json
 /.luacheckrc
 **/.quarto
-**/*.quarto_ipynb
+**/*.quarto_ipynb*
 **/.jupyter_cache
 **/figure-latex
 /fig/tikz
