@@ -16,6 +16,39 @@ Intro: what information are we okay to give up in order to speed up comparisons 
 - application to error correction and assembly
 - compact representations: unitigs, SPSS
 
+:::{#fig-example-dbg}
+
+```{.tikz}
+%%| filename: example-dbg
+%%| opt-zoom: 1.5
+
+\usetikzlibrary{positioning}
+\usetikzlibrary{arrows.meta}
+
+\tikzset{
+    >=latex,
+    every edge/.style={draw, ultra thick},
+    every node/.style={thick, font=\small\sffamily},
+    node/.style={draw, rounded corners=1mm},
+}
+\definecolor{good}{HTML}{4db6ac}
+
+\begin{tikzpicture}[node distance=1cm and 1cm]
+    \node (CTA) [node] {CTA};
+    \node (TAA) [node, right=of CTA] {TAA};
+    \node (AAG) [node, above right=of TAA] {AAG};
+    \node (AGA) [node, above right=of AAG] {AGA};
+    \node (GAA) [node, above left=of AAG] {GAA};
+    \node (AGG) [node, below right=of AAG] {AGG};
+    \node (GGT) [node, right=of AGG] {GGT};
+    \draw[->, good] (CTA) edge (TAA) (TAA) edge (AAG) (AAG) edge (AGG) (AGG) edge (GGT);
+    \draw[->, good, bend right, looseness=.7] (AAG) edge (AGA) (AGA) edge (GAA) (GAA) edge (AAG);
+\end{tikzpicture}
+```
+
+Example of a small de Bruijn graph for *k = 3*, built from the sequence CTAAGAAGGT.
+:::
+
 ## Using /kmers for scalable data structures
 
 - petabase-scale indexes
