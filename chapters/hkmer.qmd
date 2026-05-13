@@ -325,6 +325,7 @@ For clarity, we omit some details, such as how KFC handles subsequences in /hkme
 #| html-indent-lines: true
 #| html-line-number: false
 #| html-comment-delimiter: "//"
+#| pdf-placement: "htb!"
 #| pdf-line-number: false
 #| pdf-no-end: true
 #| pdf-indent-lines: true
@@ -403,8 +404,29 @@ For clarity, we omit some details, such as how KFC handles subsequences in /hkme
     \EndFor
     \State \Return \texttt{sk\_count}, \texttt{hk\_count}, \texttt{hk\_parts}
 \EndFunction
-\State{$\quad$}
+\end{algorithmic}
+```
 
+KFC's two-pass /kmer counting algorithm using /hkmers.
+:::
+
+:::{#alg-kfc-aux}
+
+```pseudocode
+#| html-no-end: true
+#| html-indent-lines: true
+#| html-line-number: false
+#| html-comment-delimiter: "//"
+#| pdf-placement: "htb!"
+#| pdf-line-number: false
+#| pdf-no-end: true
+#| pdf-indent-lines: true
+#| pdf-italic-comment: true
+#| pdf-right-comment: true
+#| pdf-comment-color: "darkgray"
+#| pdf-comment-delimiter: "//"
+
+\begin{algorithmic}
 \Function{IsSolid}{\texttt{sk\_count}, \texttt{sk}, $t$}
 \Comment{checks if a super-k-mer has reached threshold $t$}
     \State \texttt{mini} $\gets$ minimizer of \texttt{sk}
@@ -440,7 +462,7 @@ For clarity, we omit some details, such as how KFC handles subsequences in /hkme
 \end{algorithmic}
 ```
 
-KFC's two-pass /kmer counting algorithm using /hkmers.
+KFC's auxiliary functions.
 :::
 
 ## Experiments {#sec-kfc-evaluation}
