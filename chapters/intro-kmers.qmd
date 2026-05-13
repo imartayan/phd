@@ -1,7 +1,22 @@
 # Comparing using k‑mers {#sec-intro-kmers}
 
-TBA
+Intro: what information are we okay to give up in order to speed up comparisons / gain space
 
-- a quick history of dBGs and /kmer methods
-- comparison with full-text indexes
-- common use cases: abundance, correction, assembly, mapping...
+## Coarse-grained comparisons with /kmers
+
+- alternative to bp-level comparison of full-text indices
+- naturally lead to data structures based on lookup tables (for small kmers) or hash maps (for bigger ones)
+- in our applications, we mostly use $k \in [20, 70]$, leading to pretty sparse /kmer sets
+- notion of /kmer spectra, characterizing a sequence
+- when coupled with abundance, it can help to identify erroneous /kmers or different haplotypes
+
+## De Bruijn graph representation
+
+- definition, sequence as path
+- application to error correction and assembly
+- compact representations: unitigs, SPSS
+
+## Using /kmers for scalable data structures
+
+- petabase-scale indexes
+- colored compacted dBGs
