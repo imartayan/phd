@@ -167,7 +167,7 @@ This approach results in a better space-accuracy tradeoff compared to existing M
 
 Ongoing work by @dothash-all-vs-all aims to adapt DotHash for large-scale all-vs-all comparisons of metagenomes.
 
-### SubSeqSketch for edit distance
+### SubseqSketch for edit distance
 
 Recent results by @subsetsketch focus on estimating the edit distance between two sequences without having to use an expensive alignment algorithm.
 Their approach, named SubseqSketch, relies on (non-contiguous) *subsequences* rather than /kmers, and keeps track of their longest prefix match with respect to multiple random references.
