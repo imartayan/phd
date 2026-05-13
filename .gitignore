@@ -9,7 +9,6 @@
 **/*.quarto_ipynb*
 **/.jupyter_cache
 **/figure-latex
-/fig/tikz
 
 chapters/*.html
 
