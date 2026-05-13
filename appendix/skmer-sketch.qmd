@@ -172,7 +172,7 @@ In order to compute the proportion of maximal /skmers, we adapt the proof of the
     >=latex,
     every edge/.style={draw, ultra thick},
     every node/.style={thick, font=\small},
-    node/.style={circle, draw},
+    node/.style={circle, draw, fill=white},
 }
 \definecolor{good}{HTML}{4db6ac}
 \definecolor{bad}{HTML}{f06292}
