@@ -169,4 +169,9 @@ Ongoing work by @dothash-all-vs-all aims to adapt DotHash for large-scale all-vs
 
 ### SubSeqSketch for edit distance
 
+Recent results by @subsetsketch focus on estimating the edit distance between two sequences without having to use an expensive alignment algorithm.
+Their approach, named SubseqSketch, relies on (non-contiguous) *subsequences* rather than /kmers, and keeps track of their longest prefix match with respect to multiple random references.
+The match lengths are then used to compute a cosine similarity that strongly correlates edit similarity.
+However, while this approach results in an improved sensitivity, it remains more expensive to compute than simple scans such as FracMinHash.
+
 ### Sequence reduction for mapping and assembly
