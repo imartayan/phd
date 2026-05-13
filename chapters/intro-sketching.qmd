@@ -143,8 +143,30 @@ $$
 
 ## Other types of sketches
 
-### SimHash and filters for set membership
+The sketching methods that we presented so far all have in common that they sample /kmer hashes to estimate Jaccard similarity, but many other families of sketches have been designed with different goals in mind [@survey-hashing-seq].
+In this section, I will cover three of them that I find especially promising.
 
-### DotHash for intersection
+### DotHash for intersection size
+
+DotHash [@dothash] takes a different approach than MinHash-like sketches: rather that sampling a subsets of /kmers and storing their hash, it computes a random projection for every /kmer and aggregates *all of them* in a vector of fixed dimension $d$.
+Note that $d$ is independent of the size $n$ of the /kmer set but the precision required for each aggregated component increases with $n$.
+
+A key property of DotHash is that it can efficiently estimate the intersection size of two sets $A$ and $B$ by computing the dot product of the corresponding sketch vectors.
+In particular, by computing the dot product of the vector of $A$ with itself, we obtain an estimator of the cardinality of $A$.
+Therefore, Jaccard similarity can be estimated as
+$$
+\widehat{J}(A, B) = \frac{S(A) \cdot S(B)}{S(A) \cdot S(A) + S(B) \cdot S(B) - S(A) \cdot S(B)}
+$$
+
+However, DotHash has a major drawback: it only works on deduplicated /kmer sets and cannot easily detect duplicates since the vectors are aggregated.
+In particular, if a given /kmer has $c_A$ occurrences in $A$ and $c_B$ in $B$, it will be counted $c_A \times c_B$ times in their dot product, leading to an overestimated intersection size.
+Thus, DotHash is suitable on repeat-free sequence such as unitigs, but cannot be directly used on arbitrary sequences.
+
+HyperGen [@hypergen] addresses this limitation by combining DotHash with FracMinHash sampling to sparsify and deduplicate its input.
+This approach results in a better space-accuracy tradeoff compared to existing MinHash-based tools, and is suitable for hardware acceleration.
+
+Ongoing work by @dothash-all-vs-all aims to adapt DotHash for large-scale all-vs-all comparisons of metagenomes.
+
+### SubSeqSketch for edit distance
 
 ### Sequence reduction for mapping and assembly
