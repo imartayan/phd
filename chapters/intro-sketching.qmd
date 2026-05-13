@@ -28,7 +28,7 @@ Thus, instead of working with the original sets, we sample them into smaller ske
 @fig-jaccard-mash illustrate this idea for "bottom MinHash" sketching that we present in the next section.
 
 :::{#fig-jaccard-mash}
-![](https://media.springernature.com/full/springer-static/image/art%3A10.1186%2Fs13059-016-0997-x/MediaObjects/13059_2016_997_Fig1_HTML.gif?as=webp)
+![](../fig/intro/jaccard-mash.png){width=60%}
 
 Overview of Jaccard similarity and how bottom MinHash can approximate it, from @mash.
 Dots filled in blue represent the sketch of $A$, while those filled in red represent the sketch of $B$ and crosses indicate the sketch of $A \cup B$.
