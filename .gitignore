@@ -11,6 +11,8 @@
 **/figure-latex
 /fig/tikz
 
+chapters/*.html
+
 *.aux
 *.bbl
 *.bcf
