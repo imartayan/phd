@@ -45,7 +45,7 @@ Intro: what information are we okay to give up in order to speed up comparisons 
 \end{tikzpicture}
 ```
 
-Example of a small de Bruijn graph for *k = 3*, built from the sequence CTAAGAAGGT.
+Example of a small de Bruijn graph for *k = 3*, built from the sequence `CTAAGAAGGT`.
 :::
 
 ## Using /kmers for scalable data structures
