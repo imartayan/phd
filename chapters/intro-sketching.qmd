@@ -57,7 +57,7 @@ $$
 S(A) = (\min_{x \in A} h_1(x), \dots, \min_{x \in A} h_s(x)) \\
 \widehat{J}(A, B) = \frac{1}{s} \sum_{i=1}^{s} \mathbf{1}_{h_i(A) = h_i(B)}
 $$
-This estimator is still unbiased and its standard deviation decreases in $\mathcal{O}\!\left( \frac{1}{\sqrt{s}} \right)$.
+This estimator is still unbiased and its standard deviation is proportional to $1 / \sqrt{s}$.
 
 ### Bottom MinHash
 
