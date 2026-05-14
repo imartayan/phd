@@ -144,7 +144,7 @@ $$
 ## Other types of sketches
 
 The sketching methods that we presented so far all have in common that they sample /kmer hashes to estimate Jaccard similarity, but many other families of sketches have been designed with different goals in mind [@survey-hashing-seq].
-In this section, I will cover three of them that I find especially promising.
+In this section, I will cover some that I find especially promising.
 
 ### DotHash for intersection size
 
