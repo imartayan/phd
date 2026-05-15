@@ -72,7 +72,7 @@ $$
 \widehat{J}(A, B) = \frac{|S(A \cup B) \cap S(A) \cap S(B)|}{|S(A \cup B)|}
 $$
 where $S(A)$ denotes the set of the $s$ smallest hashes in $A$.
-This approach has been used in Mash [@mash] to define a distance approximating ANI for genomes and metagenomes.
+This approach has been used in Mash [@mash] to define a distance approximating ANI for genomes and metagenomes, and is illustrated in @fig-jaccard-mash.
 
 ### FracMinHash
 
