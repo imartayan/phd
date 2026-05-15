@@ -14,7 +14,7 @@ It's often difficult to grasp how much information this represents, so let's try
 A typical novel contains roughly 80,000 words, or 500,000 characters, and is ~3cm wide.
 Thus, a single human genome would require 6400 books, enough to fill a 100m long bookshelf!
 
-Given this amount of information, we soon realize that any kind of manual analysis would require years of efforts^[note on manual sequencing effort at Cambridge?], so we definitely want some form of automation.
+Given this amount of information, we soon realize that any kind of manual analysis would take years of effort^[Sanger's early sequencing work required reading gel fragments by hand, even for genomes as small as bacteriophages [@sanger].], so we definitely want some form of automation.
 This is where sequencing technologies come into play, by turning DNA samples into a signal that we can feed to computers.
 However, current sequencers are not able to read entire chromosomes in one go, so the DNA is fragmented and sequenced into millions of *reads* with partial information.
 Moreover, sequencers regularly make errors by inserting, deleting or modifying nucleotides, resulting in inaccurate reads.
