@@ -14,7 +14,7 @@ It's often difficult to grasp how much information this represents, so let's try
 A typical novel contains roughly 80,000 words, or 500,000 characters, and is ~3cm wide.
 Thus, a single human genome would require 6400 books, enough to fill a 100m long bookshelf!
 
-With this amount of information, we quickly realize that any kind of manual analysis would require years of efforts^[note on manual sequencing effort at Cambridge?], so we definitely want some form of automation.
+Given this amount of information, we soon realize that any kind of manual analysis would require years of efforts^[note on manual sequencing effort at Cambridge?], so we definitely want some form of automation.
 This is where sequencing technologies come into play, by turning DNA samples into a signal that we can feed to computers.
 However, current sequencers are not able to read entire chromosomes in one go, so the DNA is fragmented and sequenced into millions of *reads* with partial information.
 Moreover, sequencers regularly make errors by inserting, deleting or modifying nucleotides, resulting in inaccurate reads.
@@ -23,7 +23,7 @@ Modern sequencing technologies are divided in two main categories.
 *Short-read* sequencers, most notably Illumina, produce reads of 100--300 base pairs with a low cost per base and error rates below 0.5%.
 *Long-read* sequencers from Oxford Nanopore Technologies (ONT) and Pacific Biosciences (PacBio) generate reads of thousands to hundreds of thousands of base pairs, at the cost of higher error rates (0.5--5%) and lower throughput.
 
-After sequencing, we're left with lots of noisy reads which are completely unorganized, so we'd like to correct their errors and recover their original arrangement.
+After sequencing, we're left with a large collection of noisy reads which are completely unorganized, so we'd like to correct their errors and recover their original arrangement.
 Going back to the book analogy, we have many excerpts spanning a couple sentences (for short reads) or a couple pages (for long reads) that contain lots of typos.
 Some typos are easy to catch because they create fake words, like "sky" becoming "skt".
-But some others are much harder to grasp and might have undesired effects, like turning a friend into a fiend.
+But some others are far more vicious, like turning a friend into a fiend.
