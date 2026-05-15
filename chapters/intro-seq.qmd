@@ -24,5 +24,5 @@ Modern sequencing technologies are divided in two main categories.
 *Long-read* sequencers from Oxford Nanopore Technologies (ONT) and Pacific Biosciences (PacBio) generate reads of thousands to hundreds of thousands of base pairs, at the cost of higher error rates (0.5--5%) and lower throughput.
 
 After sequencing, we're left with a large collection of noisy reads which are completely unorganized, so we'd like to correct their errors and recover their original arrangement.
-Going back to the book analogy, we have many excerpts spanning a couple sentences (for short reads) or a couple pages (for long reads) that contain lots of typos.
-Some typos are easy to catch because they create fake words, like "sky" becoming "skt", but others are more insidious and could a friend into a fiend.
+Going back to the book analogy, we would have many excerpts spanning a couple sentences (for short reads) or a couple pages (for long reads) that contain lots of typos.
+Some typos are easy to catch because they create fake words, like "sky" becoming "skt", but others are more insidious and could turn a friend into a fiend.
