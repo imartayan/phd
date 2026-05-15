@@ -11,8 +11,8 @@ As you probably know, it contains four nucleotides: adenine (`A`) pairing with t
 A genome is the complete set of DNA of an organism, stored across one or multiple chromosomes.
 The human genome, for instance, spans roughly 3.2 billion base pairs distributed across 23 chromosome pairs.
 It's often difficult to grasp how much information this represents, so let's try to imagine what this would amount to when printed as books.
-A typical novel contains roughly 80,000 words, or 500,000 characters, and is ~3cm wide.
-Thus, a single human genome would require 6400 books, enough to fill a 100m long bookshelf!
+A typical novel contains roughly 80,000 words, or 500,000 characters, and is approximately 3cm wide.
+Thus, a single human genome would require 6400 books, enough to fill a 200m long bookshelf!
 
 Given this amount of information, we soon realize that any kind of manual analysis would take years of effort^[Sanger's early sequencing work required reading gel fragments by hand, even for genomes as small as bacteriophages [@sanger].], so we definitely want some form of automation.
 This is where sequencing technologies come into play, by turning DNA samples into a signal that we can feed to computers.
@@ -25,5 +25,4 @@ Modern sequencing technologies are divided in two main categories.
 
 After sequencing, we're left with a large collection of noisy reads which are completely unorganized, so we'd like to correct their errors and recover their original arrangement.
 Going back to the book analogy, we have many excerpts spanning a couple sentences (for short reads) or a couple pages (for long reads) that contain lots of typos.
-Some typos are easy to catch because they create fake words, like "sky" becoming "skt".
-But some others are far more vicious, like turning a friend into a fiend.
+Some typos are easy to catch because they create fake words, like "sky" becoming "skt", but others are more insidious and could a friend into a fiend.
