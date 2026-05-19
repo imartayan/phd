@@ -23,7 +23,7 @@ For this reason, *k* is usually restricted to odd values to avoid the degenerate
 One immediate observation about the /kmer set of a sequence is that two /kmers at successive positions always overlap by exactly $k-1$ bases.
 From this arises the *de Bruijn graph* (DBG) representation, where each node corresponds to a /kmer and a directed edge from $x$ to $y$ exists whenever $x[1:k] = y[0:k-1]$, i.e. $x$ and $y$ overlap by $k-1$ bases.
 In this setting, any sequence corresponds to a path in the DBG, as illustrated in @fig-example-dbg.
-This representation can however lead to ambiguities in the presence of repeats: in @fig-example-dbg, the sequences `CTAAGAAGGT` and `CTAAGAAGAAGGT` would produce the exact same graph.
+This representation can however lead to ambiguities in the presence of repeats: for instance, `CTAAGAAGGT`, `CTAAGAAGAAGGT` and `CTAAGAAGAAGAAGGT` all correspond to the graph in @fig-example-dbg for *k = 3*.
 
 - definition, sequence as path
 - when coupled with abundance, it can help to identify erroneous /kmers or different haplotypes (red/blue/purple)
@@ -61,6 +61,45 @@ This representation can however lead to ambiguities in the presence of repeats: 
 ```
 
 Example of a small de Bruijn graph for *k = 3*, built from the sequence `CTAAGAAGGT`.
+:::
+
+:::{#fig-example-dbg-bubble}
+
+```{.tikz}
+%%| filename: example-dbg-bubble
+%%| opt-zoom: 1.5
+
+\usetikzlibrary{positioning}
+\usetikzlibrary{arrows.meta}
+
+\tikzset{
+    >=Latex,
+    every edge/.style={draw, ultra thick},
+    every node/.style={draw, thick, rounded corners=1mm, fill=white, font=\small\sffamily},
+}
+\definecolor{good}{HTML}{4db6ac}
+\definecolor{bad}{HTML}{f06292}
+
+\begin{tikzpicture}[node distance=8mm and 8mm]
+    \node (TCT) {TCT};
+    \node (CTA) [right=of TCT] {CTA};
+    \node (TAA) [above right=of CTA] {TAA};
+    \node (AAG) [right=of TAA] {AAG};
+    \node (AGG) [right=of AAG] {AGG};
+    \node (TAC) [below right=of CTA] {TAC};
+    \node (ACG) [right=of TAC] {ACG};
+    \node (CGG) [right=of ACG] {CGG};
+    \node (GGT) [below right=of AGG] {GGT};
+    \node (GTT) [right=of GGT] {GTT};
+    \draw[->, good] (CTA) edge (TAA) (TAA) edge (AAG) (AAG) edge (AGG) (AGG) edge (GGT);
+    \draw[->, bad] (CTA) edge (TAC) (TAC) edge (ACG) (ACG) edge (CGG) (CGG) edge (GGT);
+    \draw[->, good, >={Latex[left]}, transform canvas={yshift=0.8pt}] (TCT) edge (CTA) (GGT) edge (GTT);
+    \draw[->, bad, >={Latex[right]}, transform canvas={yshift=-0.8pt}] (TCT) edge (CTA) (GGT) edge (GTT);
+
+\end{tikzpicture}
+```
+
+De Bruijn graph for *k = 3* of the sequences `TCTAAGGTT` and `TCTACGGTT`, each highlighted in a distinct color.
 :::
 
 :::{#fig-dbg-ssna1}
