@@ -1,19 +1,29 @@
 # Comparing using k‑mers {#sec-intro-kmers}
 
-Intro: what information are we okay to give up in order to speed up comparisons / gain space
+In contrast to full-text methods such as the Burrows-Wheeler Transform (BWT) [@bwt;@fm-index], which aim to losslessly represent the original sequence while enabling more operations, we can often afford to loose some information on a sequence if this allows us to reduce its memory footprint or speed up comparisons.
+In this thesis, we will not cover full-text representations, and will focus on representing substrings of fixed-size *k*, or /kmers.
+In particular, we will often see sequences as *sets* of /kmers, without accounting for their positions or number of occurrences.
 
 ## Coarse-grained comparisons with /kmers
 
-- alternative to bp-level comparison of full-text indices
-- naturally lead to data structures based on lookup tables (for small kmers) or hash maps (for bigger ones)
-- in our applications, we mostly use $k \in [20, 70]$, leading to pretty sparse /kmer sets
-- notion of /kmer spectra, characterizing a sequence
-- when coupled with abundance, it can help to identify erroneous /kmers or different haplotypes
+Intuitively, indexing /kmers allows comparisons at a granularity of at least *k* bases, rather than at the level of individual nucleotides.
+This immediately speeds up comparisons by short-circuiting the first *k* positions, but it also means that matches shorter than *k* cannot be identified.
+
+Working with fixed-size substrings naturally leads to fairly simple data structures.
+For small values of *k* (up to around 15), /kmer sets are typically dense enough in $\Sigma^k$ to use a plain lookup table.
+For larger *k*, however, the /kmer set of a sequence becomes much sparser in $\Sigma^k$, and hash tables are usually preferred instead.
+
+In the applications considered in this thesis, *k* typically ranges from 20 to 70, thus yielding sparse sets.
+Additionally, a /kmer and its reverse complement are often treated as equivalent, since sequencing methods do not tell us which DNA strand a read originates from.
+We therefore designate one of the two^[for instance by taking the lexicographically smallest] as a *canonical* representative.
+For this reason, *k* is usually restricted to odd values to avoid the degenerate case where a /kmer is its own reverse complement^[When *k* is odd, the middle base of a /kmer and its reverse-complement always differ.].
 
 ## De Bruijn graph representation
 
 - definition, sequence as path
+- when coupled with abundance, it can help to identify erroneous /kmers or different haplotypes
 - application to error correction and assembly
+- notion of /kmer spectra, characterizing a sequence
 - compact representations: unitigs, SPSS
 
 :::{#fig-example-dbg}
