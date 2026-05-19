@@ -1,4 +1,4 @@
-# Super‑k‑mer maps
+# Super‑*k*‑mer maps
 
 :::{.callout-note}
 This chapter is partially adapted from {{< longcite brisk >}}.

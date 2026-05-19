@@ -1,4 +1,4 @@
-# Comparing using k‑mers {#sec-intro-kmers}
+# Comparing using *k*‑mers {#sec-intro-kmers}
 
 In contrast to full-text methods such as the Burrows-Wheeler Transform (BWT) [@bwt;@fm-index], which aim to losslessly represent the original sequence while enabling more operations, we can often afford to loose some information on a sequence if this allows us to reduce its memory footprint or speed up comparisons.
 In this thesis, we will not cover full-text representations, and will focus on representing substrings of fixed-size *k*, or /kmers.
@@ -21,7 +21,7 @@ For this reason, *k* is usually restricted to odd values to avoid the degenerate
 ## De Bruijn graph representation
 
 - definition, sequence as path
-- when coupled with abundance, it can help to identify erroneous /kmers or different haplotypes
+- when coupled with abundance, it can help to identify erroneous /kmers or different haplotypes (red/blue/purple)
 - application to error correction and assembly
 - notion of /kmer spectra, characterizing a sequence
 - compact representations: unitigs, SPSS

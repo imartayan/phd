@@ -1,4 +1,4 @@
-# Experiments on hyper-k-mers {#sec-kfc-supplementary}
+# Experiments on hyper-*k*-mers {#sec-kfc-supplementary}
 
 ## Datasets {#sec-kfc-datasets}
 
