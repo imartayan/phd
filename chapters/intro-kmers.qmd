@@ -25,12 +25,6 @@ From this arises the *de Bruijn graph* (DBG) representation, where each node cor
 In this setting, any sequence corresponds to a path in the DBG, as illustrated in @fig-example-dbg.
 This representation can however lead to ambiguities in the presence of repeats: for instance, `CTAAGAAGGT`, `CTAAGAAGAAGGT` and `CTAAGAAGAAGAAGGT` all correspond to the graph in @fig-example-dbg for *k = 3*.
 
-- definition, sequence as path
-- when coupled with abundance, it can help to identify erroneous /kmers or different haplotypes (red/blue/purple)
-- application to error correction and assembly
-- notion of /kmer spectra, characterizing a sequence
-- compact representations: unitigs, SPSS
-
 :::{#fig-example-dbg}
 
 ```{.tikz}
@@ -62,6 +56,12 @@ This representation can however lead to ambiguities in the presence of repeats: 
 
 Example of a small de Bruijn graph for *k = 3*, built from the sequence `CTAAGAAGGT`.
 :::
+
+One of the key properties of DBGs is that they make small edits between similar sequences easy to spot.
+For instance, in @fig-example-dbg-bubble, substituting the last `A` with a `C` creates a *bubble* around the *k* /kmers affected by the substitution.
+When combined with the abundance of each /kmer, this allows erroneous /kmers in raw reads to be corrected, or different haplotypes to be distinguished within a genome.
+DBGs therefore prove particularly useful for genome assembly [@spades;@flye;@mdbg].
+@fig-dbg-ssna1 shows a more complex DBG for *k = 31* built from mRNA transcripts of SSNA1 gene, highlighting different exons identified in the graph.
 
 :::{#fig-example-dbg-bubble}
 
@@ -107,6 +107,12 @@ De Bruijn graph for *k = 3* of the sequences `TCTAAGGTT` and `TCTACGGTT`, each h
 
 De Bruijn graph for *k = 31* of [SSNA1](http://sg-nex-data.s3.amazonaws.com/data/sequencing_data_ont/fastq/SGNex_A549_directRNA_replicate5_run1/SGNex_A549_directRNA_replicate5_run1.fastq.gz) gene mRNA transcripts with 3 annotated exons, made by Bastien Degardins with Vizitig [@vizitig].
 :::
+
+- definition, sequence as path
+- when coupled with abundance, it can help to identify erroneous /kmers or different haplotypes (red/blue/purple)
+- application to error correction and assembly
+- notion of /kmer spectra, characterizing a sequence
+- compact representations: unitigs, SPSS
 
 ## Using /kmers for scalable data structures
 
