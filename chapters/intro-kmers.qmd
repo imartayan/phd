@@ -20,8 +20,8 @@ For this reason, *k* is usually restricted to odd values to avoid the degenerate
 
 ## De Bruijn graph representation
 
-One immediate observation about the /kmer set of a sequence is that two /kmers at successive positions always overlap by exactly $k-1$ bases.
-From this arises the *de Bruijn graph* (DBG) representation, where each node corresponds to a /kmer and a directed edge from $x$ to $y$ exists whenever $x[1:k] = y[0:k-1]$, i.e. $x$ and $y$ overlap by $k-1$ bases.
+One immediate observation about the /kmer set of a sequence is that two /kmers at successive positions always overlap by $k-1$ bases.
+From this arises the *de Bruijn graph* (DBG) representation, where each node corresponds to a /kmer and a directed edge from $x$ to $y$ exists whenever $x_2 \dots x_k = y_1 \dots y_{k-1}$.
 In this setting, any sequence corresponds to a path in the DBG, as illustrated in @fig-example-dbg.
 This representation can however lead to ambiguities in the presence of repeats: for instance, `CTAAGAAGGT`, `CTAAGAAGAAGGT` and `CTAAGAAGAAGAAGGT` all correspond to the graph in @fig-example-dbg for *k = 3*.
 
