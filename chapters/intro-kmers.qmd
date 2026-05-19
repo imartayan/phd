@@ -51,7 +51,7 @@ Example of a small de Bruijn graph for *k = 3*, built from the sequence `CTAAGAA
 :::{#fig-dbg-ssna1}
 ![](../fig/intro/dbg-ssna1)
 
-De Bruijn graph for *k = 31* of the [SSNA1](http://sg-nex-data.s3.amazonaws.com/data/sequencing_data_ont/fastq/SGNex_A549_directRNA_replicate5_run1/SGNex_A549_directRNA_replicate5_run1.fastq.gz) gene with 3 annotated exons, made by Bastien Degardins with Vizitig [@vizitig].
+De Bruijn graph for *k = 31* of [SSNA1](http://sg-nex-data.s3.amazonaws.com/data/sequencing_data_ont/fastq/SGNex_A549_directRNA_replicate5_run1/SGNex_A549_directRNA_replicate5_run1.fastq.gz) gene mRNA transcripts with 3 annotated exons, made by Bastien Degardins with Vizitig [@vizitig].
 :::
 
 ## Using /kmers for scalable data structures
