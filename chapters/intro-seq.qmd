@@ -1,11 +1,5 @@
 # Delving into genomic sequences {#sec-intro-seq}
 
-- what is DNA sequencing?
-- what is it used for?
-- sequencing archives (SRA, ENA, GenBank...)
-- main formats currently used (esp. FASTA, FASTQ...)
-- different approaches for comparison (alignment-based, alignment-free...)
-
 DNA, or deoxyribonucleic acid, is the molecule that carries the genetic information of living organisms.
 As you probably know, it contains four nucleotides: adenine (`A`) pairing with thymine (`T`), and cytosine (`C`) pairing with guanine (`G`).
 A genome is the complete set of DNA of an organism, stored across one or multiple chromosomes.
@@ -34,7 +28,7 @@ In practice, depending on the application, one may work either with a fully asse
 Both are typically stored in text-based formats: FASTA, which records a sequence identifier followed by the nucleotide sequence itself, and FASTQ, which additionally encodes a per-base quality score reflecting the sequencer's confidence at each position.
 
 A large share of these datasets, both raw reads and assembled genomes, are saved in public archives.
-The most prominent ones are the Sequence Read Archive (SRA), its European counterpart ENA, and GenBank.
+The most prominent ones include the Sequence Read Archive (SRA) and GenBank operated by NCBI in the US, and their European counterpart European Nucleotide Archive (ENA) operated by EMBL-EBI in the UK.
 Their size is growing at a staggering pace: SRA alone has surpassed 100 petabytes of data.
 In our book metric, this would correspond to more than 6km of books, enough to cover the distance from Earth to the Moon... 16 times!
 This exponential growth lies at the heart of the challenge we try to address: sequencing data is accumulating faster than our storage and computational capacity can keep up with.
