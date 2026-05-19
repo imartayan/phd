@@ -26,3 +26,21 @@ Modern sequencing technologies are divided in two main categories.
 After sequencing, we're left with a large collection of noisy reads which are completely unorganized, so we'd like to correct their errors and recover their original arrangement.
 Going back to the book analogy, we would have many excerpts spanning a couple sentences (for short reads) or a couple pages (for long reads) that contain lots of typos.
 Some typos are easy to catch because they create fake words, like "sky" becoming "skt", but others are more insidious and could turn a friend into a fiend.
+
+The process of reconstructing a sequence from a set of reads is called *assembly*.
+Two main strategies exist: when a closely related reference sequence is available, it can be used as a template to anchor and rearrange the reads, a process known as *reference-guided* assembly.
+When no such reference exists, the reads must be assembled from scratch, which is called *de novo* assembly.
+In practice, depending on the application, one may work either with a fully assembled genome or directly with raw reads.
+Both are typically stored in text-based formats: FASTA, which records a sequence identifier followed by the nucleotide sequence itself, and FASTQ, which additionally encodes a per-base quality score reflecting the sequencer's confidence at each position.
+
+A large share of these datasets, both raw reads and assembled genomes, are saved in public archives.
+The most prominent ones are the Sequence Read Archive (SRA), its European counterpart ENA, and GenBank.
+Their size is growing at a staggering pace: SRA alone has surpassed 100 petabytes of data.
+In our book metric, this would correspond to more than 6km of books, enough to cover the distance from Earth to the Moon... 16 times!
+This exponential growth lies at the heart of the challenge we try to address: sequencing data is accumulating faster than our storage and computational capacity can keep up with.
+New approaches are therefore needed, ones that can scale to this ocean of data while remaining tractable on modest resources.
+
+Throughout this thesis, we will be concerned with comparing sequences to one another in a variety of ways.
+Historically, two broad families of methods are distinguished: *alignment-based* and *alignment-free*.
+Alignment-based methods all rely on computing an edit distance between two sequences, that is the minimum number of insertions, deletions, and substitutions required to transform one into the other^[In practice, different operations are often assigned different costs, leading to weighted edit distances.].
+Their main drawback is computational cost: classical algorithms run in quadratic time [@needleman-wunsch;@smith-waterman], and even the more recent ones such as WFA [@wfa;@biwfa] or A*PA [@astarpa;@astarpa2] run in slightly super-linear time^[For a detailed history of pairwise alignment, I recommend Ragnar Groot Koerkamp's thesis [@ragnar-thesis].].
