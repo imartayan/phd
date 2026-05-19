@@ -20,6 +20,11 @@ For this reason, *k* is usually restricted to odd values to avoid the degenerate
 
 ## De Bruijn graph representation
 
+One immediate observation about the /kmer set of a sequence is that two /kmers at successive positions always overlap by exactly $k-1$ bases.
+From this arises the *de Bruijn graph* (DBG) representation, where each node corresponds to a /kmer and a directed edge from $x$ to $y$ exists whenever $x[1:k] = y[0:k-1]$, i.e. $x$ and $y$ overlap by $k-1$ bases.
+In this setting, any sequence corresponds to a path in the DBG, as illustrated in @fig-example-dbg.
+This representation can however lead to ambiguities in the presence of repeats: in @fig-example-dbg, the sequences `CTAAGAAGGT` and `CTAAGAAGAAGGT` would produce the exact same graph.
+
 - definition, sequence as path
 - when coupled with abundance, it can help to identify erroneous /kmers or different haplotypes (red/blue/purple)
 - application to error correction and assembly
