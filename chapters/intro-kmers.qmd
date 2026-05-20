@@ -148,7 +148,19 @@ De Bruijn graph for *k = 31* of [SSNA1](http://sg-nex-data.s3.amazonaws.com/data
 
 ### Compact representations
 
-The set of /kmers associated to a sequence is often referred to as its /kmer spectrum^[Depending on the context, the notion of /kmer spectrum also includes the number of occurrences of each /kmer.] and denoted $\operatorname{Sp}_k(T)$ for a given text $T$.
+The set of /kmers associated to a sequence is often referred to as its /kmer spectrum^[Depending on the context, the notion of /kmer spectrum also includes the number of occurrences of each /kmer.] and denoted $\operatorname{Sp}_k(T)$ for a string $T$.
+This notion can naturally be extended to sets of strings by merging their spectra.
+Since having access to the /kmer spectrum is sufficient to construct the corresponding DBG, one may want to find a compact way to represent it.
+@spss and @simplitigs formulated this problem as find a minimum *spectrum-preserving string set* (SPSS) / *simplitigs*: given an input set of sequences $\mathcal{I}$, find a new set of sequences $\mathcal{S}$ such that $\operatorname{Sp}_k(\mathcal{I}) = \operatorname{Sp}_k(\mathcal{S})$, each /kmer appears exactly once in $\mathcal{S}$ and $\sum_{T \in \mathcal{S}} |T|$ is minimal.
+
+A simple way to build a (non-minimal) SPSS is to decompose the edge-centric DBG into maximal paths with non-branching inner nodes, known as *unitigs* [@bcalm1].
+For instance, the DBG in @fig-dbg-edge-centric is decomposed as $\{\textsf{CTAA}, \textsf{AAG}, \textsf{AGAA}, \textsf{AGGT}\}$.
+The resulting graph is called a *compacted de Bruijn graph* (cDBG), and can be computed efficiently in (external) memory [@bcalm2;@cuttlefish2;@ggcat].
+
+While building unitigs does not results in a minimal SPSS (unless the there are no branches), @eulertigs introduced *eulertigs* as an optimal solution based on Eulerian circuits that can be computed in linear time.
+Moreover, we can relax the unicity constraint and allow repeated /kmers to further reduce output size, generalizing SPSS into *repetitive SPSS* (rSPSS).
+@matchtigs proposed an algorithm based on perfect matching and Eulerian circuits to find minimal rSPSS, referred to as *matchtigs*, and presented a faster greedy heuristic to approximate it.
+All these solutions have since been implemented as part of GGCAT [@ggcat].
 
 ## Using /kmers for scalable data structures
 

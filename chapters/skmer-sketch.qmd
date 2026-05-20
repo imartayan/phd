@@ -43,7 +43,7 @@ sourmash's simplicity is one of its key strengths: it stores each uniformly sele
 An observation is that this technique is generic and can be applied to any type of data.
 Therefore, computational and memory requirements could benefit from customized selection techniques and index structures.
 
-To this end, we propose capitalizing on the ability to represent overlapping /kmers with a low number of /bpk using a *Spectrum Preserving String Set* [@rahman2021representation].
+To this end, we propose capitalizing on the ability to represent overlapping /kmers with a low number of /bpk using a *Spectrum Preserving String Set* [@spss].
 The challenge we face is optimizing the overlap of chosen /kmers to achieve maximum space efficiency.
 To address this, we build upon the concept of /skmers [@superkmers], which are sequences of /kmers sharing a common selected $m$-mer called minimizer [@roberts2004reducing].
 Universal Hitting Sets [@orenstein2017designing], or UHS, methods aim to design optimized $m$-mer selection schemes that covers all /kmers while minimizing the density of selected positions. However, our application does not require complete coverage of the /kmer space.
@@ -84,7 +84,7 @@ We use $w = k - m + 1$ to denote the number of $m$-mers inside a /kmer.
 A /skmer is a maximal substring of a string $s$ ($|s|\geq k$) in which each consecutive /kmers have the same minimizer.
 :::
 
-Spectrum Preserving String Sets [@rahman2021representation] are an efficient /kmer encoding made of a collection of strings whose property is to spell exactly the initial set of /kmers, usually exploiting the fact that /kmers share overlaps.
+Spectrum Preserving String Sets [@spss] are an efficient /kmer encoding made of a collection of strings whose property is to spell exactly the initial set of /kmers, usually exploiting the fact that /kmers share overlaps.
 
 /Skmers are an interesting *Spectrum Preserving String Set* because a /skmer containing $x$ /kmers is composed of $k+x-1$ bases which incur a cost of $\frac{2(k+x-1)}{x}$ /bpk.
 Therefore longer /skmers provide lighter representation as opposed to classic /kmer representation by simply avoiding to repeat an increasing number of nucleotide while /skmer size increases.

@@ -37,7 +37,7 @@ These indexes generally fall into two categories: full-text indexes based on the
 
 While these structures can achieve very low memory footprints (below 8 bits per /kmer) and high throughput, they present two major caveats.
 To reduce the memory footprint, these methods rely on assembling /kmers into sequences that can contain them in a memory-efficient manner.
-Therefore, they depend on such spectrum-preserving string sets (SPSS) [@rahman2021representation] structures to construct their index, meaning that /kmers must be "assembled" before the indexing step.
+Therefore, they depend on such spectrum-preserving string sets (SPSS) [@spss] structures to construct their index, meaning that /kmers must be "assembled" before the indexing step.
 Despite significant progress in this area, this remains a resource-intensive process (e.g. Bcalm2 [@bcalm2], Cuttlefish [@cuttlefish2], GGCAT [@ggcat]).
 
 In a subsequent step, the index structures, either MPHF or BWT-based, must be built.
@@ -72,7 +72,7 @@ In this work, we aim to propose a drop-in replacement for /kmer dictionaries for
 ### Outline
 
 In order to minimize the memory footprint of our dictionary, we aim to represent /kmers as SPSS.
-However, most SPSS representations such as simplitigs [@rahman2021representation; @simplitigs], matchtigs [@matchtigs], eulertigs [@eulertigs], and masked superstrings [@masked-superstring-kmer] are defined globally from a complete /kmer set.
+However, most SPSS representations such as simplitigs [@spss; @simplitigs], matchtigs [@matchtigs], eulertigs [@eulertigs], and masked superstrings [@masked-superstring-kmer] are defined globally from a complete /kmer set.
 Updating such SPSS structures remains an open problem, making their use in dynamic structures even more challenging [@cdbgtricks].
 Interestingly, one of the first SPSS used was /skmers, which are successive /kmers sharing a minimizer [@kmc2].
 While this structure is more memory-intensive than other SPSS types, it remains lighter than plain /kmer representation by several folds.
