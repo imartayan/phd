@@ -21,9 +21,11 @@ For this reason, *k* is usually restricted to odd values to avoid the degenerate
 ## De Bruijn graph representation
 
 One immediate observation about the /kmer set of a sequence is that two /kmers at successive positions always overlap by $k-1$ bases.
-From this arises the *de Bruijn graph* (DBG) representation, where each node corresponds to a /kmer and a directed edge from $x$ to $y$ exists whenever $x_2 \dots x_k = y_1 \dots y_{k-1}$.
-In this setting, any sequence corresponds to a path in the DBG, as illustrated in @fig-dbg-node-centric.
-This representation can however lead to ambiguities in the presence of repeats: for instance, `CTAAGAAGGT`, `CTAAGAAGAAGGT` and `CTAAGAAGAAGAAGGT` all correspond to the graph in @fig-dbg-node-centric for *k = 3*.
+From this property stems the notion of *de Bruijn graph* (DBG), where each node corresponds to a /kmer and a directed edge from $x$ to $y$ exists whenever $x_2 \dots x_k = y_1 \dots y_{k-1}$.
+This definition is referred to as *node-centric*, but we can define an *edge-centric* version that's equivalent by representing /kmers as edges and $k - 1$ overlaps as nodes.
+@fig-dbg-node-centric shows the node-centric DBG induced by the sequence `CTAAGAAGGT`, while @fig-dbg-edge-centric shows its edge-centric counterpart.
+In this setting, any sequence of length $\ge k$ corresponds to a *walk* in the DBG.
+This representation can however lead to ambiguities in the presence of repeats: for instance, `CTAAGAAGGT`, `CTAAGAAGAAGGT` and `CTAAGAAGAAGAAGGT` all correspond to the same graphs for *k = 3*.
 
 :::{#fig-dbg-node-centric}
 
@@ -67,13 +69,13 @@ Example of a node-centric de Bruijn graph for *k = 3*, built from the sequence `
 \usetikzlibrary{arrows.meta}
 \usetikzlibrary{quotes}
 
+\definecolor{good}{HTML}{4db6ac}
 \tikzset{
     >=latex,
     every edge/.style={draw, ultra thick, good},
     every edge quotes/.style={above, black, font=\sffamily},
     node/.style={draw, thick, circle, fill=white},
 }
-\definecolor{good}{HTML}{4db6ac}
 
 \begin{tikzpicture}[node distance=1cm and 1cm]
     \node[node] (CT) {};
