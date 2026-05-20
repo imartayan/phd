@@ -22,13 +22,13 @@ For this reason, *k* is usually restricted to odd values to avoid the degenerate
 
 One immediate observation about the /kmer set of a sequence is that two /kmers at successive positions always overlap by $k-1$ bases.
 From this arises the *de Bruijn graph* (DBG) representation, where each node corresponds to a /kmer and a directed edge from $x$ to $y$ exists whenever $x_2 \dots x_k = y_1 \dots y_{k-1}$.
-In this setting, any sequence corresponds to a path in the DBG, as illustrated in @fig-example-dbg.
-This representation can however lead to ambiguities in the presence of repeats: for instance, `CTAAGAAGGT`, `CTAAGAAGAAGGT` and `CTAAGAAGAAGAAGGT` all correspond to the graph in @fig-example-dbg for *k = 3*.
+In this setting, any sequence corresponds to a path in the DBG, as illustrated in @fig-dbg-node-centric.
+This representation can however lead to ambiguities in the presence of repeats: for instance, `CTAAGAAGGT`, `CTAAGAAGAAGGT` and `CTAAGAAGAAGAAGGT` all correspond to the graph in @fig-dbg-node-centric for *k = 3*.
 
-:::{#fig-example-dbg}
+:::{#fig-dbg-node-centric}
 
 ```{.tikz}
-%%| filename: example-dbg
+%%| filename: dbg-node-centric
 %%| opt-zoom: 1.5
 
 \usetikzlibrary{positioning}
@@ -54,19 +54,55 @@ This representation can however lead to ambiguities in the presence of repeats: 
 \end{tikzpicture}
 ```
 
-Example of a small de Bruijn graph for *k = 3*, built from the sequence `CTAAGAAGGT`.
+Example of a node-centric de Bruijn graph for *k = 3*, built from the sequence `CTAAGAAGGT`.
 :::
 
-One of the key properties of DBGs is that they make small edits between similar sequences easy to spot.
-For instance, in @fig-example-dbg-bubble, substituting the last `A` with a `C` creates a *bubble* around the *k* /kmers affected by the substitution.
+:::{#fig-dbg-edge-centric}
+
+```{.tikz}
+%%| filename: dbg-edge-centric
+%%| opt-zoom: 1.5
+
+\usetikzlibrary{positioning}
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{quotes}
+
+\tikzset{
+    >=latex,
+    every edge/.style={draw, ultra thick, good},
+    every edge quotes/.style={above, black, font=\sffamily},
+    node/.style={draw, thick, circle, fill=white},
+}
+\definecolor{good}{HTML}{4db6ac}
+
+\begin{tikzpicture}[node distance=1cm and 1cm]
+    \node[node] (CT) {};
+    \node[node] (TA) [right=of CT] {};
+    \node[node] (AA) [right=of TA] {};
+    \node[node] (GA) [above right=of AA] {};
+    \node[node] (AG) [below right=of GA] {};
+    \node[node] (GG) [right=of AG] {};
+    \node[node] (GT) [right=of GG] {};
+    \draw[->] (CT) edge["CTA"] (TA) (TA) edge["TAA"] (AA) (AA) edge["AAG"] (AG) (AG) edge["AGG"] (GG) (GG) edge["GGT"] (GT);
+    \draw[->, bend right, sloped, looseness=1] (AG) edge["AGA"] (GA) (GA) edge["GAA"] (AA);
+\end{tikzpicture}
+```
+
+Example of an edge-centric de Bruijn graph for *k = 3*, built from the sequence `CTAAGAAGGT`.
+:::
+
+### Identifying small variations
+
+An important property of DBGs is that they make small edits between similar sequences easy to spot.
+For instance, in @fig-dbg-bubble, substituting the last `A` with a `C` creates a *bubble* around the *k* /kmers affected by the substitution.
 When combined with the abundance of each /kmer, this allows erroneous /kmers in raw reads to be corrected, or different haplotypes to be distinguished within a genome.
 DBGs therefore prove particularly useful for genome assembly [@spades;@flye;@mdbg].
 @fig-dbg-ssna1 shows a more complex DBG for *k = 31* built from mRNA transcripts of SSNA1 gene, highlighting different exons identified in the graph.
 
-:::{#fig-example-dbg-bubble}
+:::{#fig-dbg-bubble}
 
 ```{.tikz}
-%%| filename: example-dbg-bubble
+%%| filename: dbg-bubble
 %%| opt-zoom: 1.5
 
 \usetikzlibrary{positioning}
@@ -108,11 +144,9 @@ De Bruijn graph for *k = 3* of the sequences `TCTAAGGTT` and `TCTACGGTT`, each h
 De Bruijn graph for *k = 31* of [SSNA1](http://sg-nex-data.s3.amazonaws.com/data/sequencing_data_ont/fastq/SGNex_A549_directRNA_replicate5_run1/SGNex_A549_directRNA_replicate5_run1.fastq.gz) gene mRNA transcripts with 3 annotated exons, made by Bastien Degardins with Vizitig [@vizitig].
 :::
 
-- definition, sequence as path
-- when coupled with abundance, it can help to identify erroneous /kmers or different haplotypes (red/blue/purple)
-- application to error correction and assembly
-- notion of /kmer spectra, characterizing a sequence
-- compact representations: unitigs, SPSS
+### Compact representations
+
+The set of /kmers associated to a sequence is often referred to as its /kmer spectrum^[Depending on the context, the notion of /kmer spectrum also includes the number of occurrences of each /kmer.] and denoted $\operatorname{Sp}_k(T)$ for a given text $T$.
 
 ## Using /kmers for scalable data structures
 
