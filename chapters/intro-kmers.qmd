@@ -15,7 +15,7 @@ For larger *k*, however, the /kmer set of a sequence becomes much sparser in $\S
 
 In the applications considered in this thesis, *k* typically ranges from 20 to 70, thus yielding sparse sets.
 Additionally, a /kmer and its reverse complement are often treated as equivalent, since sequencing methods do not tell us which DNA strand a read originates from.
-We therefore designate one of the two^[for instance by taking the lexicographically smallest] as a *canonical* representative.
+We therefore designate one of the two^[For instance, by taking the lexicographically smallest.] as a *canonical* representative.
 For this reason, *k* is usually restricted to odd values to avoid the degenerate case where a /kmer is its own reverse complement^[When *k* is odd, the middle base of a /kmer and its reverse-complement always differ.].
 
 ## De Bruijn graph representation
