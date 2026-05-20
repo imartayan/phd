@@ -16,7 +16,7 @@ Ultimately, both goals push against *accuracy*: a smaller sketch is cheaper to s
 ## Approximating similarity
 
 The similarity of two genomic sequences is generally defined by their *average nucleotide identity* (ANI), which measures the expected probability that a nucleotide position in a shared genomic region is identical between two genomes [@ani].
-However, computing ANI exactly is quite expensive so we typically rely on the similarity of the corresponding /kmer sets instead.
+However, computing ANI exactly is quite expensive, so we typically rely on the similarity of the corresponding /kmer sets instead and use it to derive an approximation of ANI.
 
 To measure the similarity of two sets $A$ and $B$, we generally use the *Jaccard index* (sometimes called Tanimoto coefficient) defined as
 $$
@@ -82,7 +82,7 @@ Given a threshold $t \in [0,1]$, and assuming the hash values are in $[0,1]$, we
 $$
 S_t(A) = \lbrace h(x) : x \in A, h(x) < t \rbrace
 $$
-This method is now known in the literature as FracMinHash [@fracminhash], but has appeared under different names such as scaled MinHash, universe minimizers or mincode submer in the past.
+This method is now known in the literature as FracMinHash [@fracminhash], but has appeared under different names such as scaled MinHash [@sourmash], universe minimizers [@mdbg] or mincode submer [@syncmers] in the past.
 
 Given a sequence of size $N$, and the corresponding /kmer set of size $n$, a FracMinHash sketch contains $nt$ elements in expectation and can be built in $\mathcal{O}(N)$ time with a linear scan on the hash values.
 This approach has the benefit of being simple and efficient, and supports straightforward set operations such as union or intersection (for instance $S_t(A \cup B) = S_t(A) \cup S_t(B)$).
