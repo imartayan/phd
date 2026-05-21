@@ -8,14 +8,21 @@ Sequence bioinformatics has always been closely tied to stringology and compress
 Recent progress has opened new paths toward high-performance parsers that are both formally grounded and practically competitive.
 This chapter explores one such connection, applying these techniques to the FASTA and FASTQ formats.
 
+The central contribution of this chapter consists of new vectorized algorithms for high-throughput FASTA/Q parsing, which support on-the-fly detection and handling non-ACTG characters, and provide bitpacked representations of the sequence.
+Formally, given an input FASTA/Q file, we produce a structured iterator over the (possibly bitpacked) content of each record.
+This approach is implemented in *Helicase*, a Rust library providing a configurable interface to expose caller-requested fields for each record, avoiding unnecessary computation.
+We evaluate our approach on both x86 and ARM architectures. Across all tested scenarios, Helicase matches or exceeds the throughput of existing single-threaded parsers while maintaining feature parity. In addition, it provides extended functionality, such as bitpacked sequence output, without compromising performance. For data already loaded in RAM, Helicase is able to parse uncompressed short reads at 27 GB/s and long reads at 49 GB/s on an Apple M3 Pro using a single thread, reaching the core memory bandwidth. Our library is available at <https://github.com/imartayan/helicase> under a permissive open-source license.
+
 ## Background
 
+<!--
 FASTA and FASTQ are among the oldest and most enduring data formats in bioinformatics.
 FASTA was introduced in 1985 alongside the sequence alignment tool of the same name [@fastp;@fasta], while FASTQ emerged in the early 2000s [@fastq] as sequencing technologies began producing per-base quality scores.
 Over the years, both formats achieved near-universal adoption across the bioinformatics ecosystem.
 Nowadays, sequencing pipelines regularly produce billions of reads, and the overwhelming majority of this data is still stored and exchanged in FASTA and FASTQ.
 Public sequencing archives such as the European Nucleotide Archive (ENA) now contain hundreds of petabytes of sequencing data [@ena2025], meaning that infrastructure built around these text-based formats must now operate at scales their designers could not have anticipated.
 This results in a tension between the simplicity that made these formats successful and the performance demands of modern high-throughput bioinformatics.
+-->
 
 ### Description of the formats
 
@@ -40,21 +47,8 @@ At its core, parsing FASTA and FASTQ files reduces to a lexical analysis problem
 
 Reaching a high throughput requires minimizing branching and favoring regular, predictable computation patterns that can be efficiently executed on wide data paths.
 This constraint naturally shifts the focus from traditional parsing strategies toward approaches that process the input stream in bulk while limiting branches.
-
-### Vectorization
-
-See @sec-intro-simd
-
-<!-- Since the 1980s [@cray1], CPUs have exposed SIMD (Single Instruction, Multiple Data) instructions that operate on wide registers, processing multiple bytes in parallel within a single instruction.
-Compilers can exploit these instructions automatically through auto-vectorization, and this proved to be effective for scientific and high-performance computing.
-However, auto-vectorization often fails when branches depend on input data, which is precisely the situation arising when parsing.
-Achieving high throughput therefore requires *manual* vectorization by encoding the parsing logic with SIMD intrinsics. -->
-
-A canonical example of a hand-optimized SIMD routine is `memchr`, which scans a memory region for the first occurrence of a given byte.
-While naive scalar implementations only reach a few GB/s, carefully vectorized ones approach the full RAM bandwidth at close to 40 GB/s on modern hardware.
-Parsing FASTA/Q, however, requires searching for *multiple* markers simultaneously (line feeds, header markers and separators) so relying on independent `memchr` calls leaves performance on the table.
-<!-- familier -->
-Fusing these searches into a single vectorized pass is the key algorithmic challenge we address in this contribution.
+Therefore, using vectorization techniques (introduced in @sec-intro-simd) seems essential to achieve this goal.
+Moreover, since parsing FASTA/Q requires searching for *multiple* markers simultaneously, we will see that relying on multiple calls to built-in functions like `memchr` does not fully exploit hardware capabilities.
 
 ### Existing work
 
@@ -69,13 +63,6 @@ According to Heng Li's `biofast` benchmark [@biofast], `needletail` is the faste
 Recent methods focused more specifically on parallelization strategies for parsing [@rabbitfx] and decompressing [@mim] FASTA/Q inputs.
 Among these works, RabbitFX [@rabbitfx] stands out as the state-of-the-art for parallel parsing of plain and gzipped FASTA/Q.
 However, since our work focuses on accelerating the parsing algorithm for a given thread, we will not evaluate RabbitFX in this chapter.
-
-### Contributions
-
-In this chapter, we present new vectorized algorithms for high-throughput FASTA/Q parsing, which support on-the-fly detection and handling non-ACTG characters, and provide bitpacked representations of the sequence.
-Formally, given an input FASTA/Q file, we produce a structured iterator over the (possibly bitpacked) content of each record.
-This approach is implemented in *Helicase*, a Rust library providing a configurable interface to expose caller-requested fields for each record, avoiding unnecessary computation.
-We evaluate our approach on both x86 and ARM architectures. Across all tested scenarios, Helicase matches or exceeds the throughput of existing single-threaded parsers while maintaining feature parity. In addition, it provides extended functionality, such as bitpacked sequence output, without compromising performance. For data already loaded in RAM, Helicase is able to parse uncompressed short reads at 27 GB/s and long reads at 49 GB/s on an Apple M3 Pro using a single thread, reaching the core memory bandwidth. Our library is available at <https://github.com/imartayan/helicase> under a permissive open-source license.
 
 ## Methods
 
