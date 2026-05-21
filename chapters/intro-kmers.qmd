@@ -174,7 +174,7 @@ BIGSI [@bigsi] stored these filters in a bit-sliced layout for fast intersection
 REINDEER [@reindeer;@reindeer2] took a different angle and indexed /kmer *counts* rather than their presence or absence.
 
 Exact, lossless representations emerged with *colored compacted de Bruijn graphs* (ccDBG), which annotate each /kmer in a shared DBG with the set of samples (*colors*) containing it.
-The index is decomposed into a /kmer dictionary and a sparse *annotation matrix* over samples.
+The index is usually decomposed into a /kmer dictionary and a sparse annotation matrix over samples.
 Compressing this annotation matrix is the main algorithmic challenge: Mantis [@mantis] groups /kmers with identical color sets into equivalence classes, MetaGraph [@metagraph] uses topology-aware compression, and Fulgor [@fulgor;@fulgor-patterns] exploits color similarity between adjacent unitigs and uses repetition-aware compression to achieve state-of-the-art index sizes.
 
 The Logan project [@logan] recently proposed a complementary approach: rather than indexing raw reads directly, it first compacted the majority of the Sequence Read Archive into unitigs, drastically reducing the volume of data before indexing.
