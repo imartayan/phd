@@ -130,7 +130,8 @@ Scalar implementation of `memchr`.
 On the other hand, an AVX2 implementation, detailed in @lst-memchr-avx2, processes 32 bytes per iteration, following a three-step pattern that recurs in many applications.
 First, the needle byte is broadcast across all 32 lanes of a 256-bit register.
 Second, 32 bytes are loaded from the buffer and compared against the broadcast register in a single instruction, producing a boolean mask for equality.
-Third, the mask is collapsed to a 32-bit integer (i.e. one bit per lane) using `movemask` and the position of the first match is found by counting trailing zeros in a single instruction.
+Third, the vector mask is collapsed into a scalar bitmask using `movemask`, which extracts the most significant bit of each lane in a SIMD register into a 32-bit integer (i.e. one bit per lane).
+The position of the first match is then found by counting trailing zeros in the resulting bitmask.
 
 :::{#lst-memchr-avx2}
 ```rust

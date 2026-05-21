@@ -189,12 +189,19 @@ Applying this formula to the previous example, we get the following:
 
 ### Implementation of the lexing phase
 
+:::{.callout-caution}
+## Technical section
+
+This section discusses technical details about architecture-specific assembly instructions.
+:::
+
 While this formula provides us with the appropriate semantics, implementing it requires a bit more work since it is interpreted over a stream of 64-bytes blocks.
 We now describe its concrete implementation in the lexing phase as a *classifier*, i.e. an iterator that builds the annotation on-the-fly.
 
 The first step of the lexing phase is to load the input block into a SIMD register, and to compute bitmasks for specific characters: `\n` for FASTQ, and both `\n` and `>` for FASTA.
 Additionally, we may want to detect non-ACTG bases to split the sequence or mark their positions.
 Both of these steps are described in @alg-bitmask and rely essentially on vectorized byte-wise comparisons followed by a `movemask`.
+
 The `movemask` instruction, natively supported on x86 since SSE, extracts the most significant bit of each byte in a SIMD register into a scalar bitmask.
 However, this instruction is not available on ARM CPUs, so we have to implement it manually using multiple intrinsics, making it more expensive than on x86.
 A relatively efficient method to implement it on ARM is to make use of NEON's interleaved layout and byte-wise packing^[<https://stackoverflow.com/questions/74722950>].
