@@ -157,12 +157,26 @@ A simple way to build a (non-minimal) SPSS is to decompose the edge-centric DBG 
 For instance, the DBG in @fig-dbg-edge-centric is decomposed as $\{\textsf{CTAA}, \textsf{AAG}, \textsf{AGAA}, \textsf{AGGT}\}$.
 The resulting graph is called a *compacted de Bruijn graph* (cDBG), and can be computed efficiently in (external) memory [@bcalm2;@cuttlefish2;@ggcat].
 
-While building unitigs does not results in a minimal SPSS (unless the there are no branches), @eulertigs introduced *eulertigs* as an optimal solution based on Eulerian circuits that can be computed in linear time.
+While building unitigs does not result in a minimal SPSS (unless the there are no branches), @eulertigs introduced *eulertigs* as an optimal solution based on Eulerian circuits that can be computed in linear time.
 Moreover, we can relax the unicity constraint and allow repeated /kmers to further reduce output size, generalizing SPSS into *repetitive SPSS* (rSPSS).
 @matchtigs proposed an algorithm based on perfect matching and Eulerian circuits to find minimal rSPSS, referred to as *matchtigs*, and presented a faster greedy heuristic to approximate it.
 All these solutions have since been implemented as part of GGCAT [@ggcat].
 
-## Using /kmers for scalable data structures
+## Using /kmers for petabase-scale data structures
 
-- petabase-scale indexes
-- colored compacted dBGs
+Driven by projects like Tara Oceans [@tara], the unprecedented growth of sequencing data [@big-data-genomical] has motivated a parallel effort to make these massive collections efficiently searchable.
+The central problem here is *sequence retrieval*: given a query sequence, find all samples in the collection that contain it.
+In this context, /kmers provide a natural intermediate representation, as each sample can be summarized by its /kmer set and collections of such sets indexed jointly.
+
+A first generation of approaches relied on approximate membership data structures.
+Sequence Bloom Trees [@sbt] organized per-sample Bloom filters in a hierarchy to prune the search space.
+BIGSI [@bigsi] stored these filters in a bit-sliced layout for fast intersection across hundreds of thousands of samples.
+REINDEER [@reindeer;@reindeer2] took a different angle and indexed /kmer *counts* rather than their presence or absence.
+
+Exact, lossless representations emerged with *colored compacted de Bruijn graphs* (ccDBG), which annotate each /kmer in a shared DBG with the set of samples (*colors*) containing it.
+The index is decomposed into a /kmer dictionary and a sparse *annotation matrix* over samples.
+Compressing this annotation matrix is the main algorithmic challenge: Mantis [@mantis] groups /kmers with identical color sets into equivalence classes, MetaGraph [@metagraph] uses topology-aware compression, and Fulgor [@fulgor;@fulgor-patterns] exploits color similarity between adjacent unitigs and uses repetition-aware compression to achieve state-of-the-art index sizes.
+
+The Logan project [@logan] recently proposed a complementary approach: rather than indexing raw reads directly, it first compacted the majority of the Sequence Read Archive into unitigs, drastically reducing the volume of data before indexing.
+Logan-Search^[<https://logan-search.org/>] then builds a /kmer index over the resulting unitigs to enable large-scale search over all entries.
+Ongoing work by @kloe aims to further reduce the space usage of Logan's unitigs by using a compressed color-to-/kmer mapping.
