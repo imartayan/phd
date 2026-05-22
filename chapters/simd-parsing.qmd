@@ -363,7 +363,7 @@ The datasets used are detailed in @tbl-datasets.
 | PacBio human HiFi reads    | FASTQ | 2.58 GB | 92 K | 14 Kbp  | ---         | [^b] |
 | Illumina human short reads | FASTQ | 2.23 GB | 4 M  | 250 bp  | ---         | [^c] |
 
-Description of the datasets benchmarked in the article.
+Description of the benchmarked datasets.
 :::
 
 [^a]: <https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/analysis_set/chm13v2.0.fa.gz>

@@ -24,14 +24,14 @@ To perform sequence alignment at large scales, heuristic strategies such as seed
 A key observation is that, in practice, one does not need to index all /kmers to maintain high alignment sensitivity; therefore, /kmer sampling is often preferred to decrease resource usage [@minimap2].
 However, naive sampling schemes lack robustness to mutations or noise, and sampling schemes designed for distance approximation can generate "deserts" where no /kmer is chosen, leaving the alignment algorithm without the necessary anchor points [@knonical].
 Minimizers were introduced in this context [@schleimer2003winnowing; @roberts2004reducing] to couple sparsity (through sampling) with coverage guarantees (to avoid deserts as much as possible).
-This paper addresses several fundamental aspects of minimizers and their effectiveness in sequence representation.
+This chapter addresses several fundamental aspects of minimizers and their effectiveness in sequence representation.
 
 Given a window of $w = k - m + 1$ consecutive /mmers ($k \geq m$), a minimizer scheme selects one /mmer in this window according to an order, typically induced by a hash function.
 This ensures that any exact match of length at least $k = w + m - 1$ between two sequences yields at least one common minimizer, provided they use the same ordering.
 At first glance, this guarantees coverage, but not efficient sampling, since in principle each overlapping window could select a different /mmer.
 In practice, successive windows share $w-1$ /mmers and differ by only one entering and one leaving /mmer, so they tend to select the same minimizer over long stretches.
 To formalize this, the notion of density was introduced: the average number of selected /mmers per window, or equivalently, the fraction of /mmers retained.
-This paper focuses on minimizer density, in particular in its optimization.
+This chapter focuses on minimizer density, in particular in its optimization.
 To be explicit, a lower density means that fewer /mmers are selected, which directly reduces memory usage and comparison cost, or expectedly more cache-coherent algorithms, making it both a theoretically interesting question and one with broad practical impact, described succinctly below.
 
 A wide range of tools now rely on minimizers as their main alignment and indexing mechanism.

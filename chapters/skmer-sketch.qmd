@@ -56,7 +56,7 @@ Overall, this work presents a promising approach to making large-scale genomic d
 
 ## Preliminaries {#sec-prelim}
 
-This paper presents results on finite strings on the DNA alphabet $\Sigma=\{A,C,G,T\}$, we use $\sigma$ to denote the size of the alphabet.
+This chapter presents results on finite strings on the DNA alphabet $\Sigma=\{A,C,G,T\}$, we use $\sigma$ to denote the size of the alphabet.
 We consider two input multisets of strings longer or equal to $k$, $S_A$ and $S_B$.
 These multisets can in practice be read sets from sequencing experiments or genome sequences.
 We call /kmers strings of size $k$ over strings of the input sets.
