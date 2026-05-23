@@ -4,9 +4,12 @@
 This chapter is adapted from {{< longcite simd-minimizers >}}.
 :::
 
-In this chapter, we focus on computing *random minimizers* as efficiently as possible:
-for each window of *w* consecutive /kmers, we select the smallest /kmer given a pseudo-random order.
-This order is usually given by comparing hash values, and selecting the leftmost smallest hash in case of ties (see @sec-intro-minimizers for a broader introduction).
+@sec-rolling-hash covered efficient implementations of rolling hashes, allowing us to hash /kmers at high throughput.
+These /kmer hashes are then typically used to partition or select representative /kmers.
+One major such application is computing *random minimizers* (introduced in @sec-intro-minimizers):
+for each window of *w* consecutive /kmers, we select the smallest /kmer given a pseudo-random order defined by hash values.
+
+In this chapter, we focus on computing random minimizers as efficiently as possible.
 More precisely, we are interested finding the *starting positions* of random minimizers in a sequence, from which we can extract the minimizers themselves.
 We will first focus on computing *forward* minimizers (without taking reverse-complement into account) for simplicity, and later describe a solution for *canonical* minimizers in @sec-canonical-minimizers.
 Our implementation of the vectorized algorithm discussed in @sec-vectorized-impl-minimizers is available in the [simd-minimizers](https://github.com/rust-seq/simd-minimizers) Rust library.
