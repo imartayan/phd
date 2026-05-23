@@ -445,7 +445,7 @@ Finally, the results on the number of branches (shown in @fig-branches in append
 Instructions and cycles per byte on multiple CPUs, sorted by manufacturer and year.
 :::
 
-## Conclusion
+## Discussion
 
 We presented Helicase, a high-throughput Rust library for parsing FASTA and FASTQ files
 that exploits SIMD vectorization to maximize single-threaded throughput on both x86 and ARM.
@@ -454,6 +454,7 @@ Rather than scanning the input byte by byte, the lexer annotates 64-byte blocks 
 The parser is then structured as a finite state machine over these bitmasks, and specialized at compile time to only contain the code paths relevant to the requested fields.
 Helicase is able to produce on-the-fly DNA bitpacking for two compact representations: a *packed* format and a *columnar* format that separates the high and low bits, with non-ACTG characters handled either as segment boundaries or via a lossy encoding with an additional ambiguity mask.
 We also interfaced Helicase with the existing libraries developed for SimdMinimizers [@simd-minimizers], to support efficient /kmer hashing and minimizer computation for the packed format.
+In particular, we will discuss in the next chapter how packed representations can be used to accelerate rolling hashes.
 
 We evaluated Helicase on a wide collection of CPUs, deployed reproducibly on Grid'5000.
 On FASTA genome parsing, Helicase is up to 2× faster than Needletail on Intel CPUs and 50% faster on AMD and ARM, while matching or exceeding it on all FASTQ workloads.

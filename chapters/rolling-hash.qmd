@@ -4,6 +4,10 @@
 This chapter is partially adapted from {{< longcite simd-minimizers >}}.
 :::
 
+We've seen in @sec-simd-parsing how to parse and bitpack sequences efficiently.
+Hashing their content, in particular the /kmers they contain, is one of the most common operations in sequence analysis.
+In this chapter, we will focus on rolling hashes, which are especially well-suited for this task, and see how far we can optimize them.
+
 ## Rolling hashes and their properties
 
 The concept of *rolling hash* (or *recursive hash*) was first introduced @karp-rabin for pattern matching.
