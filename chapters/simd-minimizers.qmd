@@ -434,7 +434,7 @@ For closed syncmers, we want to output windows starting/ending with their minimi
 
 Computing syncmers can be implemented as a simple *filter* on top of the *non-deduplicated* minimizer positions.
 For each window at position $i$, we test whether the minimizer position $p$ satisfies the syncmer condition: $p = i$ or $p = i + w - 1$ for closed syncmers, or $p = i + \lfloor w/2 \rfloor$ for open syncmers (assuming $w$ is odd so that the middle element is unique).
-This test can be performed efficiently using vectorized equality comparisons: non-syncmer positions are erased via a *blend* instruction, and the same shuffle-append mechanism used in @sec-simd-dedup efficiently collects the remaining positions.
+This test can be performed efficiently using vectorized equality comparisons: non-syncmer positions are erased via a *blend* instruction (which branchlessly selects values based on a boolean mask), and the same shuffle-append mechanism used in @sec-simd-dedup efficiently collects the remaining positions.
 Note that the deduplication step is not needed here since syncmer positions are always distinct.
 
 ### Other minimizer schemes
