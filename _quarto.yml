@@ -2,7 +2,7 @@ project:
   type: book
 
 book:
-  title: "Locality-preserving representation of k‑mer sets"
+  title: "Algorithm design and implementation for the scale of sequencing data"
   author:
     - name: "Igor Martayan"
       orcid: 0009-0008-3007-6168
