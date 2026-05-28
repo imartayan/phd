@@ -21,8 +21,29 @@ We study the relationship between minimizers and necklaces, and show how these r
 Building on this, we propose different compact representations that support efficient /kmer counting and set operations on large collections of sequences.
 
 The third part considers sparser representations of sequence content.
-We show that by retaining only a carefully chosen fraction of /kmers, one can reduce both memory footprint and indexing time without sacrificing the ability to answer similarity queries.
+We show that by retaining only a carefully chosen fraction of /kmers, one can reduce both memory footprint and comparison time without sacrificing the ability to answer similarity queries.
 
 Across these three axes, our work shows that significant practical gains come from treating algorithm design and implementation as a single, unified problem rather than two separate concerns.
 
 # Résumé en français {.unnumbered}
+
+La gestion et l'analyse de grandes collections de séquences d'ADN représentent un défi croissant pour la bioinformatique.
+Les avancées des technologies de séquençage continuent d'accroître le volume et la diversité des données disponibles : les dépôts publics contiennent désormais plusieurs pétaoctets de séquences, mais des limitations computationnelles en matière de stockage et d'indexation rendent ces données difficiles à exploiter pleinement.
+Comment, dès lors, concevoir des algorithmes adaptés à cette échelle ?
+
+Cette thèse s'intéresse à la conception et à l'implémentation d'algorithmes efficaces pour l'analyse de séquences génomiques, en mettant l'accent non seulement sur l'efficacité théorique, mais aussi et surtout sur les performances en pratique.
+Nous défendons l'idée que conception algorithmique et implémentation sont indissociables : atteindre un débit élevé en pratique exige de considérer les deux conjointement, avec une compréhension approfondie de la façon dont le hardware moderne exécute le code.
+
+La première partie porte sur le traitement haute performance de séquences.
+Nous montrons que la vectorisation SIMD, c'est-à-dire la capacité des processeurs modernes à opérer simultanément sur plusieurs valeurs, permet d'accélérer considérablement les étapes clés d'un pipeline de traitement génomique.
+Nous présentons des méthodes vectorisées pour l'analyse syntaxique de séquences, le calcul de hash glissant et l'extraction de minimiseurs, et en démontrons l'application pratique.
+Ensemble, ces méthodes forment un pipeline traitant les données génomiques à un débit proche de la limite matérielle.
+
+La deuxième partie examine comment le choix de la représentation des sous-chaînes de longueur fixe, ou /kmers, influe sur l'efficacité des structures de données et joue un rôle important dans les performances pratiques.
+Nous étudions la relation entre minimiseurs et colliers, et montrons comment ces représentations regroupent naturellement les /kmers similaires, permettant des structures de données favorables au cache.
+Sur cette base, nous proposons différentes représentations compactes permettant le comptage efficace de /kmers et les opérations ensemblistes sur de grandes collections de séquences.
+
+La troisième partie s'intéresse à des représentations plus parcimonieuses du contenu des séquences.
+Nous montrons qu'en ne conservant qu'une fraction soigneusement choisie des /kmers, il est possible de réduire à la fois l'empreinte mémoire et le temps de comparaison, sans sacrifier la capacité à répondre à des requêtes de similarité.
+
+À travers ces trois axes, nos travaux montrent que des gains pratiques significatifs découlent du fait de traiter la conception algorithmique et l'implémentation comme un problème unique et unifié, plutôt que comme deux préoccupations séparées.
