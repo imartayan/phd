@@ -68,11 +68,11 @@ Naive algorithm for sliding window minimum.
 ### Monotone queue
 
 A solution with better complexity, detailed in @alg-sliding-min-queue, is to use a *monotone queue*, which stores a non-decreasing subsequence of the *w* hashes, alongside their positions.
-For instance, this is the method used in Bifrost [@bifrost].
 Every time the window slides one to the right and we are about to push a new /kmer hash onto the right of the queue, we first
 remove any values larger than it, as they are "shadowed" by the new hash and can never be minimal anymore.
 The minimum of the window is then always the leftmost queue element.
 This data structure guarantees an amortized constant time update, but has many unpredictable branches due to removing between 0 and *w* values, which makes it costly in practice.
+Because of this constant-time guarantee, monotone-queue based approaches have been adopted by tools such as Bifrost [@bifrost].
 
 ::: {#alg-sliding-min-queue}
 
@@ -116,7 +116,7 @@ Monotone queue algorithm for sliding window minimum.
 ### Rescan
 
 Another approach used in bioinformatics is to only keep track of the minimum value and rescan the entire window of $w$ values when the current minimum goes out of scope, as described in @alg-sliding-min-rescan.
-For instance, this is the method used in minimap2 [@minimap2].
+This method was notably popularized by minimap2 [@minimap2].
 While this algorithm does not guarantee a worst-case constant time update, it only branches when the minimum goes out of scope and hence is more predictable.
 This makes it more efficient in practice, especially since minimizers typically have a density of $\mathcal{O}(1/w)$ so that the $\mathcal{O}(w)$ rescan step takes amortized constant time per element.
 
