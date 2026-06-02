@@ -19,7 +19,7 @@ Unedited draft from {{< longcite brisk >}}.
 
 ## Introduction {#sec-intro-skmer-map}
 
-Handling sequencing and genomic data is among the most memory-intensive tasks routinely performed in computational biology [@stephens2015big; @cremin2022big].
+Handling sequencing and genomic data is among the most memory-intensive tasks routinely performed in computational biology [@big-data-genomical; @cremin2022big].
 Superlatives abound in this field, with the mistletoe genome nearing 100 gigabases (`GCA_963277665.1`), recent sequencers capable of outputting 16 terabases per run, and future developments promising even more orders of magnitude improvement.
 Additionally, genome databases like GenBank are rapidly expanding, now encompassing over 29 terabases of data.
 Managing these massive datasets demands significant computational resources, driving the development of high-performance tools for commonly performed tasks such as alignment, assembly, and genotyping.
@@ -267,7 +267,7 @@ As discussed in the introduction, the applications of a /kmer dictionary are ext
 
 All experiments were conducted on a single cluster node equipped with an Intel(R) Xeon(R) Gold 6130 CPU @ 2.10GHz, 128GB of RAM, running Ubuntu 22.04.
 To minimize the impact of I/O and parsing operations—which are outside the scope of this work—we aimed to reduce redundancy in the processed documents and optimize the number of distinct /kmers. While using random DNA sequences would have been ideal with no large repeated sequences, we opted to evaluate our methods on real-world sequences.
-Specifically, following the interest of indexing large bacterial databases [@bradley2019ultrafast] for genomic epidemiology and surveillance, we focused on bacterial genomes due to their high diversity, which aligns well with our testing requirements. For benchmarking, we downloaded 308,568 bacterial genomes from the NCBI FTP website and randomly selected large subsets of increasing sizes from this collection.
+Specifically, following the interest of indexing large bacterial databases [@bigsi] for genomic epidemiology and surveillance, we focused on bacterial genomes due to their high diversity, which aligns well with our testing requirements. For benchmarking, we downloaded 308,568 bacterial genomes from the NCBI FTP website and randomly selected large subsets of increasing sizes from this collection.
 The accession list of the bacterial genomes used is available in the Brisk Git repository, and the performed benchmark, including command lines, can be found at <https://github.com/imartayan/BRISK_experiments>.
 
 ### Influence of Parameters
