@@ -129,6 +129,7 @@ search-replace:
   /kmer: "*k*‑mer"
   /mmer: "*m*‑mer"
   /smer: "*s*‑mer"
+  /tmer: "*t*‑mer"
   /skmer: "super‑*k*‑mer"
   /Skmer: "Super‑*k*‑mer"
   /hkmer: "hyper‑*k*‑mer"

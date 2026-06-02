@@ -1,8 +1,128 @@
 # Background on low density minimizers {#sec-low-density-minimizers}
 
-TBA
+As discussed in @sec-intro-minimizers, the *density* of a minimizer schemes drives its space efficiency, and lowering the density results in longer runs of the same minimizer and longer /skmers.
+However, we've also seen that the popular *random minimizers* achieve a density of $2 / (w+1)$, way above the $1 / w$ lower bound implied by the window guarantee.
+This observation raises two main questions:
+how can we design new schemes with a lower density?
+And what is the lowest density we can hope to reach?
+In this chapter, we briefly cover some of the recent advances on these two questions^[A more detailed survey can be found in [@ragnar-thesis].].
 
-- the quest for lower density
-- recent progress [@pellow2023efficient;@mod-mini;@ocmm;@finimizers;@greedymini;@10-minimizers]
-- see Ragnar's thesis [@ragnar-thesis]
-- practical impact of lower density: fewer queries, less space usage (e.g. in K2Rmini, Deacon, SSHash or KFC)
+## Universal hitting sets and decycling sets
+
+### Universal hitting sets
+
+One of the first directions explored to lower the density emerged from *universal hitting sets* [@orenstein2016compact;@orenstein2017designing].
+A universal hitting set, or UHS, is simply a set $U$ of /kmers such that every window of *w* /kmers contains at least one element from $U$.
+From a DBG perspective (see @sec-intro-kmers for some reminders), designing a UHS is equivalent to selecting a subset of nodes such that every path of length *w* is guaranteed to contain at least one of them.
+
+Unlike minimizers, UHS are *context-free* in the sense that a selected /kmer does not depend on its surrounding context.
+We can however derive a minimizer scheme compatible with a UHS $U$ by using an order that ranks all /kmers in $U$ before all others.
+Since every window contains an element from $U$ and the order favor these, we know that every selected minimizer would belong to $U$.
+The density of such a scheme is upper-bounded by $|U| / \sigma^k$ [@marcais2018asymptotically], thus designing a smaller UHS directly translates to a lower density.
+Unfortunately, @orenstein2016compact proved that finding a minimum UHS is NP-hard by reducing it from the Hitting Set problem [@karp2009], so we have to rely on heuristics to find small UHS instead.
+
+### Decycling sets
+
+A popular heuristics to approximate a good UHS is to start from a *minimum decycling set* (MDS).
+The idea behind a decycling set is that, instead of covering every path of length *w*, we cover every cycle of the DBG.
+Luckily, building a minimum decycling set is much easier than a minimum UHS:
+@mykkeltveit1972 constructed it by embedding each /kmer $x$ into the complex plane as
+$$
+z = \sum_{i=0}^{k-1} x_i \cdot \omega_k^i
+$$
+where $\omega_k$ is a primitive $k$-th root of unity.
+We then select the /kmers whose embedding $z$ corresponds to the first clockwise rotation with positive imaginary part, i.e. $\pi - 2\pi/k \le \arg(z) < \pi$.
+
+DOCKS [@orenstein2016compact;@orenstein2017designing] first suggested to greedily extends this MDS into a UHS for a specific window size $w$ by repeatedly adding the /kmer contained in the largest number of uncovered windows, until all windows are hit.
+However, the exponential search space limited this approach to $k \le 14$ in practice.
+
+@pellow2023efficient proposed a simpler and more scalable approach by building a minimizer scheme directly from this MDS: within any window, prefer /kmers in the MDS and break ties randomly.
+Checking MDS membership can be done by simply computing the corresponding embedding or with a precomputed lookup table, and the scheme extends to arbitrary $k$.
+@pellow2023efficient also introduced *double decycling sets* as a variant that prioritizes a symmetric MDS by selecting /kmers with $-2\pi/k \le \arg(z) < 0$, and falls back to Mykkelveit's MDS otherwise.
+This approach further reduced density, especially for $k < w$ where it significantly outperforms DOCKS and similar UHS-based constructions.
+A plot of the density of double decycling sets, along with other schemes, is available in @fig-tba.
+
+## (Open-closed) mod-minimizers
+
+### Mod-minimizers
+
+@mod-mini took a different approach to improve the density of minimizer schemes by using a technique called *modulo sampling*.
+Their idea is to first select the position of a minimizer of length $t = k \bmod w$ using a random order, and then map it back to a /kmer position by applying a modulo $w$.
+The resulting scheme, named *mod-minimizers* is detailed in @alg-mod-mini.
+Note that when $k < w$, $t = k$ and this scheme is perfectly equivalent to random minimizers with no density benefit.
+In practice, $t$ is often forced to be $\ge r$ by setting $t = r + ((k - r) \bmod w)$ for some small lower bound $r$, which avoids pathological cases such as selecting /tmers of length 1.
+
+::: {#alg-mod-mini}
+
+```pseudocode
+#| html-no-end: true
+#| html-indent-lines: true
+#| html-line-number: false
+#| html-comment-delimiter: "//"
+#| pdf-line-number: false
+#| pdf-no-end: true
+#| pdf-indent-lines: true
+#| pdf-italic-comment: true
+#| pdf-right-comment: true
+#| pdf-comment-color: "darkgray"
+#| pdf-comment-delimiter: "//"
+#| pdf-placement: "ht!"
+
+\begin{algorithmic}
+\Function{ModMinimizers}{$w, k$}
+    \State{$t \gets k \bmod w$}
+    \State{$i \gets 0$}
+    \For{$j$ in \Call{SlidingMinPos}{$w+k-t$, $t$}}
+    \Comment{window of $w+k-t$ t-mers}
+        \State{\textbf{yield} $i + ((j - i) \bmod w)$}
+        \Comment{smallest integer $i^\prime \ge i$ such that $i^\prime \equiv j \mod w$}
+        \State{$i \gets i + 1$}
+    \EndFor
+\EndFunction
+\end{algorithmic}
+```
+
+Pseudocode for mod-minimizers.
+:::
+
+@mod-mini proved that the density of the mod-minimizers is given by
+$$
+d = \frac{2 + \frac{k - t}{w}}{w + k - t + 1} + o(1 / (w + k - 1))
+$$
+which converges to $1/w$ as $k \to \infty$ with $w$ fixed, leading to an asymptotically optimal scheme.
+A plot of the resulting density is available in @fig-tba.
+
+The scheme has the benefit of being very simple and efficient: it only requires computing sliding minimum (which we discussed in @sec-simd-minimizers) over short $t$-mers and a single modulo afterwards, making it a near drop-in replacement for random minimizers.
+Moreover, the modulo operation, which is usually quite expensive, can be accelerated using a "fast mod" [@fast-mod] since $w$ is fixed.
+It should be noted, however, that this optimization does not apply as well on SIMD lanes of fixed size which cannot be widened.
+Practical experiments with SSHash [@sshash] showed that replacing random minimizers by mod-minimizers resulted in a 15% space gain for $w = 11$ and $k = 21$, without degrading the speed [@mod-mini].
+
+### Open-closed mod-minimizers
+
+One limitation of mod-minimizers is that they do not offer any improvement over random minimizers when $k < w$.
+To address this regime, @ocmm introduced the *open-closed minimizers*, building on the notion of open and closed syncmers (presented in @sec-intro-minimizers).
+
+## Lower bound for forward local schemes
+
+$$
+d \ge \max\left( \frac{ \left\lceil\frac{w + k}{w}\right\rceil }{w+k}, \frac{ \left\lceil\frac{w + k^\prime}{w}\right\rceil }{w+k^\prime} \right)
+$$
+where $k^\prime = k + ((1 - k) \bmod w)$ is the smallest integer $\ge k$ such that $k^\prime \equiv 1 \mod w$.
+
+## Other variants
+
+### Finimizers
+
+[@finimizers]
+
+### GreedyMini
+
+[@greedymini]
+
+### 10-minimizers
+
+[@10-minimizers]
+
+### Anti-lexicographic SUS-anchors
+
+[@antilex-sus-anchors]
