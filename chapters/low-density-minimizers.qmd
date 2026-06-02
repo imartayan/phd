@@ -40,7 +40,7 @@ However, the exponential search space limited this approach to $k \le 14$ in pra
 Checking MDS membership can be done by simply computing the corresponding embedding or with a precomputed lookup table, and the scheme extends to arbitrary $k$.
 @pellow2023efficient also introduced *double decycling sets* as a variant that prioritizes a symmetric MDS by selecting /kmers with $-2\pi/k \le \arg(z) < 0$, and falls back to Mykkelveit's MDS otherwise.
 This approach further reduced density, especially for $k < w$ where it significantly outperforms DOCKS and similar UHS-based constructions.
-A plot of the density of double decycling sets, along with other schemes, is available in @fig-tba.
+A plot of the density of double decycling sets, along with other schemes, is available in @fig-density-overview.
 
 ## (Open-closed) mod-minimizers
 
@@ -50,7 +50,7 @@ A plot of the density of double decycling sets, along with other schemes, is ava
 Their idea is to first select the position of a minimizer of length $t = k \bmod w$ using a random order, and then map it back to a /kmer position by applying a modulo $w$.
 The resulting scheme, named *mod-minimizers* is detailed in @alg-mod-mini.
 Note that when $k < w$, $t = k$ and this scheme is perfectly equivalent to random minimizers with no density benefit.
-In practice, $t$ is often forced to be $\ge r$ by setting $t = r + ((k - r) \bmod w)$ for some small lower bound $r$, which avoids pathological cases such as selecting /tmers of length 1.
+In practice, $t$ is often forced to be $\ge r$ by setting $t = r + ((k - r) \bmod w)$ for some small lower bound $r$^[Using $r = 4$ seems to be a good empirical choice.], which avoids pathological cases such as selecting /tmers of length 1.
 
 ::: {#alg-mod-mini}
 
@@ -90,7 +90,7 @@ $$
 d = \frac{2 + \frac{k - t}{w}}{w + k - t + 1} + o(1 / (w + k - 1))
 $$
 which converges to $1/w$ as $k \to \infty$ with $w$ fixed, leading to an asymptotically optimal scheme.
-A plot of the resulting density is available in @fig-tba.
+A plot of the resulting density is available in @fig-density-overview.
 
 The scheme has the benefit of being very simple and efficient: it only requires computing sliding minimum (which we discussed in @sec-simd-minimizers) over short $t$-mers and a single modulo afterwards, making it a near drop-in replacement for random minimizers.
 Moreover, the modulo operation, which is usually quite expensive, can be accelerated using a "fast mod" [@fast-mod] since $w$ is fixed.
@@ -102,11 +102,11 @@ Practical experiments with SSHash [@sshash] showed that replacing random minimiz
 One limitation of mod-minimizers is that they do not offer any improvement over random minimizers when $k < w$.
 To address this regime, @ocmm introduced the *open-closed minimizers*, building on the notion of open and closed syncmers (presented in @sec-intro-minimizers).
 Their idea is to first look for the smallest open syncmer in the window; if none exists, fall back to the smallest closed syncmer, and default to the globally smallest /kmer if neither is present.
-While the density of this scheme has no known closed form, it empirically matches double decycling sets for $k < w$ with a small shift due to the inner $s$ parameter of syncmers, and improves over them for $w \le k \le 2w$.
+While the density of this scheme has no known closed form, it is similar to double decycling sets for $k < w$ with a small shift due to the inner $s$ parameter of syncmers, and improves over them for $w \le k \le 2w$.
 
 @ocmm then proposed to combine this new scheme with the modulo sampling technique of mod-minimizers, thus resulting in *open-closed mod-minimizers*:
 /tmers are sampled using the open-closed minimizer as the inner scheme, and their position is mapped back to a /kmer modulo $w$.
-This merges the density gains of both approaches and achieves low density across the full range of $k$.
+This merges the density gains of both approaches and achieves low density across the full range of $k$, as illustrated in @fig-density-overview.
 
 ## Lower bounds for forward local schemes
 
@@ -126,8 +126,13 @@ $$
 d \ge \max\left( \frac{ \left\lceil\frac{w + k}{w}\right\rceil }{w+k}, \frac{ \left\lceil\frac{w + k^\prime}{w}\right\rceil }{w+k^\prime} \right)
 $$
 where $k^\prime = k + ((1 - k) \bmod w)$ is the smallest integer $\ge k$ such that $k^\prime \equiv 1 \mod w$.
+@fig-density-overview illustrates this lower bound along with the density of the schemes presented above.
 
-As illustrated in @fig-tba, this bound matches (open-closed) mod-minimizers whenever $k \equiv 1 \mod w$.
+:::{#fig-density-overview}
+![](../fig/intro/density-w15){width=70%}
+
+Plot of the density of multiple minimizer schemes, along with the lower bound for forward local schemes from [@density-lower-bound].
+:::
 
 ## Other variants
 
