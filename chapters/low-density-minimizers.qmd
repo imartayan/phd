@@ -150,8 +150,12 @@ However, this approach is not scalable $k > 15$ as the construction time increas
 
 ### 10-minimizers
 
-[@10-minimizers]
+10-minimizers [@10-minimizers] are defined by an order that systematically prioritizes /kmers starting with the binary pattern `10` (named 10-/kmers), the idea being that they tend to be spaced further apart because the pattern cannot overlap itself.
+This translates into an expected density approximately $2/(w+2)$, slightly lower than the $2/(w+1)$ of random minimizers.
+@10-minimizers then refine this construction into *spacers* by ranking 10-/kmers to maximize the gap to the next selected position, achieving a competitive density.
 
 ### Anti-lexicographic SUS-anchors
 
-[@antilex-sus-anchors]
+SUS-anchors [@antilex-sus-anchors] are a scheme designed for $k = 1$, or *selection* scheme, that samples the start position of the smallest unique substring (SUS) in the window, i.e. the shortest substring that occurs only once within the window and is smallest according to a given order.
+This scheme can be combined with an *anti-lexicographic* order, which compares the first character normally but reverses the order of all subsequent ones, to avoid over-sampling positions in long runs of the same character and push anchors further apart.
+Empirically, anti-lexicographic sus-anchors achieve density within 1% of the lower bound for selection schemes on the DNA alphabet.
