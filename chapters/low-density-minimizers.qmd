@@ -106,14 +106,28 @@ While the density of this scheme has no known closed form, it empirically matche
 
 @ocmm then proposed to combine this new scheme with the modulo sampling technique of mod-minimizers, thus resulting in *open-closed mod-minimizers*:
 /tmers are sampled using the open-closed minimizer as the inner scheme, and their position is mapped back to a /kmer modulo $w$.
-This merges the density gains of both approaches and achieves near-lower-bound density across the full range of $k$.
+This merges the density gains of both approaches and achieves low density across the full range of $k$.
 
-## Lower bound for forward local schemes
+## Lower bounds for forward local schemes
 
+While the density of any scheme with a window guarantee can be trivially lower bounded by $1/w$, all of the improved schemes discussed previously remained quite far from it small values of *k*, suggesting that a density of $1/w$ could simply be unreachable in this region.
+
+@marcais2018asymptotically established a first non-trivial lower bound for *forward local schemes*, that is, schemes that select a /kmer only based on the content of the current window (*local*) and have an increasing sequence of selected positions (*forward*).
+This bound was then tightened  by @mod-mini, and later refined as a near-tight lower bound by @density-lower-bound:
+any forward local scheme must satisfy
+$$
+d \ge \frac{\left\lceil\frac{w + k}{w}\right\rceil}{w + k}
+$$
+The key insight behind this result is to consider cyclic strings of length exactly $w + k$: on such a cycle, the window guarantee forces at least $\lceil(w+k)/w\rceil$ positions to be sampled, so the density per cycle is at least $\lceil(w+k)/w\rceil/(w+k)$.
+Since the density of any forward scheme equals its average density over all such cycles, the bound follows.
+
+Moreover, @density-lower-bound noted that this bound peaks at values $k \equiv 1 \mod w$ and can be smoothed into a monotone version since the optimal density decreases with $k$^[A scheme for $k$ can always be turned into a scheme for $k' > k$ by ignoring the last $k' - k$ characters of each window.]:
 $$
 d \ge \max\left( \frac{ \left\lceil\frac{w + k}{w}\right\rceil }{w+k}, \frac{ \left\lceil\frac{w + k^\prime}{w}\right\rceil }{w+k^\prime} \right)
 $$
 where $k^\prime = k + ((1 - k) \bmod w)$ is the smallest integer $\ge k$ such that $k^\prime \equiv 1 \mod w$.
+
+As illustrated in @fig-tba, this bound matches (open-closed) mod-minimizers whenever $k \equiv 1 \mod w$.
 
 ## Other variants
 
