@@ -1,7 +1,7 @@
 # Background on low density minimizers {#sec-low-density-minimizers}
 
 As discussed in @sec-intro-minimizers, the *density* of a minimizer schemes drives its space efficiency, and lowering the density results in longer runs of the same minimizer and longer /skmers.
-However, we've also seen that the popular *random minimizers* achieve a density of $2 / (w+1)$, way above the $1 / w$ lower bound implied by the window guarantee.
+However, we've also seen that the widely used *random minimizers* achieve a density of $2 / (w+1)$, way above the $1 / w$ lower bound implied by the window guarantee.
 This observation raises two main questions:
 how can we design new schemes with a lower density?
 And what is the lowest density we can hope to reach?
@@ -101,6 +101,12 @@ Practical experiments with SSHash [@sshash] showed that replacing random minimiz
 
 One limitation of mod-minimizers is that they do not offer any improvement over random minimizers when $k < w$.
 To address this regime, @ocmm introduced the *open-closed minimizers*, building on the notion of open and closed syncmers (presented in @sec-intro-minimizers).
+Their idea is to first look for the smallest open syncmer in the window; if none exists, fall back to the smallest closed syncmer, and default to the globally smallest /kmer if neither is present.
+While the density of this scheme has no known closed form, it empirically matches double decycling sets for $k < w$ with a small shift due to the inner $s$ parameter of syncmers, and improves over them for $w \le k \le 2w$.
+
+@ocmm then proposed to combine this new scheme with the modulo sampling technique of mod-minimizers, thus resulting in *open-closed mod-minimizers*:
+/tmers are sampled using the open-closed minimizer as the inner scheme, and their position is mapped back to a /kmer modulo $w$.
+This merges the density gains of both approaches and achieves near-lower-bound density across the full range of $k$.
 
 ## Lower bound for forward local schemes
 
