@@ -146,7 +146,7 @@ By avoiding very frequent /kmers, they reduce biases in downstream analyses, at 
 GreedyMini [@greedymini] constructs a minimizer scheme through a greedy brute-force search.
 It iteratively selects the /kmer whose designation as the overall minimum would least often place it first or last in a context, thereby minimizing the number of charged contexts and hence the density.
 The resulting schemes achieve density very close to the lower bound and are optimal for some small parameter values when $k \equiv 1 \mod{w}$.
-However, this approach is not scalable $k > 15$ as the construction time increases exponentially with $k$.
+However, this approach is not scalable for $k > 15$ as the construction time increases exponentially with $k$.
 
 ### 10-minimizers
 
