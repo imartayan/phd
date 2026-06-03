@@ -11,9 +11,9 @@ The concept of minimizers was introduced independently by two groups in 2003--20
 @schleimer2003winnowing introduced *winnowing* in the context of document fingerprinting and plagiarism detection: a sliding window scans the document and the smallest /kmer of each window (according to some ordering) is selected as a fingerprint.
 @roberts2004reducing proposed the same idea for biological sequences, introducing the term *minimizer*, with the explicit goal of providing a locality-preserving sketch: any two sequences sharing a long exact match are guaranteed to share at least one minimizer.
 
-A minimizer scheme is parameterized by three values: the /kmer length $k$, the window size $w$, and a total ordering $\prec$ on /kmers.
+A minimizer scheme is parameterized by three values: the /kmer length $k$, the window size $w$, and a total ordering $\mathcal{O}_k$ on /kmers.
 A *window* of size $w$ is a set of $w$ consecutive /kmers, spanning a substring of length $\ell = w + k - 1$.
-The *minimizer* of a window is the /kmer that is smallest according to $\prec$, with ties broken by selecting the leftmost occurrence^[Choosing the leftmost occurrence is a convention, some schemes use the rightmost one or select all tied /kmers.].
+The *minimizer* of a window is the /kmer that is smallest according to $\mathcal{O}_k$, with ties broken by selecting the leftmost occurrence^[Choosing the leftmost occurrence is a convention, some schemes use the rightmost one or select all tied /kmers.].
 Sliding the window one position at a time along the sequence yields the *minimizer sketch* of that sequence: the (deduplicated) sequence of minimizer positions.
 We discuss efficient implementations of this sliding window algorithm in more details in @sec-simd-minimizers.
 
