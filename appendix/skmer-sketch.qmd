@@ -270,17 +270,9 @@ d_{\mathcal{S} \cap \mathcal{U}} & \le 2 \cdot \Pr(x_0 \in \mathcal{S} \cap \mat
 
 ## Additional figures
 
-::: {layout-ncol=2}
-![Theoretical upper bound on the density factor from @thm-density-sub, lower is better.](../fig/fhs/14_density_bound){#fig-density-bound}
-
-![Average proportion of maximal /skmers built from small minimizers (for $k = 31, m = 15$), higher is better.](../fig/fhs/15_max_skmers){#fig-max-skmers}
-
-Theoretical bounds on the density factor and the proportion of maximal /skmers depending on the fraction $f$ of covered /kmers.
-:::
-
 ![Space cost in bits per /kmer according to the subsampling rate.](../fig/fhs/16_bitperkmeraccordingtok.png){#fig-bitperkmervssubsampling}
 
-::: {#fig-ressalmok31 layout-nrow=3}
+:::{#fig-ressalmok31 layout-nrow=3}
 ![](../fig/fhs/17_RAM_salmonelle1k_k31)
 
 ![](../fig/fhs/18_TIME_salmonelle1k_k31)
@@ -290,7 +282,7 @@ Theoretical bounds on the density factor and the proportion of maximal /skmers d
 Salmonellas 1K k=31
 :::
 
-::: {#fig-resRefseqk63 layout-nrow=3}
+:::{#fig-resRefseqk63 layout-nrow=3}
 ![](../fig/fhs/20_RAM_refseq1k_k63-1)
 
 ![](../fig/fhs/21_TIME_refseq1k_k63-1)
@@ -300,7 +292,7 @@ Salmonellas 1K k=31
 Refseq 1K k=63
 :::
 
-::: {#fig-ressalmok63 layout-nrow=3}
+:::{#fig-ressalmok63 layout-nrow=3}
 ![](../fig/fhs/23_RAM_salmonelle1k_k63)
 
 ![](../fig/fhs/24_TIME_salmonelle1k_k63)
@@ -310,7 +302,7 @@ Refseq 1K k=63
 Salmonellas 1K k=63
 :::
 
-::: {#fig-resErrorContainment layout-nrow=3}
+:::{#fig-resErrorContainment layout-nrow=3}
 ![RefSeq $k = 31$](../fig/fhs/27_ERROR_CONTAINMENT_refseq_k31)
 
 ![Salmonellas $k = 31$](../fig/fhs/28_ERROR_CONTAINMENT_salmonelle_k31)
@@ -320,7 +312,7 @@ Salmonellas 1K k=63
 Error for containment similarity approximation for sourmash (red line) and supersampler on different values for minimizer sizes.
 :::
 
-::: {#fig-resErrorJaccard layout-nrow=4}
+:::{#fig-resErrorJaccard layout-nrow=4}
 ![RefSeq $k = 31$](../fig/fhs/31_SUBSAMPLING_jaccard_refseq1k_k31)
 
 ![Salmonellas $k = 31$](../fig/fhs/33_SUBSAMPLING_jaccard_salmonelle1k_k31)
