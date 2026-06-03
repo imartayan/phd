@@ -323,7 +323,7 @@ In terms of precision per unit of compressed sketch size, however, /spsp compare
 The performance gap narrows at large scale because the $n \times n$ output matrix dominates memory pressure for both tools.
 Sketch creation is cheap in both cases, with IO as the bottleneck.
 
-![Computational time for comparisons on different amounts of bacterial genomes from RefSeq. From 100 to 128,000 genomes with $k = 63$, $s = 1000$ and $m = 15$. sourmash was run up to 32,000 genomes as it was taking too much time for the 2 last experiments.](../fig/fhs/12_refsek_100_128k){#fig-refseq-2k-128 width=70%}
+![Computational time for comparisons on different amounts of bacterial genomes from RefSeq. From 100 to 128,000 genomes with $k = 63$, $s = 1000$ and $m = 15$. sourmash was run up to 32,000 genomes as it was taking too much time for the 2 last experiments.](../fig/fhs/12_refsek_100_128k){#fig-refseq-2k-128k width=70%}
 
 ## Conclusion {#sec-conclusion}
 
