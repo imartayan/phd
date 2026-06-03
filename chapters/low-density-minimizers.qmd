@@ -1,6 +1,6 @@
 # Background on low-density minimizers {#sec-low-density-minimizers}
 
-As discussed in @sec-intro-minimizers, the *density* of a minimizer schemes drives its space efficiency, and lowering the density results in longer runs of the same minimizer and longer /skmers.
+As discussed in @sec-intro-minimizers, the *density* of a minimizer schemes drives its space efficiency: lowering the density leads longer runs of the same minimizer and longer /skmers, which results in a direct improvement in applications such as /kmer counting [@kmc3; @hyperkmers], DBG compaction [@bcalm2; @cuttlefish2; @ggcat] or large-scale indexes [@blight; @sshash].
 However, we've also seen that the widely used *random minimizers* achieve a density of $2 / (w+1)$, way above the $1 / w$ lower bound implied by the window guarantee.
 This observation raises two main questions:
 how can we design new schemes with a lower density?
