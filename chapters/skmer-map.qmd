@@ -138,28 +138,28 @@ For practical values of $k$ and $m$, $\frac{8(k-m)}{k-m+1} \approx 8$, which is 
 
 Although this lazy encoding strategy reduces memory usage, it requires each /kmer's minimizer position and strand within its sequence to be determined consistently.
 While this is not an issue in most cases where the minimal $m$-mer sequence occurs only once within its /kmer, situations with multiple occurrences are often overlooked and labeled as edge cases.
-Additionally, some studies disregard the reverse complement aspect of DNA sequences, which can have a significant impact in practice [@knonical].
+Additionally, some studies disregard the reverse-complement aspect of DNA sequences, which can have a significant impact in practice [@knonical].
 
-Selecting a minimizer position also implies choosing the strand of the /kmer, as a /kmer and its reverse complement can have the same, canonical, minimizer at different positions, leading to ambiguity in how the /kmer is stored.
-In the following, we define a complete and deterministic method to select a given occurrence of the minimal $m$-mer across a /kmer sequence or its reverse complement.
+Selecting a minimizer position also implies choosing the strand of the /kmer, as a /kmer and its reverse-complement can have the same, canonical, minimizer at different positions, leading to ambiguity in how the /kmer is stored.
+In the following, we define a complete and deterministic method to select a given occurrence of the minimal $m$-mer across a /kmer sequence or its reverse-complement.
 
-To determine the minimizer position and strand in these cases, we check both the /kmer sequence and its reverse complement and apply three selection rules to ensure consistency:
+To determine the minimizer position and strand in these cases, we check both the /kmer sequence and its reverse-complement and apply three selection rules to ensure consistency:
 
 1. Canonical minimizer
 2. Leftmost canonical minimizer
 3. Leftmost canonical minimizer from canonical /kmer
 
-In most cases, as shown in @fig-brisk-canon (A), the minimizer appears once in the /kmer but also appears in its reverse complement.
-The first rule is to consider only canonical $m$-mers ($m$-mers smaller than their reverse complements) as potential minimizers.
+In most cases, as shown in @fig-brisk-canon (A), the minimizer appears once in the /kmer but also appears in its reverse-complement.
+The first rule is to consider only canonical $m$-mers ($m$-mers smaller than their reverse-complements) as potential minimizers.
 This fixes the /kmer strand as only one strand contains the canonical minimizer (@fig-brisk-canon A).
 
 However, in a minority of cases, the canonical minimizer occurs more than once within a /kmer.
 This duplication can occur either on the same strand (@fig-brisk-canon B) or across both the canonical and complementary /kmer (@fig-brisk-canon C).
-To handle this, we apply the second rule: always select the leftmost occurrence of the canonical minimizer among the /kmer and its reverse complement.
+To handle this, we apply the second rule: always select the leftmost occurrence of the canonical minimizer among the /kmer and its reverse-complement.
 In @fig-brisk-canon (B), where both occurrences are on the same strand, the leftmost minimizer on this strand is chosen.
-In @fig-brisk-canon (C), the minimizer in the reverse complement /kmer is selected because its position is lower than the corresponding occurrence in the canonical strand.
+In @fig-brisk-canon (C), the minimizer in the reverse-complement /kmer is selected because its position is lower than the corresponding occurrence in the canonical strand.
 
-A rare edge case arises when two leftmost canonical minimizers exist simultaneously: one in the canonical /kmer and one in its reverse complement.
+A rare edge case arises when two leftmost canonical minimizers exist simultaneously: one in the canonical /kmer and one in its reverse-complement.
 These "mirror" cases are resolved by selecting the minimizer in the canonical /kmer as depicted in @fig-brisk-canon (D).
 Note that the parity of $k$ does not complicate this process. If $k$ is odd, palindromic /kmers are impossible, so one strand is inherently superior. For even $k$, palindromic /kmers are possible, but both strands are equally canonical, ensuring no ambiguity.
 
@@ -214,7 +214,7 @@ However, since there are $\mathcal{O}(4^m)$ possible minimizers, a larger minimi
 Therefore, the minimizer size acts as a time-memory trade-off.
 Although increasing $m$ by two (to keep it odd) can slightly improve the mean number of /kmers per /skmer (see @fig-brisk-superkmerstats), it also multiplies the number of potential buckets by 16, highly impacting the mean bucket size. Thus, the advantages of larger minimizers tend to outweigh those of smaller ones.
 
-However, due to various factors—both biological (such as repeats or distribution biases) and computational (such as reverse complement considerations and the fact that minimizers are minimal over $k-m+1$ other values)—minimizers are often poorly distributed, leading to two distinct problems: a large number of empty buckets and some very large buckets [@sshash].
+However, due to various factors—both biological (such as repeats or distribution biases) and computational (such as reverse-complement considerations and the fact that minimizers are minimal over $k-m+1$ other values)—minimizers are often poorly distributed, leading to two distinct problems: a large number of empty buckets and some very large buckets [@sshash].
 To illustrate this phenomenon, we plot the bucket size distribution for the *C. elegans* reference genome compared to a random sequence of the same size in @fig-brisk-distribsuperbucket.
 We observe that no bucket from the random sequence contains $2^7$ or more elements, while several buckets from *C. elegans* contain more than $2^{10}$ elements.
 We also see that *C. elegans* generates more very small buckets than the random sequence.

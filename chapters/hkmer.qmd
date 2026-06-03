@@ -294,7 +294,7 @@ The bold parts correspond to the (possibly truncated) minimizers of the sequence
 **Top**: a hash table associates each minimizer to a list of entries.
 Each entry represents a /hkmer and its count.
 Each /hkmer is represented using pointers (represented as dots) to its left and right parts in the vector of /hkmer parts.
-To retrieve the parts, each pointer consists of the part's position in the vector, a start and end position in that part, and an orientation flag to handle reverse complements.
+To retrieve the parts, each pointer consists of the part's position in the vector, a start and end position in that part, and an orientation flag to handle reverse-complements.
 :::
 
 Our /kmer counter implements a two-pass algorithm.
