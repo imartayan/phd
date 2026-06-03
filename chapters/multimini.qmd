@@ -6,7 +6,7 @@ This chapter is adapted from {{< longcite multiminimizers >}}.
 
 As surveyed in @sec-low-density-minimizers, recent progress on low-density minimizer schemes has brought practice very close to the forward local scheme lower bound, suggesting diminishing returns from further improvements in that direction.
 This chapter starts from this observation and asks a simple question: what if, instead of committing to a single minimizer scheme, we allow choosing among multiple independent candidates?
-The idea mirrors the *power of two choices* in load balancing [@balanced-allocations;@power-of-two-choices], where picking the less loaded of two random bins reduces maximum load exponentially, and we ask whether the same strategy can further reduce minimizer density.
+The idea mirrors the *power of two choices* in load balancing [@balanced-allocations;@power-of-two-choices], where picking the less loaded of two random bins significantly reduces maximum load, and we ask whether the same strategy can further reduce minimizer density.
 
 ## A link between density and the expected distance between selected positions {#sec-multimini-density-distance}
 
@@ -16,7 +16,7 @@ Specializing to random minimizers, we argue that the standard modeling assumptio
 :::{.callout-caution}
 ## Different notations
 
-In this chapter, the minimizer size is denoted $m$ (instead of $k$ in @sec-minimizer-definition) while $k$ denotes the number of bases in a window, i.e. $k = w + m - 1$.
+We reuse the notations from @sec-skmers: the minimizer size is denoted $m$ while $k$ denotes the number of bases in a window, i.e. $k = w + m - 1$.
 :::
 
 We follow the notations of @sec-intro-minimizers and denote $\mathcal{O}_m$ for a total order on /mmers and $\texttt{rank}_{\mathcal{O}_m} : \Sigma^m \to \llbracket 1, \sigma^m \rrbracket$ the corresponding rank function.
