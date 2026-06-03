@@ -270,56 +270,34 @@ d_{\mathcal{S} \cap \mathcal{U}} & \le 2 \cdot \Pr(x_0 \in \mathcal{S} \cap \mat
 
 ## Additional figures
 
-![Space cost in bits per /kmer according to the subsampling rate.](../fig/fhs/16_bitperkmeraccordingtok.png){#fig-bitperkmervssubsampling}
+![Space cost in bits per /kmer according to the subsampling rate.](../fig/fhs/16_bitperkmeraccordingtok.png){#fig-bitperkmervssubsampling width=70%}
 
 :::{#fig-ressalmok31 layout-nrow=3}
-![](../fig/fhs/17_RAM_salmonelle1k_k31)
+![](../fig/fhs/17_RAM_salmonelle1k_k31){width=70%}
 
-![](../fig/fhs/18_TIME_salmonelle1k_k31)
+![](../fig/fhs/18_TIME_salmonelle1k_k31){width=70%}
 
-![](../fig/fhs/19_SIZE_salmonelle1k_k31)
+![](../fig/fhs/19_SIZE_salmonelle1k_k31){width=70%}
 
 Salmonellas 1K k=31
 :::
 
 :::{#fig-resRefseqk63 layout-nrow=3}
-![](../fig/fhs/20_RAM_refseq1k_k63-1)
+![](../fig/fhs/20_RAM_refseq1k_k63-1){width=70%}
 
-![](../fig/fhs/21_TIME_refseq1k_k63-1)
+![](../fig/fhs/21_TIME_refseq1k_k63-1){width=70%}
 
-![](../fig/fhs/22_SIZE_refseq1k_k63-1)
+![](../fig/fhs/22_SIZE_refseq1k_k63-1){width=70%}
 
 Refseq 1K k=63
 :::
 
-:::{#fig-ressalmok63 layout-nrow=3}
-![](../fig/fhs/23_RAM_salmonelle1k_k63)
+:::{#fig-ressalmok63 layout="[[70],[70],[70]]"}
+![](../fig/fhs/23_RAM_salmonelle1k_k63){width=70%}
 
-![](../fig/fhs/24_TIME_salmonelle1k_k63)
+![](../fig/fhs/24_TIME_salmonelle1k_k63){width=70%}
 
-![](../fig/fhs/30_SIZE_salmonelle1k_k63)
+![](../fig/fhs/30_SIZE_salmonelle1k_k63){width=70%}
 
 Salmonellas 1K k=63
-:::
-
-:::{#fig-resErrorContainment layout-nrow=3}
-![RefSeq $k = 31$](../fig/fhs/27_ERROR_CONTAINMENT_refseq_k31)
-
-![Salmonellas $k = 31$](../fig/fhs/28_ERROR_CONTAINMENT_salmonelle_k31)
-
-![RefSeq $k = 63$](../fig/fhs/29_ERROR_CONTAINMENT_refseq_k63)
-
-Error for containment similarity approximation for sourmash (red line) and supersampler on different values for minimizer sizes.
-:::
-
-:::{#fig-resErrorJaccard layout-nrow=4}
-![RefSeq $k = 31$](../fig/fhs/31_SUBSAMPLING_jaccard_refseq1k_k31)
-
-![Salmonellas $k = 31$](../fig/fhs/33_SUBSAMPLING_jaccard_salmonelle1k_k31)
-
-![RefSeq $k = 63$](../fig/fhs/32_SUBSAMPLING_jaccard_refseq1k_k63)
-
-![Salmonellas $k = 63$](../fig/fhs/34_SUBSAMPLING_jaccard_salmonelle1k_k63)
-
-Error for Jaccard similarity approximation for sourmash (red line) and supersampler on different values for minimizer sizes.
 :::

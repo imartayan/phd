@@ -297,11 +297,11 @@ Measured density factor compared to the model.
 We compared /spsp against sourmash on two datasets: 1024 Salmonella genomes (high mutual similarity) and 1024 RefSeq bacterial genomes (Jaccard similarity near 0).
 All-vs-all comparisons were timed and profiled with Snakemake, and exact Jaccard and containment values from Simka [@simka] serve as ground truth for precision estimates.
 
-![Resource consumption results for 1024 bacterial genomes from RefSeq. For these results, k = 31. For results on Salmonella genomes and k = 63, see @fig-ressalmok31, @fig-ressalmok63 and @fig-resRefseqk63 on the appendix.](../fig/fhs/9_RAM_TIME_SIZE_refseq1k_k31){#fig-resRefseqk31 width=70%}
+![Resource consumption results for 1024 bacterial genomes from RefSeq with *k = 31*.](../fig/fhs/9_RAM_TIME_SIZE_refseq1k_k31){#fig-resRefseqk31 width=70%}
 
 #### RAM, time, and sketch size
 
-@fig-ressalmok31 and @fig-resRefseqk31 demonstrate that, for $k=31$, /spsp generally consumes 5 times less RAM and requires generally 16 times less space than sourmash. Additionally, /spsp performs computations 50 times faster than sourmash when comparing highly dissimilar genomes. However, when genomes are very similar, such as with Salmonella, comparison times are comparable since /spsp's time optimization does not apply on very similar documents.
+@fig-resRefseqk31 and @fig-ressalmok31 demonstrate that, for $k=31$, /spsp generally consumes 5 times less RAM and requires generally 16 times less space than sourmash. Additionally, /spsp performs computations 50 times faster than sourmash when comparing highly dissimilar genomes. However, when genomes are very similar, such as with Salmonella, comparison times are comparable since /spsp's time optimization does not apply on very similar documents.
 We also note that minimizer size has little to no impact on these metrics.
 
 @fig-resRefseqk63 and @fig-ressalmok63 reveal that the improvement in sketch disk size is even more significant with larger values of $k$. /spsp uses in general 50 times less disk space than sourmash with $k=63$, while maintaining similar differences in RAM and computation time.
@@ -314,7 +314,7 @@ In terms of precision per unit of compressed sketch size, however, /spsp compare
 
 ![Error Jaccard similarity approximation for sourmash and /spsp against the compressed sketch sizes. This plot shows the results for 20 files of salmonellas simulated reads with $k = 31$, $m = 13$. Reads are 150bp long for a 100X coverage. Dashed lines represent the sizes of the sketches indexing all /kmers.](../fig/fhs/10_error_jaccard_tradeoff_dashed){#fig-errors width=70%}
 
-![Error against Simka on Containment similarity approximation for sourmash (red line) and /spsp with different minimizer sizes. This plot is for 1024 Salmonellas genoms with $k = 63$. Other results for RefSeq and Salmonellas are available at @fig-resErrorContainment. Jaccard similarity error is available at @fig-resErrorJaccard on the appendix.](../fig/fhs/11_ERROR_CONTAINMENT_salmonelle_k63){#fig-errors2 width=70%}
+![Error against Simka on Containment similarity approximation for sourmash (red line) and /spsp with different minimizer sizes, on 1024 Salmonellas genoms with *k = 63*.](../fig/fhs/11_ERROR_CONTAINMENT_salmonelle_k63){#fig-errors2 width=70%}
 
 #### Massive collection indexing
 
