@@ -4,139 +4,27 @@
 This chapter is adapted from {{< longcite multiminimizers >}}.
 :::
 
-TBA
+As surveyed in @sec-low-density-minimizers, recent progress on low-density minimizer schemes has brought practice very close to the forward local scheme lower bound, suggesting diminishing returns from further improvements in that direction.
+This chapter starts from this observation and asks a simple question: what if, instead of committing to a single minimizer scheme, we allow choosing among multiple independent candidates?
+The idea mirrors the *power of two choices* in load balancing [@balanced-allocations;@power-of-two-choices], where picking the less loaded of two random bins reduces maximum load exponentially, and we ask whether the same strategy can further reduce minimizer density.
 
-- trim the introduction
-- discuss the "power of two choices" in other contexts
-- highlight the space vs time tradeoff, and its limitations
+## A link between density and the expected distance between selected positions {#sec-multimini-density-distance}
 
----
+We start by formalizing the link between density and distances between consecutive selected positions, under minimal assumptions on these distances.
+Specializing to random minimizers, we argue that the standard modeling assumption is unsatisfactory and propose a more realistic one that coincides with the classical regime for large minimizers, verifying empirically that it satisfies our minimal condition.
 
 :::{.callout-caution}
-Unedited draft from {{< longcite multiminimizers >}}.
+## Different notations
+
+In this chapter, the minimizer size is denoted $m$ (instead of $k$ in @sec-minimizer-definition) while $k$ denotes the number of bases in a window, i.e. $k = w + m - 1$.
 :::
 
-## Introduction
+We follow the notations of @sec-intro-minimizers and denote $\mathcal{O}_m$ for a total order on /mmers and $\texttt{rank}_{\mathcal{O}_m} : \Sigma^m \to \llbracket 1, \sigma^m \rrbracket$ the corresponding rank function.
+In practice, $\mathcal{O}_m$ is induced by a random hash function with $U = 2^{64}$, which we treat as collision-free [@lphash].
+We denote by $\mathcal{S}_f(S)$ the set of selected indices of a string $S$ under scheme $f$, and by $d(S) = |\mathcal{S}_f(S)| / (|S| - k + 1)$ its particular density.
+The expected density $d$ is the limit of $\mathbb{E}[d(S)]$ over random strings of growing length.
+Experiments use canonical /kmers; definitions are stated in a non-canonical context for clarity (see [@knonical] for the canonical extension).
 
-Efficient sequence comparison is a central computational pillar of modern genomics.
-Modern applications must process genomes of hundreds of gigabases, handle terabase-scale sequencing datasets, and search petabase-scale reference collections with both speed and tight memory usage.
-To perform sequence alignment at large scales, heuristic strategies such as seed-and-extend and chaining [@blast; @minimap1] avoid full dynamic-programming alignment, and prefer dividing this procedure into smaller or simpler tasks for which exact /kmer (a word of fixed length $k$) matches serve as high-confidence landmarks that guide the alignment.
-A key observation is that, in practice, one does not need to index all /kmers to maintain high alignment sensitivity; therefore, /kmer sampling is often preferred to decrease resource usage [@minimap2].
-However, naive sampling schemes lack robustness to mutations or noise, and sampling schemes designed for distance approximation can generate "deserts" where no /kmer is chosen, leaving the alignment algorithm without the necessary anchor points [@knonical].
-Minimizers were introduced in this context [@schleimer2003winnowing; @roberts2004reducing] to couple sparsity (through sampling) with coverage guarantees (to avoid deserts as much as possible).
-This chapter addresses several fundamental aspects of minimizers and their effectiveness in sequence representation.
-
-Given a window of $w = k - m + 1$ consecutive /mmers ($k \geq m$), a minimizer scheme selects one /mmer in this window according to an order, typically induced by a hash function.
-This ensures that any exact match of length at least $k = w + m - 1$ between two sequences yields at least one common minimizer, provided they use the same ordering.
-At first glance, this guarantees coverage, but not efficient sampling, since in principle each overlapping window could select a different /mmer.
-In practice, successive windows share $w-1$ /mmers and differ by only one entering and one leaving /mmer, so they tend to select the same minimizer over long stretches.
-To formalize this, the notion of density was introduced: the average number of selected /mmers per window, or equivalently, the fraction of /mmers retained.
-This chapter focuses on minimizer density, in particular in its optimization.
-To be explicit, a lower density means that fewer /mmers are selected, which directly reduces memory usage and comparison cost, or expectedly more cache-coherent algorithms, making it both a theoretically interesting question and one with broad practical impact, described succinctly below.
-
-A wide range of tools now rely on minimizers as their main alignment and indexing mechanism.
-Long-read [@minimap2; @morisse2019consent] and whole-genome aligners [@minkin2020scalable] index only minimizers for their heuristics, reducing memory footprint and accelerating chaining.
-Classifiers and document-retrieval indexes use minimizers to shrink database size by orders of magnitude [@andreace2021metaprob] or to speed up filtering [@k2rmini; @deacon].
-Lossy representations encoding sequences as ordered lists of minimizers have also become central in lightweight assembly and comparison methods [@mdbg; @mapquik].
-Beyond window-based selection, minimizer schemes can assign to each /kmer one of its /mmers ($m \leq k$) as its minimizer, inducing a natural partition of the /kmers without additional metadata.
-Consecutive /kmers often share the same minimizer, forming long runs that can be stored compactly as a single superstring of length $k + m - 1$ [@kmc2].
-This property is exploited in /kmer counters [@kmc3; @hyperkmers], scalable de Bruijn graph construction [@bcalm2; @cuttlefish2; @ggcat], and large-scale indexing structures [@sshash; @blight].
-In this setup, the density matters again: higher density breaks these runs more often, reducing the benefits of the compact string representation.
-
-Minimizers are typically computed on a stream of genomic sequences.
-A first key notion is that of local schemes, in which /mmers are selected solely based on the content of each window.
-A second notion is that of forward schemes, which restrict selection to /mmers appearing at increasing positions along the sequence.
-Every forward scheme is therefore a local scheme.
-With this window structure in place, the best possible density is $\frac{1}{w}$ (one selected /kmer per window).
-Early work established random-order minimizers, e.g. hashing-based orderings, as a simple baseline with expected density $\frac{2}{w+1}$, and conjectured that this might be near-optimal for local schemes [@schleimer2003winnowing].
-Subsequent results disproved this, and multiple research threads have since pushed densities closer to the theoretical limit:
-
-- @marcais2018asymptotically characterized when asymptotically optimal minimizers exist and introduced a practical construction [@miniception].
-- Another line of work proposed precomputing a set of minimizers that hits every possible window in the universe; so that a given input sequence then only selects minimizers from this set. These schemes improve density but suffer from exponential growth in construction cost as $k$ increases. @pellow2023efficient addressed this with heuristics that scale to arbitrarily large $k$ and any window length.
-- @mod-mini and @ocmm introduced schemes based on modular constraints on internal subwords, achieving asymptotically optimal density $\frac{1}{w}$ as $k \to \infty$.
-
-@density-lower-bound later derived a nearly tight lower bound for forward sampling schemes, showing that for many practical $(k,w)$, state-of-the-art constructions are within only a few percent of optimal density.
-This suggests that substantial further improvements in local schemes are unlikely.
-Recent schemes such as @greedymini attain densities extremely close to the @density-lower-bound bound for practical parameter ranges, as do the aforementioned constructions of @pellow2023efficient and @mod-mini.
-
-To escape the limitations of universal forward local schemes, which are designed to perform well on any input, the community has also designed sequence-specific schemes that tailor minimizer selection to the properties of a given genome.
-These include frequency-based selection [@bcalm1], spacing-based strategies [@polar-sets], and machine-learning approaches [@deep-minimizer].
-While these methods can substantially reduce density on real genomes, they cannot be computed in a streaming fashion, making them impractical at very large scales.
-
-Despite the extensive effort devoted to low-density minimizer schemes, several aspects of density behavior remain poorly understood.
-In this work, we focus on three such aspects and use them as the foundation for our contributions.
-
-First, we revisit classical density for local schemes in a unified way.
-We formalize the link between density and distances between consecutive selected positions and show that, under a minimal assumption on these distances, the density of *any* local scheme equals the inverse of the expected distance.
-Specializing to random minimizers, we argue that the standard modeling assumption is unsatisfactory.
-We thus propose a more realistic one that coincides with the classical regime for large /mmers, and verify empirically that it satisfies our minimal condition.
-
-Second, we build on this perspective to design a practical family of meta schemes dubbed *multiminimizers*.
-Instead of fixing a single minimizer per /kmer, we assign a bounded set of candidate minimizers and choose among them to reduce the frequency of selected positions while preserving locality and consistency.
-Instantiated on top of a random-hash order, multiminimizers attain asymptotically optimal positional density, match or surpass the best known schemes in practice, and remain simple and efficient to implement.
-
-Third, we make explicit a twin notion to classical density: the *deduplicated density*, the fraction of distinct minimizers needed to cover all /kmers, directly relevant for filters and indexes.
-We show that classical and deduplicated densities diverge on long random sequences, but essentially coincide for small sequences, when computed for random minimizers.
-We then study minimizing deduplicated density in the multiminimizer framework, prove that the global optimization problem is NP-complete (via reduction from set cover), and introduce a local heuristic with strong empirical behavior.
-This detour clarifies the relationship between the two densities and highlights a remaining open problem: establishing the computational complexity of minimizing classical density itself.
-
-## Methods
-
-### Preliminaries {#sec-multimini-prelim}
-
-In this section, we introduce key concepts for the rest of this article.
-We build mainly on the notations of [@hyperkmers; @sshash; @mod-mini; @marcais2018asymptotically; @greedymini].
-We are interested in strings defined over the DNA alphabet $\{\texttt{A}, \texttt{C}, \texttt{G}, \texttt{T}\}$ of size $\sigma = 4$.
-Let $S \in \Sigma^\ast$ be a string; we denote by $S[i\ldots j)$ the substring of $S$ of length $j-i$, starting at position $i$ (included) and ending at position $j$ (excluded).
-A /kmer is a substring $S[i\ldots i+k)$ of fixed length $k$.
-The length of a string $S$ is denoted by $|S|$.
-Most of the time, the DNA strand from which a sequence is coming is unknown; the ambiguity is resolved by considering that a /kmer and its reverse complement are, in fact, the same /kmer.
-One of the two (e.g. the lexicographically smallest) is chosen to be the *canonical* representative of the pair.
-Hereafter, the definitions are stated in a non-canonical context (but are easily extended); whereas the practical experiments presented later on are based on canonical /kmers, although our implementations cover both contexts.
-On the topic of canonical /kmers, see also [@knonical].
-
-An order $\mathcal{O}_m$ on /mmers is an injective function $\Sigma^m \to \mathbb{R}$ such that $x \leq_{\mathcal{O}_m} y \iff \mathcal{O}_m(x) \leq \mathcal{O}_m(y)$.
-In practice, we define an order using a (pseudo)-random hash function $h: \Sigma^m \to U$ [@lphash], where $U$ is large enough so that the probability of collision (i.e. $h(x) = h(y)$ with $x \neq y$) can be assumed to be $0$ -- i.e. $h$ is a perfect hash function.
-Typically, $U = 2^{64}$ whenever using 64-bits hash functions.
-We denote by $\texttt{rank}_{\mathcal{O}_m} : \Sigma^m \to \llbracket 1, \sigma^m \rrbracket$ the function that associates to a /mmer its rank among all /mmers according to the order $\mathcal{O}_m$.
-Since $\mathcal{O}_m$ is injective, $\texttt{rank}_{\mathcal{O}_m}$ is a bijection.
-
-:::{#def-multimini-minimizer}
-## (Random) Minimizer
-The minimizer $\min(x)$ of a /kmer $x$ is its smallest substring of size $m < k$ for the (random) order $\mathcal{O}_m$.
-:::
-
-Let us denote $w = k - m + 1$ the number of /mmers contained in a /kmer.
-
-:::{#def-multimini-scheme}
-## Minimizer scheme
-Provided an order $\mathcal{O}_m$, a minimizer scheme is a function $f : \Sigma^k \to \llbracket 1, w \rrbracket$ that returns the position of the minimizer of a /kmer, with ties resolved to the left; i.e. $f(x) = \min \{ 1 \leq i \leq w : x[i\ldots i+m) = \min(x) \}$.
-:::
-
-:::{#def-multimini-selected}
-## Set of selected indices
-The set of selected indices of a string $S$ using the minimizer scheme $f$ is defined as $\mathcal{S}_f(S) = \{ i + f(S[i\ldots i+k)) : 1 \leq i \leq |S|-k+1 \}$.
-:::
-
-As noted in [@marcais2018asymptotically], the scheme may select the same position in consecutive windows (since consecutive windows overlap by $k-1$ bases), so that $|\mathcal{S}_f(S)| \leq |S| - k + 1$.
-
-:::{#def-multimini-density}
-## Density [@greedymini]
-The (expected) density of a minimizer scheme $f$ is formally defined as
-$$d = \lim_{M\to\infty} \frac{1}{\sigma^M} \sum_{S \in \Sigma^M} \frac{|\mathcal{S}_f(S)|}{|S|-k+1}$$
-and represents the expected proportion of selected minimizers among all /mmers on a random string, where each character is chosen uniformly at random.
-For any sequence $S$, the term $\frac{|\mathcal{S}_f(S)|}{|S|-k+1}$ is also defined as the *particular density* of $S$, and denoted by $d(S)$.
-Since $1/w \leq d(S) \leq 1$, we also have $1/w \leq d \leq 1$.
-:::
-
-@minimizers-ordering proved that the density can be computed exactly (instead of just being estimated) by noticing that the density and the particular density coincide when computed on a de Bruijn sequence of large enough order.
-The purpose of the upcoming @sec-multimini-density-distance is to provide yet another way to compute the density.
-Finally, note that all these definitions can also be applied to the broader concept of *local schemes*, which are guaranteed to select one /mmer per /kmer.
-Minimizer schemes are one example of local schemes, see also [@marcais2018asymptotically].
-
-### A link between density and the expected distance between selected positions {#sec-multimini-density-distance}
-
-Let $f$ be a minimizer scheme.
 Consider the expected number of selected positions in a window of size $w$ -- by definition, it is equal to $d \cdot w$.
 Intuitively, this quantity is also equal to $w$ divided by the expected distance between two selected consecutive positions -- that we denote here by $\mu$.
 Indeed, if we select a position every $\mu$ bases, we expect to choose $w/\mu$ positions on average in a window.
@@ -258,7 +146,7 @@ The proof is deferred to @sec-multimini-app-density-distance.
 :::
 
 Basically, @thm-multimini-density-distance states that if we assume that the distances between consecutive selected positions of minimizers are somehow equally distributed, then their expected value is exactly $1/d$.
-This assumption is the minimum viable hypothesis for establishing the result (since $\mu$ must be well defined), and note also that this hypothesis does not depend on the process by which the $R_i$'s values are obtained, nor how the positions of the minimizers $P_1, P_2, \ldots$ are selected in successive windows -- thus making our result very general, applicable to *any local scheme*, and, to the best of our knowledge, the first of its kind.
+This assumption is the minimum viable hypothesis for establishing the result (since $\mu$ must be well defined), and note also that this hypothesis does not depend on the process by which the $R_i$'s values are obtained, nor how the positions of the minimizers $P_1, P_2, \ldots$ are selected in successive windows, thus making our result very general.
 
 At this point, we have not made any assumptions on the random vectors $\mathbf{R}, \mathbf{P}$ and $\mathbf{P}^\ast$.
 It is not trivial to formally verify whether the assumption regarding the $\mathbb{E}[\Delta_i]$'s is verified or not, as the variables are most likely not to be independent nor identically distributed.
@@ -307,7 +195,10 @@ From our results, the assumption that $\mathbb{E}[\varepsilon] = 0$ is empirical
 We obtain numerically a density of 0.1808, i.e. 0.55% of error compared to the theoretical value of $0.\overline{18}$.
 This empirical result highlights that @hyp-multimini-iid is indeed a proper assumption to work with, and also that the assumption of @thm-multimini-density-distance is reasonable, since it is verified in practice.
 
-### Multiminimizers: trading time for space {#sec-multimini-method}
+## Multiminimizers: trading time for space {#sec-multimini-method}
+
+We now introduce a practical family of meta schemes called *multiminimizers*, that assign a bounded set of candidate minimizers and choose among them to reduce the frequency of selected positions.
+<!-- We then show that multiminimizers attain asymptotically optimal positional density, match or surpass the best known schemes in practice, and remain simple and efficient to implement. -->
 
 Considering @thm-multimini-density-distance, obtaining a low density scheme on a sequence $S$ requires having a scheme that selects positions as far as possible from one another in $S$, while still covering all /kmers from $S$.
 In this regard, the best possible minimizer scheme would select /mmers at a distance of $k - m + 1$ bases from each other.
@@ -315,7 +206,7 @@ However, without a way to retrieve which /mmer was chosen for a specific /kmer, 
 The same problem arises when inserting a /kmer into a database: one must perform $k - m + 1$ checks to verify whether it is already present or not.
 
 To reduce this prohibitive cost, we propose a simple yet efficient solution leveraging the notion of /skmers.
-A */skmer* is defined as a maximal sequence of consecutive /kmers having the same minimizer [@superkmers].
+As defined in @sec-skmers, a /skmer is a maximal sequence of consecutive /kmers sharing the same minimizer.
 Our technique starts by generating $N$ distinct hash functions (e.g. using $N$ distinct random seeds).
 Then, we use these $N$ hash functions to generate $N$ distinct random minimizer schemes.
 Each of these minimizer schemes yields a set of /skmers on the sequence $S$, each covering all /kmers of $S$.
@@ -456,10 +347,15 @@ This gain in density comes at the price of (bounded) increased query time, as pe
 Finally, note that the multiminimizer trick is not limited to random minimizer schemes, but could be used with any combination of $N$ distinct local schemes (whether by varying parameters or using concurrent schemes) -- in that sense, multiminimizers are a sort of *meta* scheme.
 To illustrate this point, in upcoming @sec-multimini-results, we investigate two implementations of the multiminimizer trick, one with random minimizers, and the other with open-closed mod-minimizers [@ocmm].
 
-### On deduplicated density {#sec-multimini-dedup-density}
+## On deduplicated density {#sec-multimini-dedup-density}
+
+<!-- We now discuss a twin notion to classical density: the *deduplicated density*, the fraction of distinct minimizers needed to cover all /kmers, directly relevant for filters and indexes.
+We show that classical and deduplicated densities diverge on long random sequences, but essentially coincide for small sequences, when computed for random minimizers.
+We then study minimizing deduplicated density in the multiminimizer framework, prove that the global optimization problem is NP-complete (via reduction from set cover), and introduce a local heuristic with strong empirical behavior.
+This detour clarifies the relationship between the two densities and highlights a remaining open problem: establishing the computational complexity of minimizing classical density itself. -->
 
 It appears the standard density possesses a "twin" concept, that we call *deduplicated density* (which we denote by $d^\ast$), and that we define as the fraction of distinct minimizers needed to cover all /kmers of a set of sequences (or, equivalently, a set of /kmers), instead of the fraction of positions selected along a sequence.
-To the best of our knowledge, the deduplicated density has never been mentioned in the literature, even if it is implicitly linked to filter problems, such as the ones tackled by Needle [@needle].
+To the best of our knowledge, the deduplicated density has never been mentioned in the literature, even if it is implicitly linked to filtering tasks, such as the ones tackled by Needle [@needle].
 
 :::{#def-multimini-mincover}
 ## Minimizer Cover
@@ -467,7 +363,7 @@ Let $\mathcal{X} = \{x_1, x_2, \ldots\}$ be a set of (distinct) /kmers.
 The *minimizer cover* of $\mathcal{X}$, according to some minimizer scheme $f$, that we denote by $\operatorname{MinCover}_f(\mathcal{X})$, is defined as $\operatorname{MinCover}_f(\mathcal{X}) = \{ \min_f(x) : x \in \mathcal{X} \}$, where $\min_f(x)$ designates the minimizer of $x$ according to $f$.
 :::
 
-Analogously to standard density -- recall @def-multimini-density, we can define a *particular* deduplicated density $d^\ast(\mathcal{X})$ and obtain simple bounds, mimicking the ones we already have on standard particular density:
+Analogously to standard density (see @sec-multimini-prelim), we can define a *particular* deduplicated density $d^\ast(\mathcal{X})$ and obtain simple bounds, mimicking the ones we already have on standard particular density:
 $$\frac{1}{|\mathcal{X}|} \leq d^\ast(\mathcal{X}) = \frac{|\operatorname{MinCover}_f(\mathcal{X})|}{|\mathcal{X}|} \leq 1.$$
 
 Standard density is computed as the limit of the expected particular density $\mathbb{E}[d(S)]$ on a random sequence $S$ when $|S| \to \infty$, for fixed values of $k$ and $m$.
