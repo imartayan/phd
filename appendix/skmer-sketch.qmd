@@ -271,9 +271,9 @@ d_{\mathcal{S} \cap \mathcal{U}} & \le 2 \cdot \Pr(x_0 \in \mathcal{S} \cap \mat
 ## Additional figures
 
 ::: {layout-ncol=2}
-![Theoretical upper bound on the density factor from @thm-density-sub, lower is better. {#fig-density-bound}](../fig/fhs/14_density_bound)
+![Theoretical upper bound on the density factor from @thm-density-sub, lower is better.](../fig/fhs/14_density_bound){#fig-density-bound}
 
-![Average proportion of maximal /skmers built from small minimizers (for $k = 31, m = 15$), higher is better. {#fig-max-skmers}](../fig/fhs/15_max_skmers)
+![Average proportion of maximal /skmers built from small minimizers (for $k = 31, m = 15$), higher is better.](../fig/fhs/15_max_skmers){#fig-max-skmers}
 
 Theoretical bounds on the density factor and the proportion of maximal /skmers depending on the fraction $f$ of covered /kmers.
 :::
