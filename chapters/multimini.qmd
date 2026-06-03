@@ -363,7 +363,7 @@ Let $\mathcal{X} = \{x_1, x_2, \ldots\}$ be a set of (distinct) /kmers.
 The *minimizer cover* of $\mathcal{X}$, according to some minimizer scheme $f$, that we denote by $\operatorname{MinCover}_f(\mathcal{X})$, is defined as $\operatorname{MinCover}_f(\mathcal{X}) = \{ \min_f(x) : x \in \mathcal{X} \}$, where $\min_f(x)$ designates the minimizer of $x$ according to $f$.
 :::
 
-Analogously to standard density (see @sec-multimini-prelim), we can define a *particular* deduplicated density $d^\ast(\mathcal{X})$ and obtain simple bounds, mimicking the ones we already have on standard particular density:
+Analogously to standard density, we can define a *particular* deduplicated density $d^\ast(\mathcal{X})$ and obtain simple bounds, mimicking the ones we already have on standard particular density:
 $$\frac{1}{|\mathcal{X}|} \leq d^\ast(\mathcal{X}) = \frac{|\operatorname{MinCover}_f(\mathcal{X})|}{|\mathcal{X}|} \leq 1.$$
 
 Standard density is computed as the limit of the expected particular density $\mathbb{E}[d(S)]$ on a random sequence $S$ when $|S| \to \infty$, for fixed values of $k$ and $m$.
