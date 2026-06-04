@@ -3,3 +3,82 @@
 :::{.callout-note}
 This chapter is partially adapted from {{< longcite cbl >}}.
 :::
+
+While we have seen in @sec-intro-minimizers that minimizers can be used as a way to partition /kmers while preserving locality, we present in this chapter a new approach based on smallest cyclic rotations, or *necklaces*.
+We will discuss some of their properties, highlight their connection to lexicographic minimizers and explain how they can represent /kmer sets efficiently.
+In particular, one property that will prove particularly useful is that necklaces of consecutive /kmers often share long prefixes.
+
+## Necklaces and their properties
+
+:::{#def-necklace}
+## Necklace
+We define the *necklace* $\langle x \rangle$ of a string $x$ as its smallest cyclic rotation:
+$$
+\langle x \rangle = \min_i \operatorname{rol}^i(x)
+$$
+:::
+
+It's pretty clear that the necklace transformation is not injective, for instance `CAT`, `ATC` and `TCA` all have `ATC` as a necklace.
+Intuitively, each necklace of size $k$ acts as a representative of its $k$ cyclic rotations.
+The following property confirms this intuition and shows that necklaces of size $k$ roughly amount for a fraction $\frac{1}{k}$ of all /kmers:
+
+:::{#prp-number-necklaces}
+## Number of necklaces [@lothaire1997combinatorics]
+Given an alphabet of size $\sigma$, the number of necklaces of size $k$ is given by
+$$
+N(k) = \frac{1}{k} \sum_{d | k} \varphi\left(\frac{k}{d}\right) \sigma^d \sim \frac{\sigma^k}{k}
+$$
+where $\varphi$ denotes Euler's totient function.
+:::
+
+:::{#fig-dbg-node-centric}
+
+```{.tikz}
+%%| filename: dbg-node-centric
+%%| opt-zoom: 1.5
+
+\usetikzlibrary{positioning}
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{shapes.geometric}
+
+\tikzset{
+    >=latex,
+    every edge/.style={draw, ultra thick},
+    node/.style={draw, thick, rounded corners=1mm, fill=white, font=\small\sffamily},
+}
+\definecolor{good}{HTML}{4db6ac}
+\definecolor{bad}{HTML}{f06292}
+
+\begin{tikzpicture}
+    \node[regular polygon, regular polygon sides=5, minimum size=4cm] (P) {};
+    \node[node, fill=bad!30] (1) at (P.corner 1) {ACGAT};
+    \node[node] (2) at (P.corner 2) {CGATA};
+    \node[node] (3) at (P.corner 3) {GATAC};
+    \node[node] (4) at (P.corner 4) {ATACG};
+    \node[node] (5) at (P.corner 5) {TACGA};
+
+    \draw[->, good, bend right=20] (1) edge (2) (2) edge (3) (3) edge (4) (4) edge (5) (5) edge (1);
+\end{tikzpicture}
+```
+
+Example of all cyclic rotations of `GATAC`, with the necklace `ACGAT` highlighted in color.
+:::
+
+### Ranking necklaces
+
+Because they only represent a fraction $\frac{1}{k}$ of the universe, it should be possible to have an encoding of necklaces that saves about $\lg k$ bits.
+One way to obtain such encoding is to *rank* necklaces.
+
+### Bijective encoding of /kmers
+
+## Necklaces of consecutive /kmers
+
+### Runs of common prefixes
+
+### Computing necklaces with minimizers
+
+### Quotienting sets of necklaces
+
+## CBL: a dynamic data structure for /kmer sets
+
+## Comparison against other indexes
