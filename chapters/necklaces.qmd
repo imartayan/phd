@@ -19,7 +19,7 @@ $$
 :::
 
 It's pretty clear that the necklace transformation is not injective, for instance `CAT`, `ATC` and `TCA` all have `ATC` as a necklace.
-Intuitively, each necklace of size $k$ acts as a representative of its $k$ cyclic rotations.
+Intuitively, each necklace of size $k$ acts as a representative of its $k$ cyclic rotations, as depicted in @fig-necklace-example.
 The following property confirms this intuition and shows that necklaces of size $k$ roughly amount for a fraction $\frac{1}{k}$ of all /kmers:
 
 :::{#prp-number-necklaces}
@@ -64,6 +64,12 @@ where $\varphi$ denotes Euler's totient function.
 Example of all cyclic rotations of `GATAC`, with the necklace `ACGAT` highlighted in color.
 :::
 
+### Ranking necklaces
+
+Because they only represent a fraction $\frac{1}{k}$ of the universe, it should be possible to have an encoding of necklaces that saves about $\lg k$ bits.
+One way to obtain such encoding is to *rank* necklaces: given a necklace $\langle x \rangle$, find $i$ such that $\langle x \rangle$ is the $i$-th smallest necklace of size $k$.
+@fig-necklace-repartition illustrates the effect of ranking on necklaces of size 4.
+
 :::{#fig-necklace-repartition}
 
 ```{.tikz}
@@ -100,10 +106,9 @@ Example of all cyclic rotations of `GATAC`, with the necklace `ACGAT` highlighte
 Repartition of necklaces in $\Sigma^4$, applying rank maps all the necklaces to $[0, N(k))$.
 :::
 
-### Ranking necklaces
-
-Because they only represent a fraction $\frac{1}{k}$ of the universe, it should be possible to have an encoding of necklaces that saves about $\lg k$ bits.
-One way to obtain such encoding is to *rank* necklaces.
+@necklace-rank proposed an algorithm to compute the rank of a necklace of size $k$ in $\mathcal{O}(k^2)$, which is still the best known as of today.
+Unfortunately, this running time is quite prohibitive for practical applications on large collections of necklaces where we typically aim for near-constant queries.
+Finding a faster way to compute, even approximately^[For instance, we could afford mapping the values to an output space that's 1% bigger than $N(k)$.], the rank of a necklace is still an open question.
 
 ### Bijective encoding of /kmers
 
