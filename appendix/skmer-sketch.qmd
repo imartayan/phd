@@ -1,4 +1,4 @@
-# Proofs and experiments on fractional hitting sets
+# Proofs and experiments on fractional hitting sets {#sec-appendix-skmer-sketch}
 
 ## Useful lemmas {#sec-useful-lemmas}
 
@@ -45,7 +45,7 @@ and
 $$(1 - f)^{1/w} = \exp\left[\frac{1}{w} \ln(1 - f)\right] = 1 + \frac{1}{w} \ln(1 - f) + o(1/w)$$
 :::
 
-## Proof of @thm-density
+## Proof of @thm-density {#sec-proof-thm-density}
 
 In order to upper bound the density, we follow the same approach as the one presented in [@miniception] (for the proof of theorem 7).
 As stated in [@miniception], the density is equivalent to the probability that a context $c$ (that is, the string formed by two consecutive /kmers) is *charged*, i.e. the two /kmers of $c$ have different minimizers.
@@ -93,7 +93,7 @@ $$d \le 2 \cdot \frac{1 - (1 - p)^{w+1}}{w + 1} + o(1/w) = \frac{2 f}{w + 1} + o
 % \quad (\text{Lemma } \ref{lem-o1})
 $$
 
-## Proof of @thm-density-sub
+## Proof of @thm-density-sub {#sec-proof-thm-density-sub}
 
 In this section, **we assume that every /kmer we work with contains a small $m$-mer**.
 
@@ -153,7 +153,7 @@ d & \le \frac{2 p}{f^2} \left[\frac{f + o(1)}{(w + 1) p} - (1 - f)\right] + o(1/
 & = 2 \cdot \frac{f + (1 - f) \ln (1 - f)}{f^2 (w+1)} + o(1/w)
 \end{aligned}$$
 
-## Proof of @thm-max-skmers
+## Proof of @thm-max-skmers {#sec-proof-thm-max-skmers}
 
 In order to compute the proportion of maximal /skmers, we adapt the proof of theorem 4 from [@lphash].
 
@@ -239,7 +239,7 @@ $P_l = P_r = \left[\left(1 - \frac{1}{w}\right) \frac{f}{1 + f}\right] \left[1 -
 and
 $$P_{lr} = \left[\left(1 - \frac{1}{w}\right) \frac{f}{1 + f}\right]^2 + \frac{1 - f(1 - 2/w)}{1 + f}$$
 
-## Proof of @thm-density-uhs
+## Proof of @thm-density-uhs {#sec-proof-thm-density-uhs}
 
 This proof generalizes the proof of @thm-density when the minimizers are selected from a UHS $\mathcal{U}$ with density $d_\mathcal{U}$.
 

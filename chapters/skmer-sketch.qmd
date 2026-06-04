@@ -4,20 +4,18 @@
 This chapter is adapted from {{< longcite fhs >}} and {{< longcite fhs-multiset >}}.
 :::
 
-As discussed in @sec-intro-sketching, FracMinHash [@fracminhash] is a practical tool for large-scale containment and Jaccard estimation of /kmer sets, with sketches scaling linearly with the input.
-Its main design principle is generic: each selected /kmer is stored as a fixed-size hash value, without exploiting any structure of the underlying sequence.
-Scalability for large genomic collections (see @sec-intro-seq) therefore depends on minimizing both the per-element cost and the number of elements stored.
+As discussed in @sec-intro-sketching, FracMinHash [@fracminhash] is a practical method for large-scale containment and Jaccard estimation of /kmer sets: its sketches scale linearly with input, avoiding the fixed-budget limitations of tools like Mash [@mash], and can handle documents of widely differing sizes.
+The storage strategy as implemented in sourmash [@sourmash] treats each selected /kmer as an opaque 32-bit hash, without exploiting the overlapping structure that consecutive /kmers naturally share.
+For collections at the scale of NCBI RefSeq, which contains over 1.2 million bacterial genomes totalling more than 5 Tbp, this per-element overhead becomes a bottleneck.
 
 The key observation we build on is that consecutive /kmers share overlaps and naturally group into /skmers (see @sec-skmers), making it possible to represent a set of selected /kmers more compactly than by storing individual hashes.
-Universal Hitting Sets (discussed in @sec-low-density-minimizers) aim to cover all /kmers with a low-density selection scheme; however, our application does not require complete coverage of the /kmer space.
+Universal Hitting Sets (discussed in @sec-low-density-minimizers) aim to cover all /kmers with a low-density scheme; however, our application does not require complete coverage of the /kmer space.
 We therefore introduce *Fractional Hitting Sets* (FHS) that select a near-uniform fraction of the /kmer space, study the achievable density as a function of that fraction, and show that the resulting /skmers are particularly amenable to compact encoding.
 We implement this scheme in a tool called /spsp, and evaluate it against sourmash [@sourmash].
 
 ## Preliminaries {#sec-prelim}
 
-Throughout this chapter we fix a DNA alphabet $\Sigma = \{A,C,G,T\}$ with $\sigma = |\Sigma| = 4$, and consider two input multisets of sequences $S_A$ and $S_B$ (in practice, read sets or assembled genomes).
-We write $A$ and $B$ for the corresponding sets of distinct /kmers.
-@sec-fhs introduces the FHS framework for sampling a near-uniform fraction of $A$; @sec-spsp describes how to index and compare the resulting /skmer sketches.
+Throughout this chapter we fix a DNA alphabet $\Sigma = \{A,C,G,T\}$ with $\sigma = |\Sigma| = 4$, and consider two input sets of sequences $S_A$ and $S_B$ (in practice, read sets or assembled genomes), with $A$ and $B$ denoting their corresponding /kmer sets.
 
 :::{.callout-caution}
 ## Different notations
@@ -35,7 +33,7 @@ It follows that $v$ has a length of $2k-m$ and contains $w=k-m+1$ /kmers.
 :::
 
 Examples of regular and maximal /skmers are shown in @fig-superkmer.
-As noted in [@lphash] (theorem 3), the proportion of maximal /skmers approaches $\frac{1}{4}$ for large $k$.
+As noted in [@lphash, theorem 3], the proportion of maximal /skmers approaches $\frac{1}{4}$ for large $k$.
 
 :::{#fig-superkmer}
 ![](../fig/fhs/1_superkmer){width=70%}
@@ -94,7 +92,7 @@ Related to this, let us define the subsampling rate as $s = \frac{1}{f}$. For in
 ### Density of small minimizers
 
 We showed that selecting /kmers with a small minimizer induces an FHS.
-By considering the usual definition of density (from @def-density) for this scheme (which covers a fraction $f$ of all /kmers), we obtain the following bound (proven in supplementary materials):
+By considering the usual definition of density (from @def-density) for this scheme (which covers a fraction $f$ of all /kmers), we obtain the following bound (proven in @sec-proof-thm-density):
 
 :::{#thm-density}
 Given $f \le 1$ and $t = \left[1 - (1 - f)^{1/w}\right] \cdot \sigma^m$, assuming $m > (3 + \varepsilon) \log_\sigma w$, the expected density of small minimizers in a random sequence is upper bounded by
@@ -105,7 +103,7 @@ At first glance, the results may be surprising, as the density is smaller than t
 This is because some /kmers may not contain any small minimizers and are therefore not covered, and the proportion of such /kmers increases as $f$ approaches 0.
 However, it is worth noting that this bound does match the $2/(w+1)$ density when $f=1$ (i.e., when every /kmer is covered).
 
-To obtain a more meaningful metric, we can compute the density on the fraction of the sequence that is covered, instead of the entire sequence. With this approach, we obtain the following theorem, which has been proven in the supplementary materials:
+To obtain a more meaningful metric, we can compute the density on the fraction of the sequence that is covered, instead of the entire sequence. With this approach, we obtain the following theorem, which has been proven in the @sec-proof-thm-density-sub:
 
 :::{#thm-density-sub}
 ## restricted density
@@ -120,7 +118,7 @@ Therefore, as $f$ approaches 0, we can approach the optimal density.
 
 ### Proportion of maximal /skmers
 
-Although measuring the density provides an overview of the average length of /skmers, it does not indicate how many of them are maximal (i.e., of length $2k-m$). The following result (proven in the supplementary materials) answers this question:
+Although measuring the density provides an overview of the average length of /skmers, it does not indicate how many of them are maximal (i.e., of length $2k-m$). The following result (proven in the @sec-proof-thm-max-skmers) answers this question:
 
 :::{#thm-max-skmers}
 Given $f \le 1$ and $t = \left[1 - (1 - f)^{1/w}\right] \cdot \sigma^m$, the average proportion of maximal /skmers (with respect to all /skmers) built from small minimizers in a random sequence is given by
@@ -147,12 +145,12 @@ Given a UHS $\mathcal{U}$ with density $d_\mathcal{U}$, $f \le 1$ and $t = \left
 $$f \cdot d_\mathcal{U} + o(1/w)$$
 :::
 
-The proof is given in supplementary materials.
+The proof is given in @sec-proof-thm-density-uhs.
 Note that this result generalizes @thm-density since the UHS of minimizers selected using a random ordering has a density of $2/(w+1)$ [@schleimer2003winnowing].
 
 ## Sketching technique in /spsp {#sec-spsp}
 
-### /spsp's sketch construction {#ssec-sketch}
+### /spsp's sketch construction {#sec-sketch-constr}
 
 :::{#def-spsp-sketch}
 ## /spsp's sketch
@@ -161,10 +159,10 @@ Given a sequence $S$, each /skmer whose minimizer's hash is lower or equal to a 
 A /spsp sketch can therefore be represented as a /skmer set.
 :::
 
-sourmash stores each selected /kmer as a 32-bit hash, which introduces a small false-positive rate but keeps the encoding simple and sequence-agnostic.
-/spsp instead stores /kmers as /skmers (@fig-sketch): fingerprints are exact (no false matches, shared /kmers can be retrieved), and overlapping /kmers within a /skmer share bases, reducing space.
+Sourmash stores each selected /kmer as a 32-bit hash, which introduces a small false-positive rate but keeps the encoding simple and sequence-agnostic.
+As illustrated in @fig-sketch, /spsp instead stores /kmers as /skmers: fingerprints are exact (no false matches, shared /kmers can be retrieved), and overlapping /kmers within a /skmer share bases, reducing space.
 
-With random minimizers (density factor 2), /skmers contain $(k-m+1)/2$ /kmers on average [@lphash], giving a mean length of $(3k-m-1)/2$ bases.
+When using random minimizers, /skmers contain $(k-m+1)/2$ /kmers on average [@lphash], giving a mean length of $(3k-m-1)/2$ bases.
 Each /skmer also needs a $\log_2(k-m+1)$-bit length header to delimit it, yielding a lower bound in /bpk of
 $$\frac{2\left(3k - m - 1 + \log_2(k - m + 1)\right)}{k - m + 1}$$
 Using @eq-threshold to set the fraction $f$ lowers the density further, producing longer /skmers.
@@ -177,8 +175,8 @@ $$\frac{2(2k-m)}{k-m+1}$$
 
 Since each /skmer is centered around a unique minimizer occurrence, /skmers naturally partition into groups sharing the same minimizer.
 /spsp stores each non-empty partition (a minimizer and its associated /skmers) independently.
-Within a partition, the minimizer sequence is stored once and omitted from all maximal /skmers, since its position within each /skmer is fixed by definition.
-This gives an even lower /bpk bound of $$\frac{4(k-m)}{k-m+1}$$
+Within a partition, the minimizer sequence is stored once and omitted from all maximal /skmers, since its position within each maximal /skmer is known beforehand.
+This gives an even lower /bpk ratio of $$\frac{4(k-m)}{k-m+1}$$
 @fig-bitperkmer shows the space cost of the three encodings (plain /skmer, maximal /skmer, partitioned /skmer) as a function of minimizer size, alongside measured performance on random sequences.
 
 ![Theoretical space cost of different encodings in /bpk according to the /kmer size along with practical space usage of /spsp sketches on random sequences.](../fig/fhs/3_bpk_m11_practical){#fig-bitperkmer width=70%}
@@ -275,10 +273,9 @@ All experiments were run on a cluster node with an Intel Xeon Gold 6130 CPU (2.1
 
 ### Space efficiency of /spsp.
 
-For $m = 15$, the /bpk lower bound gives 9.2 with $k=31$ and 7.1 with $k=63$, but in practice /spsp achieves approximately 6.5 and 5 /bpk respectively (@fig-bitperkmervssubsampling), thanks to the lower density of the FHS scheme.
+For $m = 15$, the first bound from @sec-sketch-constr gives 9.2 /bpk with $k=31$ and 7.1 with $k=63$, but in practice /spsp achieves approximately 6.5 and 5 /bpk respectively as depicted in @fig-bitperkmervssubsampling, thanks to the lower density of the FHS scheme.
 As shown in @fig-density, the density factor drops quickly with the subsampling rate: already below 1.04 at rate 100, and approaching 1 at rate 1000 (the sourmash default).
-@fig-maximalsuperkmerrate confirms @thm-max-skmers: the proportion of maximal /skmers reaches 99% at rate 100 and 99.9% at rate 1000, so the tighter bound $$\frac{2(2k-m)}{k-m+1}$$ applies in nearly all practical settings.
-Combining the FHS scheme with double decycling sets [@pellow2023efficient] gives a marginal additional improvement, particularly for small $k$ (@fig-decyclingeffet).
+Combining the FHS scheme with double decycling sets [@pellow2023efficient] gives an additional improvement, particularly noticeable for small $k$ (@fig-decyclingeffet).
 
 ::: {#fig-density layout-ncol=2}
 ![](../fig/fhs/6_density_subsampling_31)
@@ -289,8 +286,6 @@ Measured density factor compared to the model.
 :::
 
 ![Space cost in /bpk according to the subsampling rate with and without using decycling sets (yellow and red lines).](../fig/fhs/7_decyclingeffect){#fig-decyclingeffet width=70%}
-
-![Fraction of maximal /skmers according to the subsampling rate.](../fig/fhs/8_max_skmers_m11){#fig-maximalsuperkmerrate width=70%}
 
 ### Performance Comparison
 
@@ -327,19 +322,11 @@ Sketch creation is cheap in both cases, with IO as the bottleneck.
 
 ## Conclusion {#sec-conclusion}
 
-This chapter introduced *Fractional Hitting Sets*, a relaxation of universal hitting sets that covers a near-uniform fraction $f$ of the /kmer space.
-The resulting small-minimizer scheme achieves a density factor below 1 for $f < 1$, producing longer and more compact /skmers than full-coverage schemes, with an increasing proportion of maximal /skmers as $f$ decreases.
+This chapter introduced *fractional hitting sets*, a relaxation of universal hitting sets that covers a fraction $f$ of the /kmer space.
+The resulting small-minimizer scheme achieves a density factor below 1.5 for $f \le 0.8$ and approaching 1 as $f \to 0$, producing longer and more compact /skmers than full-coverage schemes, with an increasing proportion of maximal /skmers as $f$ decreases.
 /spsp exploits this by storing selected /skmers in minimizer-partitioned sketches, enabling both compact encoding and efficient partition-level comparisons.
 Experiments confirm the theoretical density bounds and show substantially lower disk and RAM usage than sourmash at comparable accuracy.
 
-<!-- Software-focused future work, out of scope for this chapter.
-
-We recognize several potential enhancements for our study.
-First, concerning /spsp's implementation, we aim to refine the tool for increased user-friendliness and adaptability for routine analysis while augmenting its capabilities.
-Implementation of such improvements will lead to more thorough experiments with existing sampling methods [@kssd] as well as new comparisons with sourmash using the same amount of disk memory in order to better show /spsp's capacity with regard to both fixed-size and scalable sketches.
-Other, more distant methods and different metrics such as ANI are used to answer the same problems.
-Comparing /spsp to such metrics and methods is the next step to further support /spsp's interest.
-
 We plan to investigate alternative methods for sketch comparison, like sorted fingerprints, which could potentially reduce the complexity of the comparison process.
-From a theoretical perspective, delving deeper into the properties of Fractional Hitting Sets and gaining a better understanding of density and restricted density bounds for various values of $f$ may lead to even more efficient and robust sketching techniques.
--->
+From a theoretical perspective, delving deeper into the properties of fractional hitting sets and gaining a better understanding of density and restricted density bounds for various values of $f$ may lead to even more efficient and robust sketching techniques.
+Finally, studying theoretical guarantees on the bias of this approach would be a interesting direction.
