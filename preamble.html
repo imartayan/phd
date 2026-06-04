@@ -1,17 +1,11 @@
 <style>
-  .ps-root .ps-comment {
-    color: #404040;
-    font-size: 0.9em;
-    font-style: italic;
-  }
-
-  @media(min-width: 992px) {
-    .ps-root .ps-comment {
-      float: right;
-    }
-  }
-
   @media(max-width: 992px) {
+
+    figure img,
+    .quarto-figure img {
+      width: 100% !important;
+      height: auto !important;
+    }
 
     .pseudocode-container,
     .katex-display {
@@ -26,5 +20,17 @@
   .large-table th,
   .large-table td {
     padding: .5rem .05rem;
+  }
+
+  .ps-root .ps-comment {
+    color: #404040;
+    font-size: 0.9em;
+    font-style: italic;
+  }
+
+  @media(min-width: 992px) {
+    .ps-root .ps-comment {
+      float: right;
+    }
   }
 </style>
