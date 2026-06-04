@@ -93,6 +93,8 @@ Example of a node-centric de Bruijn graph for *k = 3*, built from the sequence `
 Example of an edge-centric de Bruijn graph for *k = 3*, built from the sequence `CTAAGAAGGT`.
 :::
 
+Note that in practice, when a /kmer and its reverse-complement are treated as equivalent, the corresponding nodes are usually merged and DBGs become *bidirected* graphs, where each node carries two orientations and edges connect compatible ends.
+
 ### Identifying small variations
 
 An important property of DBGs is that they make small edits between similar sequences easy to spot.
