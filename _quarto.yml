@@ -43,7 +43,7 @@ book:
       - chapters/skmer-sketch.qmd
       - chapters/phrases.qmd
       - chapters/sampling-discussion.qmd
-    - chapters/discussion.qmd
+    - chapters/conclusion.qmd
     - references.qmd
   appendices:
     - appendix/forward-canonical.qmd
