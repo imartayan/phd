@@ -4,16 +4,10 @@
 This chapter is adapted from {{< longcite k2rmini >}}.
 :::
 
-## Background
+The previous chapters of this part developed efficient algorithms for parsing sequences (@sec-simd-parsing), hashing /kmers (@sec-rolling-hash), and computing minimizers at high throughput (@sec-simd-minimizers).
+This chapter presents an application of these building blocks to *sequence filtering*, a problem that arises naturally at the boundary between large-scale /kmer indexing and exact sequence analysis.
 
-The immense volume of available sequencing data presents both significant opportunities and challenges in bioinformatics.
-Assembled datasets have reached the Petabase scale, as seen in the 2 Petabytes of unitigs from the Logan project [@logan], while even curated databases like GenBank are nearing 6 Terabases [@genbank2024]. Although holistic analyses of these large-scale datasets, such as those on viral [@edgar2022petabase], soil [@ma2023genomic], gut [@nayfach2019new], and environmental metagenomes [@parks2017recovery] are promising, they remain computationally expensive.
-Identifying matches to a query sequence in large collections, a fundamental task exemplified by BLAST [@blast], has evolved.
-Traditional alignment tools were overwhelmed by data growth, leading to the use of strings of fixed length *k*, or /kmers [@zielezinski2017alignment].
-To improve scalability, indexing structures allowing false positives were adopted, making shared  /kmer fingerprints a necessary, though not sufficient, condition for a match [@marchet2021data;@marchet2023scalable;@lemane2024indexing].
-Some methods further enhance scalability by indexing only a fraction of /kmers, relying on detecting substantial matches from partial signals [@needle;@fracminhash-estimators;@niqki].
-
-Large-scale indexes can thus efficiently identify a small, relevant subset of documents (e.g., read sets, unitigs, contigs).
+Large-scale /kmer indexes can efficiently identify a small, relevant subset of documents (e.g., read sets, unitigs, contigs).
 However, this initial filtering isn't final.
 Due to false positives from  probabilistic indexes, or sparse/non-collinear matches, queried /kmers may not be truly present or usable for mapping.
 Therefore, recovering specific sequences within identified documents that genuinely share /kmers with the query is crucial.
@@ -23,7 +17,7 @@ The problem of /kmer-based *sequence filtering* can be formalized as follows:
 given a set of /kmers of interest $\mathcal{Q} = \left\lbrace q_1, \dots, q_m \right\rbrace$ (the "queries"), a set of sequences $\mathcal{S} = \left\lbrace S_1, \dots, S_n \right\rbrace$ and a threshold $T$, output for each $S_i \in \mathcal{S}$ whether $\sum_{q \in \mathcal{Q}} \#\text{occ}(q, S_i) \ge T$, i.e. whether $S_i$ contains at least $T$ occurrences of /kmers of interest.
 In practice, the threshold can either be set as an absolute value $T \in \mathbb{N}$ or as a relative value proportional to the size of the sequence: given $t \in [0, 1]$, $T_i = \left\lceil t \cdot (|S_i| -k + 1) \right\rceil$.
 
-### Related work
+#### Related work {.unnumbered}
 
 Although sequence-level indexes have been proposed [@karasikov2022lossless;@k2r], indexing and storing entire dataset collection at this resolution remains expensive and challenging at scale, thus favoring lightweight filtering methods directly from unindexed data.
 Efficient multi-pattern matching is a highly studied topic from both the theoretical [@crochemore1999fastmulti] and practical point of view [@faro2013exact].
@@ -33,10 +27,10 @@ However, these solutions tend to scale poorly as the number of query /kmers incr
 This is a critical issue, as querying numerous /kmers is often necessary for large queries (contigs, long reads, whole genomes), searching for many distinct sequences (variant or gene collections), or optimizing batched queries.
 The recent BackToSequences [@bts] tool, used in the Logan project, addresses these issues by simply indexing query /kmers in a hash table to search for target documents.
 Very recently, both Deacon [@deacon] and Cleanifier [@cleanifier] were proposed as scalable solutions for contaminant depletion, that is removing sequences originating from a given genome, which is a direct application of sequence filtering.
-In particular, Deacon effectively uses many of the techniques presented in this article.
+In particular, Deacon effectively uses many of the techniques presented in this chapter.
 Finally, while to our knowledge it has not been used for sequence filtering, the spectral Burrows-Wheeler transform (SBWT) [@sbwt] is also a suitable method for this problem thanks to efficient matching statistics [@sbwt-matching-statistics].
 
-### Contributions
+#### Contributions {.unnumbered}
 
 This work presents three main contributions.
 First, we introduce a new algorithm that uses random minimizers to quickly filter out sequences that contains too few /kmers of interest, effectively reducing the cost of negative matches by a factor $w / 2$.
@@ -44,7 +38,7 @@ Second, we propose an optimized implementation named *K2Rmini*, that takes advan
 Third, we compare our approach to many different tools and evaluate their scalability for a large number of patterns, highlighting the benefits of different methods.
 Our tool, K2Rmini, is able to filter 2 Gbp/s on a consumer laptop and is available online at <https://github.com/Malfoy/K2Rmini>.
 
-## Methods
+## Filtering sequences with minimizers
 
 Classical multi-pattern matching algorithms, which generalize the Knuth-Morris-Pratt approach, construct deterministic finite automata to achieve linear time complexity relative to the pattern and input data sizes.
 While these methods offer strong theoretical guarantees, they often exhibit poor cache locality.
@@ -58,10 +52,13 @@ To address this bottleneck, we propose K2Rmini (<https://github.com/Malfoy/K2Rmi
 
 ### Using minimizers to upper bound the number of /kmer matches
 
-Minimizers [@schleimer2003winnowing;@roberts2004reducing] are a widely used /kmer sampling method that selects the smallest /mmer out of every $w$ consecutive one, usually using a random ordering.
-The set of sampled minimizers is typically much smaller, by a factor $2 / (w+1)$ called the *density* [@pellow2023efficient], than the whole sequence while preserving a lot of information, making it a key component of large-scale sequence analysis.
-An important property of minimizers is that they are *locally consistent*: two sequences sharing contexts of $w$ $m$-mers will always sample the same minimizers from these contexts.
-Thus, comparing minimizers can be used as a proxy to identify similar sequences [@minimap2;@needle;@mdbg].
+:::{.callout-caution}
+## Different notations
+
+We reuse the notations from @sec-skmers: the minimizer size is denoted $m$ while $k$ denotes the number of bases in a window, i.e. $k = w + m - 1$.
+:::
+
+As discussed in @sec-intro-minimizers and @sec-simd-minimizers, random minimizers select the smallest /mmer in each window of *w* consecutive /kmers according to a random order and guarantee local consistency: two sequences sharing a context of *w* /kmers always produce the same minimizer, making them a useful proxy for /kmer overlap [@minimap2;@needle;@mapquik].
 
 One core idea of our approach is to leverage this property to avoid exhaustive /kmer scanning.
 Given a set $\mathcal{Q}$ of /kmers of interest, we compute the set of associated minimizers $\mathcal{M}(\mathcal{Q}) = \left\lbrace \text{minimizer}(q) : q \in \mathcal{Q} \right\rbrace$.
@@ -111,8 +108,8 @@ In particular, it omits this second pass, reducing computational overhead at the
     \For{$S \in \mathcal{S}$}
         \State $u \gets 0$
         \Comment{upper bound of \textit{k}-mer matches}
-        \For{each minimizer $m$ in $S$, covering $c$ \textit{k}-mers}
-            \If{$m \in \mathcal{T_M}$}
+        \For{each minimizer $x$ in $S$, covering $c$ \textit{k}-mers}
+            \If{$x \in \mathcal{T_M}$}
                 \State $u \gets u + c$
             \EndIf
         \EndFor
@@ -138,10 +135,9 @@ Minimizer-based filtering.
 ### Vectorization
 
 Multiple parts of our algorithm are accelerated using vectorized instructions.
-First of all, we implemented a library called `helicase` (<https://github.com/imartayan/helicase>) that vectorizes the parsing of the sequence files and outputs bitpacked representations for faster processing.
-Then, we build upon SimdMinimizers [@simd-minimizers] to have a vectorized computation of minimizer positions, along with the number of /kmers that they cover.
-SimdMinimizers relies on a completely branchless sliding window minimum algorithm using two stacks and processes 8 independent chunks of the sequence within a single SIMD register.
-Finally, we use a vectorized rolling hash adapted from NtHash [@nthash] to accelerate the /kmer lookups in the second pass.
+For sequence parsing, we use the `helicase` library presented in @sec-simd-parsing, which outputs bitpacked representations for faster downstream processing.
+Minimizer positions and /kmer coverage counts are computed with SimdMinimizers (discussed in @sec-simd-minimizers).
+Finally, /kmer lookups in the second pass are accelerated with the vectorized rolling hash presented in @sec-rolling-hash.
 
 ### Parallelization
 
@@ -401,7 +397,7 @@ Runtime comparison between K2Rmini and BTS using 8 threads.
 
 :::
 
-## Discussion
+## Limitations and perspectives
 
 This work has demonstrated that a search strategy based on SIMD-accelerated minimizer filtering is fast and resource-efficient across a broad spectrum of applications.
 Similar tools are being developed for screening sequence repositories for antimicrobial resistance mutations, emerging pathogen surveillance, or sequencing contaminant filtration [@deacon].
