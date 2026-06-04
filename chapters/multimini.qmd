@@ -412,7 +412,7 @@ While those values are equal at first, soon we obtain repeated minimizers^[While
 (left) Theoretical values of $d^\ast$ for small $k$. (right) Evolution of $d$ and $d^\ast$ over the course of parsing a random sequence.
 :::
 
-There are obviously many more aspects of deduplicated density to be studied and discovered, but they are beyond the scope of this article.
+There are obviously many more aspects of deduplicated density to be studied and discovered, but they are beyond the scope of this work.
 To conclude this section, we propose to consider applying multiminimizers to deduplicated density.
 
 :::{#def-multimini-multicover}
