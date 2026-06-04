@@ -21,9 +21,9 @@ We reuse the notations from @sec-skmers: the minimizer size is denoted $m$ while
 
 We follow the notations of @sec-intro-minimizers and denote $\mathcal{O}_m$ for a total order on /mmers and $\texttt{rank}_{\mathcal{O}_m} : \Sigma^m \to \llbracket 1, \sigma^m \rrbracket$ the corresponding rank function.
 In practice, $\mathcal{O}_m$ is induced by a random hash function with $U = 2^{64}$, which we treat as collision-free [@lphash].
-We denote by $\mathcal{S}_f(S)$ the set of selected indices of a string $S$ under scheme $f$, and by $d(S) = |\mathcal{S}_f(S)| / (|S| - k + 1)$ its particular density.
+We denote by $\mathcal{S}_f(S)$ the set of selected indices of a string $S$ under a scheme $f$, and by $d(S) = |\mathcal{S}_f(S)| / (|S| - k + 1)$ its particular density.
 The expected density $d$ is the limit of $\mathbb{E}[d(S)]$ over random strings of growing length.
-Experiments use canonical /kmers; definitions are stated in a non-canonical context for clarity (see [@knonical] for the canonical extension).
+Hereafter, the definitions are stated in a non-canonical context (but are easily extended), whereas the practical experiments presented later on are based on canonical /kmers, although our implementations cover both contexts.
 
 Consider the expected number of selected positions in a window of size $w$ -- by definition, it is equal to $d \cdot w$.
 Intuitively, this quantity is also equal to $w$ divided by the expected distance between two selected consecutive positions -- that we denote here by $\mu$.
