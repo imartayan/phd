@@ -290,11 +290,11 @@ The fact that CBL matches the throughput of a high-performance hash table while 
 Importantly, Bifrost, HashSet, and CBL are the only tools that accept any FASTA input directly.
 The other tools require a /kmer counting preprocessing step (e.g. KMC3 for SBWT and BufBOSS, unitig assembly for SSHash), which externalises part of their construction cost and may impose heavy disk usage.
 
-:::{#fig-necklace-build}
+:::{#fig-necklace-build layout-ncol=2}
 
-![](../fig/cbl/fig_4)
+![Construction time.](../fig/cbl/fig_4)
 
-![](../fig/cbl/fig_5)
+![RAM usage.](../fig/cbl/fig_5)
 
 Time and RAM used when constructing various indexes on a growing bacterial genome collection from RefSeq, for $k = 31$ and $p = 28$ bits.
 :::
@@ -313,13 +313,13 @@ The relative ranking changes between positive and negative queries: Bifrost is f
 HashSet excels at negative queries, slightly outperforming even SSHash.
 CBL consistently maintains high throughput and low memory usage across both query types.
 
-:::{#fig-necklace-queries}
+:::{#fig-necklace-queries layout-ncol=2}
 
-![](../fig/cbl/fig_6)
+![Present /kmers.](../fig/cbl/fig_6)
 
-![](../fig/cbl/fig_7)
+![Absent /kmers.](../fig/cbl/fig_7)
 
-Time/memory trade-off when performing streaming queries of present /kmers (top) and absent /kmers (bottom), for $k = 31$ and $p = 28$ bits; each point is averaged over a series of experiments.
+Time/memory trade-off when performing streaming queries of present/absent /kmers, for $k = 31$ and $p = 28$ bits; each point is averaged over a series of experiments.
 :::
 
 ### Insertion and deletion
@@ -331,11 +331,11 @@ Memory usage is comparable across tools; BufBOSS is the most efficient, followed
 
 For deletion (not supported by Bifrost), the remaining tools show a similar pattern: CBL and HashSet lead in speed, BufBOSS lags by an order of magnitude, and memory usage is lowest for BufBOSS, then CBL, then HashSet.
 
-:::{#fig-necklace-indel}
+:::{#fig-necklace-indel layout-ncol=2}
 
-![](../fig/cbl/fig_8)
+![Insertions.](../fig/cbl/fig_8)
 
-![](../fig/cbl/fig_9)
+![Deletions.](../fig/cbl/fig_9)
 
-Time/memory trade-off when performing /kmer insertions (top) and deletions (bottom), for $k = 31$ and $p = 28$ bits; each point is averaged over a series of experiments.
+Time/memory trade-off when performing /kmer insertions/deletions (bottom), for $k = 31$ and $p = 28$ bits; each point is averaged over a series of experiments.
 :::
