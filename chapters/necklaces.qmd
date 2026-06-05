@@ -73,7 +73,7 @@ One way to obtain such encoding is to *rank* necklaces: given a necklace $\langl
 :::{#fig-necklace-repartition}
 
 ```{.tikz}
-%%| filename: necklace-reartition
+%%| filename: necklace-repartition
 %%| opt-zoom: 1.5
 
 \usetikzlibrary{arrows.meta}
@@ -111,6 +111,29 @@ Unfortunately, this running time is quite prohibitive for practical applications
 Finding a faster way to compute, even approximately^[For instance, we could afford mapping the values to an output space that's 1% bigger than $N(k)$.], the rank of a necklace is still an open question.
 
 ### Bijective encoding of /kmers
+
+We've seen that the necklace transformation is lossy in the sense that we cannot tell which of its cyclic rotations it represents.
+Therefore, in addition to the necklace, we want to keep track of the rotation offset in order to make the transformation reversible.
+Since, there are $k$ such rotations, it requires $\lceil \lg k \rceil$ bits to encode.
+Thus, when combined with the rank encoding of the necklace, this yields a fully reversible transformation whose total size matches the original /kmer up to a extra rounding bit.
+
+### Encoding canonical /kmers
+
+The encoding discussed above does not take the canonical aspect into account, but we can adapt the technique of @wittler2023general to save one additional bit when $k$ is odd.
+The idea is that, when using the encoding presented in @sec-dna-rep, the complement operation flips exactly one bit for each base (e.g. `A = 00` $\leftrightarrow$ `T = 10`).
+Therefore, when $k$ is odd, the parity of the number of 1s (efficiently computed with a `popcount`) changes between a /kmer and its reverse-complement.
+We can thus define a /kmer as canonical if its number of 1s is odd, and safely erase its last bit: if the remaining $2k - 1$ bits have an odd number of 1s we know that the last bit must be 0, otherwise it must be 1.
+From this $(2k - 1)$-bit encoding, we then apply the reversible necklace transformation, this time using a binary alphabet.
+An example of this canonical encoding is shown in fig
+
+:::{#fig-necklace-canonical}
+
+![](../fig/cbl/fig_1)
+
+Example of canonical necklace encoding for `ATA` and `TTG`.
+`TTG` has an even number of 1s so it is first transformed into its reverse-complement `CAA` before applying the necklace transformation.
+Both /kmers end up having the same binary necklace, but the rotation offset distinguishes them.
+:::
 
 ## Necklaces of consecutive /kmers
 
