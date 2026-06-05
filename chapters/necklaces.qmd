@@ -157,7 +157,7 @@ The intuition behind this is quite simple: if $x_1 = y_k$ their necklaces are co
 The only situation where the necklaces diverge is when the incoming letter $y_k$ creates a rotation that is lexicographically smaller than the current necklace.
 This is more likely to happen when $\rho(x)$ is small, since the substitution then falls closer to the start of the necklace.
 This phenomenon is illustrated in @fig-necklace-prefix, where we can see runs of increasingly long prefix matches of length $k - \rho(x)$ as we advance.
-We can also notice that roughly $\frac{1}{4}$ of the matches have length $k$, corresponding to the event where $x_1 = y_k$.
+We can also notice that roughly 1/4 of the matches have length $k$, corresponding to the event where $x_1 = y_k$.
 
 :::{#fig-necklace-prefix}
 
@@ -167,6 +167,17 @@ Length of the common prefix between necklaces of consecutive /kmers with respect
 :::
 
 ### Computing necklaces with minimizers
+
+While computing a necklace individually require $\mathcal{O}(k)$ operations since we have to consider every rotation, we can accelerate this process down to $\mathcal{O}(\log k)$ operations in the context of consecutive /kmers.
+The main property that we rely on is that the prefix of size $m$ of a given necklace is always the smallest /mmer in the circular word.
+In particular, this /mmer is either fully included in the original /kmer or overlaps the /kmer's start and end, in that case we refer to it as a *boundary substring*.
+Boundary substrings change for each new /kmer, so we have to recompute them every time.
+Non-boundary substrings, however, are preserved for consecutive /kmers.
+Because of this, we can use classical algorithms for minimizers (such as those discussed in @sec-simd-minimizers) to compute the smallest non-boundary /mmer in $\mathcal{O}(1)$ amortized time.
+Moreover, we know that if *m* is large enough ($\Omega(\log k)$) the smallest /mmer is unique with high probability [@miniception, lemma 9].
+Therefore, by choosing $m = \Theta(\log k)$, we only have one non-boundary /mmer to consider w.h.p. and $m-1$ boundary /mmer to compute, leading to $\mathcal{O}(\log k)$ time overall.
+In practice, we found that using substrings of $m = 9$ bits gave the best results for *k* ranging from 31 to 63.
+Our implementation of this algorithm can compute 100M necklaces per second on a laptop with a M1 processor.
 
 ### Super-necklaces
 
