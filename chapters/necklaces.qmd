@@ -114,7 +114,17 @@ Finding a faster way to compute, even approximately^[For instance, we could affo
 
 We've seen that the necklace transformation is lossy in the sense that we cannot tell which of its cyclic rotations it represents.
 Therefore, in addition to the necklace, we want to keep track of the rotation offset in order to make the transformation reversible.
-Since, there are $k$ such rotations, it requires $\lceil \lg k \rceil$ bits to encode.
+
+:::{#def-rotation-offset}
+## Rotation offset
+We define the *rotation offset* $\rho(x)$ of a /kmer $x$ as the minimum number of left rotations required to obtain its necklace:
+$$
+\rho(x) = \arg\min_i \operatorname{rol}^i(x)\\
+\operatorname{rol}^{\rho(x)}(x) = \langle x \rangle
+$$
+:::
+
+Since, there are $k$ such rotation offsets, it requires $\lceil \lg k \rceil$ bits to encode $\rho(x)$.
 Thus, when combined with the rank encoding of the necklace, this yields a fully reversible transformation whose total size matches the original /kmer up to a extra rounding bit.
 
 ### Encoding canonical /kmers
@@ -132,14 +142,33 @@ An example of this canonical encoding is shown in fig
 
 Example of canonical necklace encoding for `ATA` and `TTG`.
 `TTG` has an even number of 1s so it is first transformed into its reverse-complement `CAA` before applying the necklace transformation.
-Both /kmers end up having the same binary necklace, but the rotation offset distinguishes them.
+Both /kmers end up having the same binary necklace, but the rotation offsets distinguish them.
 :::
 
 ## Necklaces of consecutive /kmers
 
+We've seen how to encode individual /kmers as necklaces, but in most applications we actually want to index consecutive /kmers extracted from a sequence.
+We now discuss the benefits of using necklaces in this context, and how this can be used to design a new data structure.
+
 ### Runs of common prefixes
 
+A key property of necklaces is that, when considering two consecutive /kmers $x$ and $y$, their necklaces tend to share a long prefix.
+The intuition behind this is quite simple: if $x_1 = y_k$ their necklaces are completely identical, and if $x_1 \ne y_k$ they are likely to differ by a single letter at position $k - \rho(x)$, with $\rho(y) = \rho(x) - 1$.
+The only situation where the necklaces diverge is when the incoming letter $y_k$ creates a rotation that is lexicographically smaller than the current necklace.
+This is more likely to happen when $\rho(x)$ is small, since the substitution then falls closer to the start of the necklace.
+This phenomenon is illustrated in @fig-necklace-prefix, where we can see runs of increasingly long prefix matches of length $k - \rho(x)$ as we advance.
+We can also notice that roughly $\frac{1}{4}$ of the matches have length $k$, corresponding to the event where $x_1 = y_k$.
+
+:::{#fig-necklace-prefix}
+
+![](../fig/cbl/necklace_prefix){width=80%}
+
+Length of the common prefix between necklaces of consecutive /kmers with respect to their position in the sequence, simulated on a random sequence with *k = 31*.
+:::
+
 ### Computing necklaces with minimizers
+
+### Super-necklaces
 
 ### Quotienting sets of necklaces
 
