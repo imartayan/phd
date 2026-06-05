@@ -181,7 +181,16 @@ Our implementation of this algorithm can compute 100M necklaces per second on a 
 
 ### Super-necklaces
 
-### Quotienting sets of necklaces
+The connection between necklaces and minimizers does not end here: just like minimizers can group consecutive /kmers into /skmers, consecutive necklaces can be grouped into *super-necklaces*.
+The idea is simple: as long as $\rho(y) = \rho(x) - 1$, i.e. as long as we are in the same run, only one letter is replaced at a time and we know its position.
+Therefore, assuming a run of $r$ /kmers $x^{(1)}, \dots, x^{(r)}$, we can compactly encode all their necklaces $\left\langle x^{(1)} \right\rangle, \dots, \left\langle x^{(r)} \right\rangle$ as a tuple containing $r + k - 1$ bases:
+$$
+\left( \left\langle x^{(1)} \right\rangle, \left\langle x^{(r)} \right\rangle[k-r+2, k] \right)
+$$
+Using this representation, we can recover all individual necklaces by combining a prefix of the first string with a suffix of the second:
+$$
+\left\langle x^{(i)} \right\rangle = \operatorname{pref}_{k+1-i}\!\left(\left\langle x^{(1)} \right\rangle\right) \cdot \operatorname{suff}_{i-1}\!\left(\left\langle x^{(r)} \right\rangle\right)
+$$
 
 ## CBL: a dynamic data structure for /kmer sets
 
