@@ -5,7 +5,11 @@ $if(title)$
 \pagenumbering{gobble}
 \includepdf[pages=1]{titlepage/titlepage.pdf}
 \cleardoublepage
+$if(has-frontmatter)$
 \pagenumbering{roman}
+$else$
+\pagenumbering{arabic}
+$endif$
 $if(abstract)$
 \begin{abstract}
 $abstract$

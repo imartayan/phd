@@ -1,4 +1,4 @@
-::: {.content-visible when-format="html"}
+:::{.content-visible when-format="html"}
 <small>
 Supervised by [Camille Marchet](https://kamimrcht.github.io/webpage/)
 <br>
