@@ -1,0 +1,201 @@
+%!TEX encoding = UTF-8
+
+% Copyright (C) Julien Chiquet
+%
+% This program is free software: you can redistribute it and/or modify
+%  it under the terms of the GNU General Public License as published by
+%  the Free Software Foundation, either version 3 of the License, or
+%  (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%  GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <http://www.gnu.org/licenses/>
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{styleben}
+
+\newif\if@sommairechap \@sommairechapfalse
+\DeclareOption{sommairechap}{\@sommairechaptrue}
+\ProcessOptions
+
+%-------------------- PACKAGES ADDITIONNELS-------------------%
+
+% Police MathPazo
+\RequirePackage[osf,sc]{mathpazo}
+\RequirePackage[scaled=.95]{helvet}
+\RequirePackage{courier}
+% Entêtes ameliores
+\RequirePackage{fancyhdr}
+% Enumerations personnalisee
+\RequirePackage{enumerate}
+% Calcul des tailles d'environnement
+\RequirePackage{calc}
+% Symboles de amsmath et additionnels
+\RequirePackage{amsmath,amsfonts,amssymb,amsthm}
+\RequirePackage{dsfont,mathrsfs}
+% Lettrine
+\RequirePackage{lettrine}
+% Ajout d'entrees dans la table des matieres
+\RequirePackage{tocbibind}
+% Style de la legende
+\RequirePackage{caption}
+\DeclareCaptionLabelSeparator{mysep}{~--~}
+\captionsetup{singlelinecheck=no,labelsep=mysep,font=small,textfont=it}
+\setlength{\abovecaptionskip}{5pt}
+\setlength{\belowcaptionskip}{-5pt}
+% Tableaux sur plusieurs pages - page de notations
+\RequirePackage{supertabular}
+% Mise en forme des algorithmes
+\RequirePackage[french,ruled,vlined]{algorithm2e}
+% Gestion amelioree de la bibliographie
+\RequirePackage{natbib}
+\bibliographystyle{plainnatfrench}
+\bibpunct{(}{)}{,}{a}{}{;}
+% Gestion des reference selon le format de sortie
+\RequirePackage{ifpdf}
+\ifpdf
+  % configuration de graphicx et hyperref pour sortie PDF
+  \RequirePackage[pdftex]{graphicx}
+  \RequirePackage[pdftex,bookmarksopen=false,pdfauthor=Julien Chiquet,colorlinks=false,pagebackref,plainpages=false]{hyperref}
+  \DeclareGraphicsExtensions{.pdf,.png,.jpg}
+\else
+  % configuration de graphicx et hyperref pour sortie PS
+  \RequirePackage[dvips]{graphicx}
+  \DeclareGraphicsExtensions{.eps,.ps}
+  \RequirePackage[dvips,bookmarksopen=false,pdfauthor=Julien Chiquet,colorlinks=false,pagebackref,plainpages=false]{hyperref}
+\fi
+% Gestion eventuel des sommaires en debut de chapitre
+\if@sommairechap
+  \RequirePackage[french]{minitoc}
+  \dominitoc
+  \setlength{\mtcindent}{0em}
+  \renewcommand{\mtifont}{\large\rm\scshape}
+  \renewcommand{\mtcSfont}{\small\rm\scshape}
+\fi
+\RequirePackage{tocloft}
+\renewcommand{\cftsubsecfont}{\small}
+\renewcommand{\cftsecfont}{\normalsize\scshape}
+\renewcommand{\cftchapfont}{\large\scshape}
+\renewcommand{\cfttoctitlefont}{\Huge\scshape}
+\renewcommand{\cftloftitlefont}{\Huge\scshape}
+
+% CONFIGURATION DE LA CÉSURE (-> Axel Reichert)
+\tolerance = 1414
+\hbadness = 1414
+\emergencystretch 1.5em
+\hfuzz 0.3pt
+\widowpenalty=10000
+\vfuzz \hfuzz
+\raggedbottom
+
+%-------------------- PAGE DE GARDE-------------------%
+\newif\ifdefinitif\definitiftrue
+
+\def\titleFR#1{\gdef\@titleFR{#1}}
+\def\titleEN#1{\gdef\@titleEN{#1}}
+\def\abstractFR#1{\gdef\@abstractFR{#1}}
+\def\abstractEN#1{\gdef\@abstractEN{#1}}
+\def\keywordsFR#1{\gdef\@keywordsFR{#1}}
+\def\keywordsEN#1{\gdef\@keywordsEN{#1}}
+\def\@author{}
+\def\address#1{\gdef\@address{#1}}
+\def\universite#1{\gdef\@universite{#1}}
+\def\laboratoire#1{\gdef\@laboratoire{#1}}
+\def\specialite#1{\gdef\@specialite{#1}}
+\def\datesoumission#1{\gdef\@datesoumission{#1}}
+\def\datesoutenance#1{\gdef\@datesoutenance{#1}}
+\def\jury#1{\gdef\@jury{#1}}
+\def\dedicate#1{\gdef\dedication@text{#1}}
+
+\renewcommand{\titlepage}{%
+  \ifdefinitif
+    % \normalsize{N. d'ordre : $XX$}
+    \begin{center}
+      \Large\textsc{\@universite} \\
+
+      \Huge\textsc{Thèse} \\ \bigskip
+      \large{pour obtenir le grade de :}\\ \bigskip
+      \textsc{Docteur de l'Université de Lille} \\ \bigskip
+      dans la spécialité\\ \bigskip
+      \og   \textsc{\@specialite} \fg \\ \bigskip
+      par \\ \bigskip
+      \@author
+
+      \vfill
+      \huge~{\@titleEN}\\[0.5em]
+      \normalsize~{\@titleFR}
+      \vfill
+
+      \normalsize
+      Thèse soutenue le \@datesoutenance{} devant le jury composé de :\\
+      \vspace{1cm}
+      \@jury \vfill
+
+      \textsc{\@laboratoire} \\ \bigskip
+    \end{center}
+    \cleardoublepage
+
+  \else
+
+    % --------------------------------------------------
+    % NON DEFINITIF : PAGE DE SOUMISSION AUX RAPPORTEURS
+    \thispagestyle{empty}
+    \vskip3cm
+    \vfill
+    \begin{center}
+      \large
+      Rapport soumis aux rapporteurs, dans le but de sanctionner
+      le dossier pour l'obtention du grade de \\
+      Docteur en \@specialite\\
+      de \\
+      l'\@universite
+    \end{center}
+    \vskip3cm
+    \begin{center}
+      \huge {\sc \@titleEN }\\ \vskip0.5cm
+      \normalsize {\sc \@titleFR }\\ \vskip2cm
+      \large \@author, le \@datesoumission \\
+    \end{center}
+    \vskip3cm
+    \vskip3cm
+    \vfill
+    \textsc{Mots-clés :} \@keywordsFR
+  \fi
+  \cleardoublepage
+}
+
+%-------------------- MISE EN PAGE-------------------%
+\RequirePackage{geometry}
+\geometry{textheight=170ex,textwidth=40em,top=30pt,headheight=30pt,headsep=30pt,inner=80pt}
+\addtolength{\marginparwidth}{-80pt}
+\addtolength{\headwidth}{\marginparsep}
+\addtolength{\headwidth}{\marginparwidth}
+
+%-------------------- PREFACE -------------------%
+\newcommand{\beforepreface}{
+  \frontmatter
+  \pagestyle{empty}
+  \titlepage
+  %\dedicacepage
+  \pagestyle{plain}
+  \cleardoublepage
+}
+
+%-------------------- CONTENU MAITRE-------------------%
+\newcommand{\afterpreface}{
+  \mainmatter
+  \pagestyle{main}
+}
+
+%-------------------- PERSONNALISATION DE BABEL-------------------%
+% redefinition des noms chapitres speciaux
+\addto{\captionsfrench}{
+  \renewcommand*{\listfigurename}{Liste des figures}
+  \renewcommand*{\appendixname}{}%
+}
+% noindent en début de section
+\addto\extrasfrench{\setlength{\parindent}{0pt}}

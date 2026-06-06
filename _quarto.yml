@@ -83,6 +83,8 @@ format:
     include-in-header:
       - preamble.tex
       - _extensions/andrewheiss/epigraph/epigraph.tex
+    template-partials:
+      - _partials/before-body.tex
     default-image-extension: pdf
     syntax-highlighting: github
     fontsize: 10pt

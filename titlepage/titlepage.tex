@@ -1,0 +1,74 @@
+%!TEX encoding = UTF-8
+
+% Copyright (C) Julien Chiquet
+%
+% This program is free software: you can redistribute it and/or modify
+%  it under the terms of the GNU General Public License as published by
+%  the Free Software Foundation, either version 3 of the License, or
+%  (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%  GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <http://www.gnu.org/licenses/>
+
+\documentclass[sommairechap,styleben]{these_gi}
+ \renewcommand{\baselinestretch}{1.2}
+
+%  \definitiffalse
+
+  %-------------------- Fix error --------------------%
+ %  (see: http://forum.mathematex.net/latex-f6/erreur-missing-begin-document-t10706.html)
+
+ \makeatletter
+\ifx\@afterindentfalse\@afterindenttrue
+                       \let\@aifORI\@afterindenttrue
+                 \else \let\@aifORI\@afterindentfalse
+                 \fi
+\makeatother
+
+\begin{document}
+
+%-------------------- RENSEIGNEMENTS SUR LA THESE--------------------%
+
+\titleEN{Algorithm design and implementation\\ for the scale of sequencing data}
+\titleFR{Conception et implémentation d'algorithmes à l'échelle des données de séquençage}
+% \abstractEN{Le résumé en anglais ($\approx$ 1000 caractères)}
+% \abstractFR{Le résumé en français ($\approx$ 1000 caractères)}
+% \keywordsEN{Les mots-clés en anglais}
+% \keywordsFR{Les mots-clés en français}
+
+\author{Igor \textsc{Martayan}}
+\address{igor.martayan@.univ-lille.fr}
+\universite{Université de Lille}
+\laboratoire{\textbf{Laboratoire CRIStAL}\\
+  Bâtiment ESPRIT\\
+  Avenue Henri Poincaré\\
+  59655 Villeneuve d'Ascq\\
+  France}
+\specialite{Informatique}
+\datesoutenance{4 septembre 2026}
+\datesoumission{8 juin 2026}
+\jury{\begin{tabular}{llll}
+    $M.$  & Sven \textsc{Rahmann}          & Professor,                & (Rapporteur)          \\
+          &                                & Saarland University       &                       \\
+    $M.$  & Alexandru \textsc{Tomescu}     & Professor,                & (Rapporteur)          \\
+          &                                & University of Helsinki    &                       \\
+    $M.$  & Giulio Ermanno \textsc{Pibiri} & Associate Professor,      & (Examinateur)         \\
+          &                                & Ca' Foscari University    &                       \\
+    $M.$  & Éric \textsc{Rivals}           & Directeur de recherche,   & (Examinateur)         \\
+          &                                & Université de Montpellier &                       \\
+    $M.$  & Sylvain \textsc{Salvati}       & Professeur,               & (Examinateur)         \\
+          &                                & Université de Lille       &                       \\
+    $Mme$ & Camille \textsc{Marchet}       & Chargée de recherche,     & (Directrice de Thèse) \\
+          &                                & CNRS                      &                       \\
+  \end{tabular}
+}
+
+%-------------------- DEBUT DE LA PREFACE --------------------%
+\beforepreface
+
+\end{document}
