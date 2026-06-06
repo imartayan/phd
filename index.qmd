@@ -1,3 +1,11 @@
+::: {.content-visible when-format="html"}
+<small>
+Supervised by [Camille Marchet](https://kamimrcht.github.io/webpage/)
+<br>
+Jury: [Sven Rahmann](https://www.rahmannlab.de/people/rahmann), [Alexandru Tomescu](https://www.cs.helsinki.fi/u/tomescu/), [Giulio Ermanno Pibiri](https://jermp.github.io/), [Éric Rivals](https://www.lirmm.fr/~rivals/) & [Sylvain Salvati](https://pro.univ-lille.fr/sylvain-salvati/)
+</small>
+:::
+
 :::{.callout-note}
 This is still a work in progress.
 :::
