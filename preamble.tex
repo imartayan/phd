@@ -12,3 +12,20 @@
   \newtheoremstyle{plain}
   {\topsep}{\topsep}{\normalfont}{}{\bfseries}{.}{5pt plus 1pt minus 1pt}{}%
 }
+
+\makeatletter
+\newif\if@afterpart
+
+% Remove the \newpage from the part ending, set flag instead
+\renewcommand*{\partheadendvskip}{%
+  \vskip\@tempskipa
+  \global\@afterparttrue
+}
+\makeatother
+
+\AddToHook{cmd/epigraph/after}{%
+  \if@afterpart
+    \vfill\clearpage
+    \global\@afterpartfalse
+  \fi
+}
