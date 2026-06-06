@@ -85,6 +85,7 @@ format:
       - _extensions/andrewheiss/epigraph/epigraph.tex
     template-partials:
       - _partials/before-body.tex
+      - _partials/toc.tex
     default-image-extension: pdf
     syntax-highlighting: github
     fontsize: 10pt
