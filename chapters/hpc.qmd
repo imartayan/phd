@@ -2,6 +2,7 @@
 
 {{< epigraph "*All we have to decide is what to do with the cycles that are given us.*" source="not J. R. R. Tolkien" >}}
 
+<!--
 ```{dot}
 //| fig-width: 6
 //| fig-height: 0.6
@@ -16,3 +17,4 @@ digraph {
   "Downstream application" [URL="filtering.html"]
 }
 ```
+-->
