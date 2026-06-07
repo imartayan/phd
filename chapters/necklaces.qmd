@@ -1,4 +1,4 @@
-# Necklaces and minimizers
+# Necklaces and minimizers {#sec-necklaces}
 
 :::{.callout-note}
 This chapter is partially adapted from {{< longcite cbl >}}.

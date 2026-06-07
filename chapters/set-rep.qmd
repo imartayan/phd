@@ -55,18 +55,17 @@ When the intersection is sparse, with few /kmers shared across all $k$ sets, thi
 Set difference advances the left iterator and, for each left element, advances all right iterators until their fronts are $\geq$ the left element; if any right front equals the left element it is suppressed.
 This runs in $O(n + m)$ for a left set of size $n$ and right sets of combined size $m$.
 
-## Prefix-level synchronization
+## Prefix-level pruning
 
-CBL exploits its quotiented layout to perform set operations at the *prefix level* before descending to suffixes, analogously to partition pruning in query engines.
-
+CBL exploits its quotiented layout to perform set operations at the *prefix level* before descending to suffixes.
 When co-advancing two CBL structures, their prefix bitvectors are scanned together.
 If one structure has no bucket for a given prefix rank, the entire prefix range is skipped using a single rank/select query, with no suffix work performed.
 Only when both structures share an occupied prefix do their suffix buckets enter the merge or intersection routine.
 
-Because necklace values are skewed towards small values (@sec-cbl-struct), many prefix slots are empty, and this pruning eliminates a large fraction of the work in practice.
-When /kmer sets are genomically related, their occupied prefix ranges overlap heavily, so the relative saving shifts to the suffix level; identical necklaces are then handled by a zero-cost path that advances both iterators simultaneously.
-
-In-place mode modifies one of the two input CBL structures directly, without allocating a third structure, halving peak memory usage compared with constructing the result separately.
+Because necklace values are skewed towards small values (as discussed in @sec-necklaces), many prefix slots are empty, and this pruning eliminates a large fraction of the work in practice.
+When /kmer sets are biologically related, their occupied prefix ranges overlap heavily, so the relative saving shifts to the suffix level.
+Identical necklaces are then handled by a zero-cost path that advances both iterators simultaneously.
+In-place mode further reduces peak memory by modifying one input structure directly, avoiding the allocation of a third.
 
 ## Benchmarks {#sec-set-benchmarks}
 
