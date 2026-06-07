@@ -97,4 +97,20 @@ These results reflect a broader pattern: at the scale typical in genomics, with 
 
 ## Exponential search for skewed set sizes {#sec-exp-search}
 
+The linear co-advance of merge-based algorithms is efficient when the two sets are of comparable size, but wasteful when one set is much smaller.
+Consider intersecting a small query set of $m$ /kmers against a large index of $n$ /kmers with $m \ll n$: a linear scan through $n$ elements to find $m$ matches is suboptimal.
+
+*Exponential search* [@bentley1976] addresses this: rather than advancing one step at a time in the large iterator, double the stride until overshooting the target, then binary-search within the overshot interval.
+The cost per match found is $O(\log d)$ where $d$ is the gap to the next match.
+@demaine2000 extended this to multi-way intersection.
+For two sets of sizes $m \ll n$, the cost specializes to $O(m \log(n/m))$, a significant improvement over the $O(n + m)$ linear co-advance.
+An alternative achieving the same average complexity is the double binary search of @baeza-yates2010: binary-search the median of the smaller set in the larger one, then recurse on both halves.
+In practice both approaches outperform linear merge when the size ratio is large.
+
+The `iter-set-ops` library uses max-index tracking for intersection, advancing all iterators towards the current maximum, but without the exponential stride; it therefore remains $O(n + m)$ in the two-set case.
+Adding exponential search would reduce this to $O(m \log(n/m))$ for skewed sizes.
+The gain is largest whenever set sizes are strongly skewed: a small query intersected against a large reference, a small contaminant set removed from a large assembly, or a multi-way intersection across very unequally-sized sets. In the last case, the largest iterator should always be the one advanced with exponential jumps.
+Applying this to CBL would however require random access into suffix buckets to binary-search within the overshot interval, which is incompatible with the trie representation currently used for large buckets.
+Supporting exponential search would therefore require redesigning large buckets with a structure that supports both sorted iteration and random access.
+
 ## Connection to database query engines {#sec-database-query}
