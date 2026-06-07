@@ -4,13 +4,6 @@
 This chapter is partially adapted from {{< longcite cbl >}}.
 :::
 
-- present CBL set operations, and some implementation tricks
-- impact of iterating (un)sorted values vs full random access
-- mention log log search, and when it can be used
-- discuss the relevance of database query engines in this context (open discussion)
-
----
-
 The previous chapter introduced CBL as a compressed, dynamic structure for exact /kmer set representation and established its competitive performance for membership queries, insertions, and deletions.
 We now turn to a class of operations that most /kmer structures do not support at all: set operations.
 Union, intersection, and difference are fundamental to pangenomic workflows: merging sequencing runs, identifying /kmers shared across all samples in a cohort, removing contaminant sequences.
