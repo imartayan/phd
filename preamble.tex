@@ -1,10 +1,28 @@
 \usepackage{mathrsfs}
 \usepackage{multirow}
 \usepackage{pdfpages}
+\usepackage{scrlayer-scrpage}
 \usepackage{stmaryrd}
 \usepackage{tikz}
 
 \usetikzlibrary{arrows.meta,calc,chains,decorations.pathreplacing,matrix,patterns,patterns.meta,positioning,shapes,shapes.geometric,shapes.misc,shapes.multipart}
+
+\pagestyle{scrheadings}
+\clearpairofpagestyles
+\setkomafont{pageheadfoot}{\sffamily\slshape\small}
+\ohead{\headmark}
+\cfoot[\pagemark]{\pagemark}
+\automark{chapter}
+
+% \emph does not toggle shape when already in italic/slanted context
+\makeatletter
+\DeclareRobustCommand{\emph}[1]{%
+  \ifdim\fontdimen\@ne\font>\z@
+    {#1}%
+  \else
+    {\itshape #1}%
+  \fi}
+\makeatother
 
 \definecolor{linkcolor}{HTML}{0a58ca} % #0a58ca
 \definecolor{citecolor}{HTML}{59359a} % #59359a
