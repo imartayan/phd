@@ -17,7 +17,7 @@ The key enabler of efficient set operations in CBL is that its internal layout n
 Traversing the prefix bitvector in rank order and, for each occupied prefix, scanning its suffix bucket in turn produces all stored /kmers in lexicographic order. Each bucket stores suffixes as either a flat vector or, once it exceeds a size threshold, a trie. Tries are inherently sorted; only flat-vector buckets require an explicit sort, performed lazily when a set operation is requested. Since flat-vector buckets are small by definition, this per-bucket sort is cheap.
 
 This sorted-iteration property transforms set operations into classical merge problems.
-Given two sorted streams, union and intersection can be computed in a single co-advancing pass, consuming each stream once from left to right.
+Given two sorted streams, union and intersection can be computed in a single linear pass, consuming each stream once from left to right.
 By contrast, the hash-based alternative checks each element of one set against the other, requiring one random memory access per element.
 We examine the performance consequences of this difference in @sec-set-benchmarks.
 
@@ -51,7 +51,7 @@ This runs in $O(n + m)$ for a left set of size $n$ and right sets of combined si
 ## Prefix-level pruning
 
 CBL exploits its quotiented layout to perform set operations at the *prefix level* before descending to suffixes.
-When co-advancing two CBL structures, their prefix bitvectors are scanned together.
+When scanning two CBL structures in tandem, both prefix bitvectors are advanced simultaneously.
 If one structure has no bucket for a given prefix rank, the entire prefix range is skipped using a single rank/select query, with no suffix work performed.
 Only when both structures share an occupied prefix do their suffix buckets enter the merge or intersection routine.
 
@@ -90,13 +90,13 @@ These results reflect a broader pattern: at the scale typical in genomics, with 
 
 ## Exponential search for skewed set sizes {#sec-exp-search}
 
-The linear co-advance of merge-based algorithms is efficient when the two sets are of comparable size, but wasteful when one set is much smaller.
-Consider intersecting a small query set of $m$ /kmers against a large index of $n$ /kmers with $m \ll n$: a linear scan through $n$ elements to find $m$ matches is suboptimal.
+The linear scan of merge-based algorithms is efficient when the two sets are of comparable size, but wasteful when one set is much smaller.
+Consider intersecting a small query set of $m$ /kmers against a large index of $n$ /kmers with $m \ll n$: iterating through all $n$ elements to find $m$ matches is suboptimal.
 
 *Exponential search* [@bentley1976] addresses this: rather than advancing one step at a time in the large iterator, double the stride until overshooting the target, then binary-search within the overshot interval.
 The cost per match found is $O(\log d)$ where $d$ is the gap to the next match.
 @demaine2000 extended this to multi-way intersection.
-For two sets of sizes $m \ll n$, the cost specializes to $O(m \log(n/m))$, a significant improvement over the $O(n + m)$ linear co-advance.
+For two sets of sizes $m \ll n$, the cost specializes to $O(m \log(n/m))$, a significant improvement over the $O(n + m)$ linear scan.
 An alternative achieving the same average complexity is the double binary search of @baeza-yates2010: binary-search the median of the smaller set in the larger one, then recurse on both halves.
 In practice both approaches outperform linear merge when the size ratio is large.
 
