@@ -113,4 +113,13 @@ The gain is largest whenever set sizes are strongly skewed: a small query inters
 Applying this to CBL would however require random access into suffix buckets to binary-search within the overshot interval, which is incompatible with the trie representation currently used for large buckets.
 Supporting exponential search would therefore require redesigning large buckets with a structure that supports both sorted iteration and random access.
 
-## Connection to database query engines {#sec-database-query}
+## Perspectives from database query engines {#sec-database-query}
+
+The algorithmic landscape of /kmer set operations has strong connections to classical database join strategies [@graefe1993], suggesting that techniques developed for query engines could benefit /kmer set processing.
+CBL's sorted-iterator approach resembles *sort-merge join*, while HashSet resembles *hash join*.
+When one set is very small, the pattern corresponds to *index-nested loop join*: iterate over the small set and perform membership queries on the large index, using exponential search to skip large gaps.
+CBL's prefix-level pruning is analogous to *partition pruning* in query optimizers.
+
+A related opportunity comes from the information-retrieval literature: @lemire2015 showed that SIMD-accelerated intersection nearly doubles throughput on inverted-index posting lists, a setting structurally similar to /kmer set intersection on sorted lists.
+More broadly, adaptive strategy selection and partition-parallel processing have precedent in the database literature but remain unexplored for /kmer sets.
+The structural similarities between /kmer set operations and relational query processing suggest that this literature is a productive source of inspiration for future work.
