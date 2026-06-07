@@ -69,11 +69,8 @@ In-place mode further reduces peak memory by modifying one input structure direc
 
 ## Benchmarks {#sec-set-benchmarks}
 
-For biological /kmer sets in practice, which typically contain hundreds of millions of elements, are streamed from disk, and are often combined across many samples, the sorted approach dominates.
-HashSet performs well on the construction benchmark and competitive on negative queries (@sec-cbl-struct), but CBL's sorted iteration gives it a consistent edge for multi-set operations.
-
-We benchmark intersection and union operations against HashSet, a hash table based on Google's Swiss Tables and the closest dynamic competitor.
-Both tools operate on sets of tens of millions of /kmers ($k = 31$, $p = 28$ bits).
+To evaluate the practical impact of sorted iteration, we compare CBL against HashSet, a hash table based on Google's Swiss Tables, on intersection and union of /kmer sets built from an expanding collection of bacterial genomes, ranging from 10^7^ to 10^9^ /kmers ($k = 31$, $p = 28$ bits).
+Time and memory results for intersection are shown in @fig-set-intersection, and for union in @fig-set-union.
 
 :::{#fig-set-intersection layout-ncol=2}
 
@@ -96,6 +93,7 @@ Time and memory trade-off when performing set union, for $k = 31$ and $p = 28$ b
 CBL achieves 200 ns per /kmer on intersection and 500 ns per /kmer on union; HashSet requires 400 ns and 900 ns respectively.
 The memory advantage is larger: CBL's in-place operations do not allocate a result structure, while HashSet must construct a third hash table.
 Comparable trends hold for set difference and symmetric difference.
+These results reflect a broader pattern: at the scale typical in genomics, with large sets streamed across many samples, sorted iteration consistently outperforms hash-based alternatives.
 
 ## Exponential search for skewed set sizes {#sec-exp-search}
 
