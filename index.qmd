@@ -55,8 +55,3 @@ La troisième partie s'intéresse à des représentations plus parcimonieuses du
 Nous montrons qu'en ne conservant qu'une fraction soigneusement choisie des /kmers, il est possible de réduire à la fois l'empreinte mémoire et le temps de comparaison, sans sacrifier la capacité à répondre à des requêtes de similarité.
 
 À travers ces trois axes, nos travaux montrent que des gains pratiques significatifs découlent du fait de traiter la conception algorithmique et l'implémentation comme un problème unique et unifié, plutôt que comme deux préoccupations séparées.
-
-:::{=latex}
-\setcounter{tocdepth}{1}
-\tableofcontents
-:::
