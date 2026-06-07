@@ -1,12 +1,126 @@
-# Set representation and operations
+# Set operations on *k*-mer collections {#sec-set-ops}
 
 :::{.callout-note}
 This chapter is partially adapted from {{< longcite cbl >}}.
 :::
 
-TBA
-
 - present CBL set operations, and some implementation tricks
 - impact of iterating (un)sorted values vs full random access
 - mention log log search, and when it can be used
 - discuss the relevance of database query engines in this context (open discussion)
+
+---
+
+The previous chapter introduced CBL as a compressed, dynamic structure for exact /kmer set representation and established its competitive performance for membership queries, insertions, and deletions.
+We now turn to a class of operations that most /kmer structures do not support at all: set operations.
+Union, intersection, and difference are fundamental to pangenomic workflows: merging sequencing runs, identifying /kmers shared across all samples in a cohort, removing contaminant sequences.
+Yet they are typically performed either approximately, using lossy Bloom-filter-based methods [@shibuya_efficient_2022; @kmtricks], or by reloading sets into a general-purpose hash table.
+CBL is, to our knowledge, the only exact /kmer structure offering in-place set operations.
+
+We explain why this is possible, what algorithmic machinery underlies it, and when the approach wins (or loses) against hash-based alternatives.
+
+## The sorted-iterator interface
+
+The key enabler of efficient set operations in CBL is that its internal layout naturally yields a *sorted stream* of /kmers.
+Traversing the prefix bitvector in rank order and, for each occupied prefix, scanning its suffix bucket in order, produces all stored /kmers in lexicographic order of their necklace without any sorting step.
+
+This sorted-iteration property transforms set operations into classical merge problems.
+Given two sorted streams, union and intersection can be computed in a single co-advancing pass, consuming each stream once from left to right.
+Compare this with the alternative of checking every element of one set for membership in the other, which requires one hash lookup per element and accesses memory in an essentially random order.
+
+For large /kmer sets, the access-pattern difference dominates runtime.
+A hash lookup on a structure that does not fit in cache incurs a main-memory round-trip per query; a sequential scan through the same data sustains near-peak memory bandwidth.
+The break-even point depends on set size and hardware, but for the multi-hundred-million /kmer sets typical in bacterial pangenomics the sorted approach is consistently faster, as our benchmarks confirm (@sec-set-benchmarks).
+
+Sorted iteration also generalizes to $k > 2$ sets with no algorithmic penalty, while the hash-based approach costs $O(kn)$ membership checks.
+
+## Multi-way set operations with `iter-set-ops` {#sec-iter-set-ops}
+
+CBL's set operations are implemented on top of `iter-set-ops`, a Rust crate that performs intersection, union, and difference over an arbitrary number of sorted deduplicated iterators [@iter-set-ops].
+All operations are lazy: they return iterators that advance their inputs on demand, so the result can be streamed without materialising it in memory.
+
+### Union (merge)
+
+The union of $k$ sorted iterators is computed with a *binary heap-based $k$-way merge*.
+Each iterator contributes its current front element to a min-heap; at each step the minimum is extracted and its source iterator is advanced; if the new front matches the extracted value, that iterator is also advanced to suppress duplicates before inserting back into the heap.
+Total cost is $O(n \log k)$ for $k$ iterators of combined size $n$.
+
+### Intersection
+
+Intersection uses a *max-index tracking* strategy rather than a heap.
+A "front" array holds the current element of each iterator.
+The algorithm records the index of the iterator holding the current maximum; all other iterators are advanced until they either match or overshoot that maximum.
+When all fronts are equal, the element is yielded and all iterators advance together.
+If any iterator is exhausted the computation terminates immediately.
+
+This early-termination property is critical for genomic intersection: finding /kmers present in all $k$ samples of a large cohort typically yields a small result set, and the algorithm stops as soon as any sample runs out of /kmers.
+Worst-case cost is $O(n \log k)$, but in the common case of sparse intersection it is much cheaper.
+
+### Difference and symmetric difference
+
+Set difference advances the left iterator and, for each left element, advances all right iterators until their fronts are $\geq$ the left element; if any right front equals the left element it is suppressed.
+This runs in $O(n + m)$ for a left set of size $n$ and right sets of combined size $m$.
+
+All three operations also have `_detailed` variants that return the source iterator index alongside each value, enabling provenance tracking: for example, identifying which samples in a union contributed a particular /kmer.
+
+## Prefix-level synchronisation
+
+CBL exploits its quotiented layout to perform set operations at the *prefix level* before descending to suffixes, analogously to partition pruning in query engines.
+
+When co-advancing two CBL structures, their prefix bitvectors are scanned together.
+If one structure has no bucket for a given prefix rank, the entire prefix range is skipped using a single rank/select query, with no suffix work performed.
+Only when both structures share an occupied prefix do their suffix buckets enter the merge or intersection routine.
+
+Because necklace values are skewed towards small values (@sec-cbl-struct), many prefix slots are empty, and this pruning eliminates a large fraction of the work in practice.
+When /kmer sets are genomically related, their occupied prefix ranges overlap heavily, so the relative saving shifts to the suffix level; identical necklaces are then handled by a zero-cost path that advances both iterators simultaneously.
+
+In-place mode modifies one of the two input CBL structures directly, without allocating a third structure, halving peak memory usage compared with constructing the result separately.
+
+## Exponential search for skewed set sizes {#sec-galloping}
+
+The linear co-advance of merge-based algorithms is efficient when the two sets are of comparable size, but wasteful when one set is much smaller.
+Consider intersecting a small query set of $m$ /kmers against a large index of $n$ /kmers with $m \ll n$: a linear scan through $n$ elements to find $m$ matches is suboptimal.
+
+For CBL specifically, exponential search could be applied at the prefix level to skip large contiguous empty prefix ranges in $O(\log \Delta)$ rather than $O(\Delta)$ rank queries, compounding the gain with the prefix-level synchronization described above.
+
+## When sorted iteration wins, and when it does not {#sec-sorted-vs-hash}
+
+The choice between sorted merge and hash-based set operations depends on several factors.
+
+*Sorted merge* is preferable when sets are large relative to cache, since sequential access amortizes memory latency.
+It also scales naturally to more than two sets at $O(n \log k)$ rather than the $O(kn)$ cost of repeated hash lookups, handles streamed input without materialisation, avoids allocating a third structure in in-place mode, and produces output that is itself sorted.
+
+*Hash-based access* has the edge when sets fit in L2/L3 cache, where hash probes are fast enough to offset their overhead, or when only two similarly-sized sets are combined.
+It also suits pipelines that interleave random-access membership queries with set operations.
+
+For biological /kmer sets in practice, which typically contain hundreds of millions of elements, are streamed from disk, and are often combined across many samples, the sorted approach dominates.
+HashSet performs well on the construction benchmark and competitive on negative queries (@sec-cbl-struct), but CBL's sorted iteration gives it a consistent edge for multi-set operations.
+
+## Benchmarks {#sec-set-benchmarks}
+
+We benchmark intersection and union operations against HashSet, a hash table based on Google's Swiss Tables and the closest dynamic competitor.
+Both tools operate on sets of tens of millions of /kmers ($k = 31$, $p = 28$ bits).
+
+:::{#fig-set-intersection layout-ncol=2}
+
+![](../fig/cbl/fig_10)
+
+![](../fig/cbl/fig_11)
+
+Time and memory trade-off when performing set intersections, for $k = 31$ and $p = 28$ bits.
+:::
+
+:::{#fig-set-union layout-ncol=2}
+
+![](../fig/cbl/fig_12)
+
+![](../fig/cbl/fig_13)
+
+Time and memory trade-off when performing set union, for $k = 31$ and $p = 28$ bits.
+:::
+
+CBL achieves 200 ns per /kmer on intersection and 500 ns per /kmer on union; HashSet requires 400 ns and 900 ns respectively.
+The memory advantage is larger: CBL's in-place operations do not allocate a result structure, while HashSet must construct a third hash table.
+Comparable trends hold for set difference and symmetric difference.
+
+## Connection to database query engines {#sec-database-query}
