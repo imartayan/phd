@@ -202,7 +202,7 @@ We exploit this skewness with a quotienting strategy, storing prefixes and suffi
 
 ### Quotienting sets of necklaces
 
-To achieve compression, we select a prefix size $p$ and store prefixes and suffixes of necklaces separately (the suffix being $2k-1-p$ bits long).
+To achieve compression, we select a prefix size $p$ and store prefixes and suffixes of necklaces separately, the suffix being $2k-1-p$ bits long.
 The rationale is that many necklaces share the same prefix, particularly since their distribution is skewed towards smaller values.
 Quotienting thus concentrates the bulk of the set into a small number of prefix buckets, each holding a short list of suffixes.
 
@@ -261,6 +261,23 @@ The main operations (membership, insertion, deletion) follow the same pipeline:
 
 When the necklaces of consecutive /kmers share the same prefix $q$, steps 1--5 only need to be performed once and the remaining operations are batched on the same bucket.
 This optimization is particularly effective when streaming all /kmers of a sequence.
+
+### Informal comparison to Elias-Fano
+
+CBL's quotienting layout is analogous to Elias-Fano encoding for sorted integers: both split elements into high (prefix) and low (suffix) parts stored separately.
+The key difference is in how suffixes are handled.
+Elias-Fano omits an explicit prefix-to-suffix mapping and stores all suffixes contiguously, achieving higher compression but making insertion expensive by shifting many elements.
+Dynamic adaptations of Elias-Fano have been proposed by @dynamic-elias-fano but have no practical implementation yet.
+CBL trades some compression for full dynamicity: every layer of the structure supports insertions and deletions efficiently.
+
+### Implementation details
+
+The necklace and rotation offset are packed into a single primitive integer of up to 128 bits.
+The combined size $2k-1 + \lceil \log_2(2k-1) \rceil$ must therefore stay below 128 bits, limiting support to $k \le 59$.
+
+The prefix size $p$ is a compile-time parameter, supported up to 32 bits.
+We use $p = 24$ bits as a default, balancing the size of the prefix bitvector ($2^p$ bits) against the load on suffix buckets.
+Increasing $p$ for very large sets reduces bucket sizes and speeds up bucket operations.
 
 ## Comparison against other indexes
 
@@ -339,3 +356,20 @@ For deletion (not supported by Bifrost), the remaining tools show a similar patt
 
 Time/memory trade-off when performing /kmer insertions/deletions (bottom), for $k = 31$ and $p = 28$ bits; each point is averaged over a series of experiments.
 :::
+
+## Perspectives
+
+The use of necklaces as a /kmer representation is relatively recent, and many directions remain open.
+One open question concerns the rank of a necklace: the best known algorithm runs in $\mathcal{O}(k^2)$ [@necklace-rank], which makes it impractical for large-scale use.
+A promising avenue would be to compute an approximate rank, mapping necklaces to a space slightly larger than $N(k)$ but still $\mathcal{O}(k)$ times smaller than the original /kmer space.
+Piecewise linear approximation, as used in the PLA-index [@pla-index], could provide such an approximation with controllable error, and would be a natural fit given the distribution of necklaces.
+
+A second open question is the integration of super-necklaces into an actual index.
+We introduced the super-necklace representation and showed that it compactly encodes runs of consecutive necklaces sharing the same prefix, but this structure has not yet been connected to a data structure supporting efficient retrieval.
+Adapting the trie component of CBL to operate directly on super-necklaces is one concrete direction: within a run, successive suffixes differ by a single letter at a known position, which could allow the trie to share internal nodes more aggressively than it currently does.
+
+Regarding CBL itself, several implementation-level improvements are within reach.
+The current implementation is single-threaded, though suffix buckets are independent given a fixed prefix and could straightforwardly be distributed across threads.
+The core necklace computation and bucket scan operations are also good candidates for SIMD vectorization, and the techniques developed in @sec-simd-minimizers could serve as inspiration.
+The trie structure used for large buckets can also consume significant memory, which could be addressed by using a more compact alternative such as an adaptive radix tree [@art].
+CBL being a fully dynamic structure also opens up possibilities beyond simple membership queries, which we explore in the next chapter.
