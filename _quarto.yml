@@ -88,8 +88,8 @@ format:
       - _partials/toc.tex
     default-image-extension: pdf
     syntax-highlighting: github
-    fontsize: 10pt
-    sansfont: "Lato"
+    fontsize: 11pt
+    sansfont: "IBM Plex Sans"
     monofont: "DejaVu Sans Mono"
     papersize: a4
     geometry:
