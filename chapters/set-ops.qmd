@@ -8,8 +8,8 @@ The previous chapter introduced CBL as a compressed, dynamic structure for exact
 We now turn to a class of operations that most /kmer structures do not support at all: set operations.
 Union, intersection, and difference are fundamental to pangenomic workflows: merging sequencing runs, identifying /kmers shared across all samples in a cohort, removing contaminant sequences.
 Yet they are typically performed either approximately, using lossy Bloom-filter-based methods [@shibuya_efficient_2022; @kmtricks], or by reloading sets into a general-purpose hash table.
-CBL is, to our knowledge, the only exact /kmer structure offering in-place set operations.
-We explain why this is possible, what algorithmic machinery underlies it, and when the approach wins (or loses) against hash-based alternatives.
+At the time of writing, CBL was, to our knowledge, the only exact /kmer structure to offer in-place set operations.
+We explain what enabled this, what algorithmic machinery underlies it, and when the approach wins (or loses) against hash-based alternatives.
 
 ## The sorted-iterator interface
 
