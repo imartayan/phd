@@ -24,14 +24,14 @@ We examine the performance consequences of this difference in @sec-set-benchmark
 ## Multi-way set operations {#sec-iter-set-ops}
 
 CBL's set operations are implemented on top of `iter-set-ops` (available at <https://github.com/imartayan/iter-set-ops>), a Rust crate that performs intersection, union, and difference over an arbitrary number of sorted deduplicated iterators.
-Generalizing to $k > 2$ sets costs $O(n \log k)$ rather than the $O(kn)$ of repeated hash lookups, with no change to the algorithm structure.
+Generalizing to $s > 2$ sets costs $O(n \log s)$ rather than the $O(n s)$ of repeated hash lookups, with no change to the algorithm structure.
 All operations are lazy: they return iterators that advance their inputs on demand, so the result can be streamed without materialising it in memory.
 
-### Union (merge)
+### Union
 
-The union of $k$ sorted iterators is computed with a *binary heap-based $k$-way merge*.
+The union of $s$ sorted iterators is computed with a *binary heap-based $s$-way merge*.
 Each iterator contributes its current front element to a min-heap; at each step the minimum is extracted and its source iterator is advanced; if the new front matches the extracted value, that iterator is also advanced to suppress duplicates before inserting back into the heap.
-Total cost is $O(n \log k)$ for $k$ iterators of combined size $n$.
+Total cost is $O(n \log s)$ for $s$ iterators of combined size $n$.
 
 ### Intersection
 
@@ -41,9 +41,9 @@ The algorithm records the index of the iterator holding the current maximum; all
 When all fronts are equal, the element is yielded and all iterators advance together.
 
 This approach benefits from early termination: as soon as any iterator is exhausted, the computation stops.
-When the intersection is sparse, with few /kmers shared across all $k$ sets, this happens well before the inputs are consumed and the actual cost falls well below the $O(n \log k)$ worst case.
+When the intersection is sparse, with few /kmers shared across all $s$ sets, this happens well before the inputs are consumed and the actual cost falls well below the $O(n \log s)$ worst case.
 
-### Difference and symmetric difference
+### (Symmetric) difference
 
 Set difference advances the left iterator and, for each left element, advances all right iterators until their fronts are $\geq$ the left element; if any right front equals the left element it is suppressed.
 This runs in $O(n + m)$ for a left set of size $n$ and right sets of combined size $m$.
