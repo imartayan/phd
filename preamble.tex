@@ -13,6 +13,17 @@
   {\topsep}{\topsep}{\normalfont}{}{\bfseries}{.}{5pt plus 1pt minus 1pt}{}%
 }
 
+% Force all TOC entries to use the sans-serif font via tocbasic hooks,
+% which fire around the actual entry rendering (after \normalfont resets)
+\makeatletter
+\BeforeStartingTOC[toc]{%
+  \let\toc@@save@@normalfont\normalfont
+  \renewcommand{\normalfont}{\toc@@save@@normalfont\sffamily\fontsize{11}{14}\selectfont}%
+  \sffamily\fontsize{11}{14}\selectfont
+}
+\AfterStartingTOC[toc]{\let\normalfont\toc@@save@@normalfont}
+\makeatother
+
 \makeatletter
 \newif\if@afterpart
 
