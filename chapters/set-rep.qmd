@@ -28,11 +28,10 @@ Given two sorted streams, union and intersection can be computed in a single co-
 By contrast, the hash-based alternative checks each element of one set against the other, requiring one random memory access per element.
 We examine the performance consequences of this difference in @sec-set-benchmarks.
 
-Sorted iteration also generalizes to $k > 2$ sets with no algorithmic penalty, while the hash-based approach costs $O(kn)$ membership checks.
+## Multi-way set operations {#sec-iter-set-ops}
 
-## Multi-way set operations with `iter-set-ops` {#sec-iter-set-ops}
-
-CBL's set operations are implemented on top of `iter-set-ops`, a Rust crate that performs intersection, union, and difference over an arbitrary number of sorted deduplicated iterators [@iter-set-ops].
+CBL's set operations are implemented on top of `iter-set-ops` (available at <https://github.com/imartayan/iter-set-ops>), a Rust crate that performs intersection, union, and difference over an arbitrary number of sorted deduplicated iterators.
+Generalizing to $k > 2$ sets costs $O(n \log k)$ rather than the $O(kn)$ of repeated hash lookups, with no change to the algorithm structure.
 All operations are lazy: they return iterators that advance their inputs on demand, so the result can be streamed without materialising it in memory.
 
 ### Union (merge)
@@ -47,17 +46,14 @@ Intersection uses a *max-index tracking* strategy rather than a heap.
 A "front" array holds the current element of each iterator.
 The algorithm records the index of the iterator holding the current maximum; all other iterators are advanced until they either match or overshoot that maximum.
 When all fronts are equal, the element is yielded and all iterators advance together.
-If any iterator is exhausted the computation terminates immediately.
 
-This early-termination property is critical for genomic intersection: finding /kmers present in all $k$ samples of a large cohort typically yields a small result set, and the algorithm stops as soon as any sample runs out of /kmers.
-Worst-case cost is $O(n \log k)$, but in the common case of sparse intersection it is much cheaper.
+This approach benefits from early termination: as soon as any iterator is exhausted, the computation stops.
+When the intersection is sparse, with few /kmers shared across all $k$ sets, this happens well before the inputs are consumed and the actual cost falls well below the $O(n \log k)$ worst case.
 
 ### Difference and symmetric difference
 
 Set difference advances the left iterator and, for each left element, advances all right iterators until their fronts are $\geq$ the left element; if any right front equals the left element it is suppressed.
 This runs in $O(n + m)$ for a left set of size $n$ and right sets of combined size $m$.
-
-All three operations also have `_detailed` variants that return the source iterator index alongside each value, enabling provenance tracking: for example, identifying which samples in a union contributed a particular /kmer.
 
 ## Prefix-level synchronization
 
