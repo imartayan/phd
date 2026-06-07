@@ -1,8 +1,4 @@
----
-# nocite: "@*"
----
-
 # References {.unnumbered}
 
-::: {#refs}
+:::{#refs}
 :::
