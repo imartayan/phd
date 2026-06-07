@@ -14,6 +14,7 @@ book:
   output-file: "thesis"
   chapters:
     - index.qmd
+    - foreword.qmd
     - part: "Introduction"
       chapters:
       - chapters/intro-seq.qmd
@@ -51,6 +52,7 @@ book:
     - appendix/hkmer.qmd
     - appendix/multimini.qmd
     - appendix/skmer-sketch.qmd
+    - appendix/tools.qmd
   draft-mode: gone
 
 bibliography: references.bib
