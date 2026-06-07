@@ -14,7 +14,7 @@ book:
   output-file: "thesis"
   chapters:
     - index.qmd
-    - part: chapters/intro.qmd
+    - part: "Introduction"
       chapters:
       - chapters/intro-seq.qmd
       - chapters/intro-kmers.qmd
