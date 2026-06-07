@@ -6,7 +6,20 @@
 
 \usetikzlibrary{arrows.meta,calc,chains,decorations.pathreplacing,matrix,patterns,patterns.meta,positioning,shapes,shapes.geometric,shapes.misc,shapes.multipart}
 
-\AtBeginDocument{\hypersetup{bookmarksdepth=2}}
+\definecolor{linkcolor}{HTML}{0a58ca} % #0a58ca
+\definecolor{citecolor}{HTML}{59359a} % #59359a
+\definecolor{backrefcolor}{HTML}{ab296a} % #ab296a
+
+\AtBeginDocument{\hypersetup{bookmarksdepth=2,linkcolor=linkcolor,citecolor=citecolor,urlcolor=linkcolor}}
+
+\DeclareListFormat{pageref}{%
+  \ifthenelse{\value{listcount}>1}{,\addspace}{}%
+  \ifhyperref{\hyperlink{page.#1}{\textcolor{backrefcolor}{#1}}}{\textcolor{backrefcolor}{#1}}}
+
+\renewbibmacro*{pageref}{%
+  \iflistundef{pageref}
+  {}
+  {\space$\to$\addspace\printlist[pageref]{pageref}}}
 
 \AtBeginDocument{%
   \newtheoremstyle{plain}
