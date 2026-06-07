@@ -32,7 +32,7 @@ book:
       chapters:
       - chapters/kmer-sets.qmd
       - chapters/necklaces.qmd
-      - chapters/set-rep.qmd
+      - chapters/set-ops.qmd
       - chapters/skmer-map.qmd
       - chapters/hkmer.qmd
       - chapters/locality-discussion.qmd
