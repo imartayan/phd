@@ -65,6 +65,19 @@ To answer a lookup query for /kmer $x$, SSHash computes the minimizer of $x$, re
 Streaming queries benefit from caching the last minimizer: consecutive /kmers sharing the same minimizer extend the previous match without recomputing the bucket, reducing the average number of memory accesses per query.
 In practice, SSHash achieves around 7-10 bits per /kmer and answers individual queries in hundreds of nanoseconds [@sshash, table 3].
 
+A subsequent refinement [@sshash2] improves query efficiency on two fronts.
+First, rather than storing the start of each /skmer and scanning it, the refined index stores a single position per minimizer occurrence; combined with the offset of the minimizer within the query /kmer $x$, this is sufficient to recover the exact location of $x$ in the SPSS in constant time.
+Second, a *tag* array classifies each minimizer as singleton, light, or heavy based on how many /kmers share it; for *singleton* minimizers, the unique position is encoded directly in the tag itself, so that a lookup requires only two cache misses: one to evaluate the MPHF and one to read the tag.
+Since over 97% of minimizers are singletons for $k = 31$ and $m \geq 19$, this shortcut applies to the vast majority of queries.
+@fig-sshash2 illustrates the two layouts side by side.
+
+:::{#fig-sshash2}
+![](../fig/intro/sshash2){width=70%}
+
+Comparison of the original and refined SSHash data structures, from @sshash2.
+The tag array classifies minimizers as singleton, light, or heavy; singleton minimizers have their position encoded directly in the tag, avoiding any further memory access.
+:::
+
 ### Locality-preserving hashing: LPHash
 
 ## Succinct dictionaries via the spectral BWT {#sec-kmer-sbwt}
