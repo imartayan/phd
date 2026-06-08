@@ -1,3 +1,53 @@
-# Background on *k*‑mer sets
+# Background on *k*‑mer sets {#sec-kmer-sets}
 
-TBA
+Spectrum-preserving string sets, introduced in @sec-intro-kmers, offer one compact way to represent a /kmer spectrum.
+By itself, however, such a representation gives no direct way to test whether an arbitrary /kmer $x$ belongs to the spectrum.
+Building an efficient *index* is therefore a necessary step in any /kmer-based pipeline, from read mapping and taxonomic classification to genome assembly.
+Depending on the application, this index may be built from an (r)SPSS, directly from raw reads, or from a reference genome, all of which may contain repeated /kmers.
+
+At the most basic level, a /kmer *set* supports a single operation: *membership*, testing whether a given /kmer $x$ belongs to the set.
+Many applications require more than this and associate each /kmer with satellite information such as an abundance count or a color.
+A /kmer *dictionary* extends a /kmer set with a *lookup* operation: given $x$, it returns a unique integer identifier $i \in [0, n)$ that serves as a key into any external array of satellite values, or $-1$ if $x \notin S$.
+Both sets and dictionaries are commonly used in a *streaming* regime, where queries are issued for every /kmer extracted consecutively from a sequence.
+This modality is prevalent enough that several structures are explicitly designed for it, favoring cache-efficient access over runs of consecutive /kmers rather than minimizing the cost of individual queries.
+
+This chapter focuses on three approaches representative of the state of the art for exact /kmer set indexing, and a broader survey of the landscape can be found in [@survey-kmer-sets].
+SSHash [@sshash;@sshash2] and LPHash [@lphash] use compact hashing over the super-/kmer structure of the input to achieve very fast queries at moderate space.
+The SBWT [@sbwt] exploits the colexicographic ordering of /kmers in the de Bruijn graph to compress the index close to the navigational lower bound, at the cost of slower $O(k)$-time queries.
+FMSI [@masked-superstring-kmer;@masked-superstring-set-ops] indexes a masked superstring with an FM-index, offering a different point on the space-time tradeoff.
+
+## Structural properties of *k*‑mer sets {#sec-kmer-struct}
+
+### Path locality and super-*k*‑mers
+
+As established in @sec-skmers, consecutive /kmers in a sequence tend to share the same minimizer and can therefore be grouped into super-/kmers.
+In the context of indexing, this grouping has two important consequences.
+First, there are far fewer super-/kmers than /kmers: each super-/kmer spans on average $(w+1)/2$ /kmers, the inverse of the minimizer density, reducing the number of objects to be indexed by the same factor.
+Second, consecutive /kmers within a super-/kmer are stored contiguously, so a streaming query traversing a sequence left to right will access the same super-/kmer repeatedly before moving to the next, yielding favorable cache behavior.
+More broadly, the super-/kmer structure induces a partial order on /kmers that an index can preserve: /kmers within the same super-/kmer can be assigned consecutive identifiers, enabling fast satellite data access for streaming queries, a property formalized and exploited by LPHash [@lphash].
+
+### Colexicographic clustering and the Wheeler property
+
+A second structural property stems from sorting /kmers in *colexicographic* order, comparing them from right to left.
+Under this ordering, /kmers sharing the same length-$(k-1)$ suffix are adjacent, since they only differ in their leftmost character.
+This clustering is the defining property of *Wheeler graphs* [@wheeler-graphs]: the de Bruijn graph of a /kmer set is a Wheeler graph, meaning its nodes can be totally ordered such that edges labeled with the same character form contiguous intervals.
+This property enables *backward search*: membership of a query /kmer $x$ can be tested by starting from the interval of all /kmers ending in the last character of $x$, then iteratively narrowing it by prepending characters of $x$ from right to left, each step intersecting with a contiguous range.
+Crucially, the colexicographic position of a /kmer implicitly encodes its identity, so the structure requires no explicit storage of the $2k$-bit label of each /kmer, only small per-node annotations.
+This is the root of the space efficiency of BWT-based approaches.
+The BOSS structure [@boss] realizes these ideas for the edge-centric de Bruijn graph; the SBWT [@sbwt] extends them to the node-centric view.
+
+## Hashing-based dictionaries {#sec-kmer-hash}
+
+### Sparse and skew hashing: SSHash
+
+### Locality-preserving hashing: LPHash
+
+## Succinct dictionaries via the spectral BWT {#sec-kmer-sbwt}
+
+### The SBWT and subset rank
+
+### Index variants and space-time tradeoffs
+
+## Masked superstrings {#sec-kmer-ms}
+
+## Comparison {#sec-kmer-comparison}
