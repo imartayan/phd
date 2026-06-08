@@ -16,7 +16,7 @@ SSHash [@sshash;@sshash2] uses compact hashing over the /skmer structure of the 
 The SBWT [@sbwt] exploits the colexicographic ordering of /kmers in the de Bruijn graph to compress the index close to the navigational lower bound, at the cost of slower $O(k)$-time queries.
 FMSI [@masked-superstring-kmer;@masked-superstring-set-ops;@masked-superstring-bwt] indexes a masked superstring with an FM-index, offering a different point on the space-time tradeoff.
 
-## Path locality and sparse hashing {#sec-kmer-hash}
+## Path locality and hashing {#sec-kmer-hash}
 
 A first family of /kmer indexes exploits the *path locality* of consecutive /kmers in the input.
 As established in @sec-skmers, /kmers at successive positions tend to share the same minimizer and can therefore be grouped into /skmers.
@@ -52,6 +52,8 @@ To answer a lookup query for /kmer $x$, SSHash computes the minimizer of $x$, re
 Streaming queries benefit from caching the last minimizer: consecutive /kmers sharing the same minimizer extend the previous match without recomputing the bucket, reducing the average number of memory accesses per query.
 In practice, SSHash achieves around 7-10 bits per /kmer and answers individual queries in hundreds of nanoseconds [@sshash, table 3].
 
+### Improvements on SSHash
+
 A subsequent refinement [@sshash2] improves query efficiency on two fronts.
 First, rather than storing the start of each /skmer and scanning it, the refined index stores a single position per minimizer occurrence; combined with the offset of the minimizer within the query /kmer $x$, this is sufficient to recover the exact location of $x$ in the SPSS in constant time.
 Second, a *tag* array classifies each minimizer as singleton, light, or heavy based on how many /skmers share it; for *singleton* minimizers, the unique position is encoded directly in the tag itself, so that a lookup requires only two cache misses: one to evaluate the MPHF and one to read the tag.
@@ -82,3 +84,15 @@ The BOSS structure [@boss] realizes these ideas for the edge-centric de Bruijn g
 ## Masked superstrings {#sec-kmer-ms}
 
 ## Comparison {#sec-kmer-comparison}
+
+@tbl-kmer-sets-comparison summarizes these properties, using indicative numbers reported in @sshash2 for the human genome at $k = 31$.
+
+:::{#tbl-kmer-sets-comparison .large-table}
+| Approach | Input | Static / dynamic | Space<br>(bits//kmer) | Streaming lookup<br>(ns//kmer) |
+|-----|---|---|---|----|
+| SSHash [@sshash2] | SPSS | static | 7-9 | 200-400 |
+| SBWT [@sbwt] | SPSS | static | ~10.5 | 400-600 |
+| FMSI [@masked-superstring-bwt] | Masked superstring | static or dynamic^[Dynamic updates and set operations are supported via *f-masked superstrings* [@masked-superstring-set-ops].] | 3.3-4 | 1500-2500 |
+
+Summary of the three /kmer indexing approaches discussed in this chapter, with space and streaming lookup figures reported on the human genome at $k = 31$ in @sshash2.
+:::
