@@ -12,19 +12,19 @@ Both sets and dictionaries are commonly used in a *streaming* regime, where quer
 This modality is prevalent enough that several structures are explicitly designed for it, favoring cache-efficient access over runs of consecutive /kmers rather than minimizing the cost of individual queries.
 
 This chapter focuses on three approaches representative of the state of the art for exact /kmer set indexing, and a broader survey of the landscape can be found in [@survey-kmer-sets].
-SSHash [@sshash;@sshash2] and LPHash [@lphash] use compact hashing over the super-/kmer structure of the input to achieve very fast queries at moderate space.
+SSHash [@sshash;@sshash2] and LPHash [@lphash] use compact hashing over the /skmer structure of the input to achieve very fast queries at moderate space.
 The SBWT [@sbwt] exploits the colexicographic ordering of /kmers in the de Bruijn graph to compress the index close to the navigational lower bound, at the cost of slower $O(k)$-time queries.
 FMSI [@masked-superstring-kmer;@masked-superstring-set-ops] indexes a masked superstring with an FM-index, offering a different point on the space-time tradeoff.
 
-## Structural properties of *k*‑mer sets {#sec-kmer-struct}
+## Structural properties of /kmer sets {#sec-kmer-struct}
 
-### Path locality and super-*k*‑mers
+### Path locality and /skmers
 
-As established in @sec-skmers, consecutive /kmers in a sequence tend to share the same minimizer and can therefore be grouped into super-/kmers.
+As established in @sec-skmers, consecutive /kmers in a sequence tend to share the same minimizer and can therefore be grouped into /skmers.
 In the context of indexing, this grouping has two important consequences.
-First, there are far fewer super-/kmers than /kmers: each super-/kmer spans on average $(w+1)/2$ /kmers, the inverse of the minimizer density, reducing the number of objects to be indexed by the same factor.
-Second, consecutive /kmers within a super-/kmer are stored contiguously, so a streaming query traversing a sequence left to right will access the same super-/kmer repeatedly before moving to the next, yielding favorable cache behavior.
-More broadly, the super-/kmer structure induces a partial order on /kmers that an index can preserve: /kmers within the same super-/kmer can be assigned consecutive identifiers, enabling fast satellite data access for streaming queries, a property formalized and exploited by LPHash [@lphash].
+First, there are far fewer /skmers than /kmers: each /skmer spans on average $(w+1)/2$ /kmers, the inverse of the minimizer density, reducing the number of objects to be indexed by the same factor.
+Second, consecutive /kmers within a /skmer are stored contiguously, so a streaming query traversing a sequence left to right will access the same /skmer repeatedly before moving to the next, yielding favorable cache behavior.
+More broadly, the /skmer structure induces a partial order on /kmers that an index can preserve: /kmers within the same /skmer can be assigned consecutive identifiers, enabling fast satellite data access for streaming queries, a property formalized and exploited by LPHash [@lphash].
 
 ### Colexicographic clustering and the Wheeler property
 
@@ -39,6 +39,31 @@ The BOSS structure [@boss] realizes these ideas for the edge-centric de Bruijn g
 ## Hashing-based dictionaries {#sec-kmer-hash}
 
 ### Sparse and skew hashing: SSHash
+
+A *minimal perfect hash function* (MPHF) for a set $\mathcal{X}$ of $n$ keys is a bijection $f: \mathcal{X} \to [0, n)$ mapping each key to a distinct integer with no gaps [@survey-mphf].
+MPHFs can be constructed using close to $\log_2 e \approx 1.44$ bits per key in expectation [@bbhash;@pthash], far below the cost of storing the keys themselves.
+Since $f$ assigns an arbitrary value in $[0, n)$ to any input outside $\mathcal{X}$, a structure relying on an MPHF must store the keys or compact fingerprints separately to verify membership.
+
+SSHash [@sshash;@sshash2] takes an SPSS as input, identifies /skmer boundaries on the fly to record their offsets within the strings, and builds an MPHF over the set of minimizers to index those offsets, while retaining the SPSS strings as the underlying storage.
+Rather than hashing /kmers directly, the MPHF operates on the much smaller set of minimizers.
+This is the *sparse* component of the design: since each /skmer spans on average $(w+1)/2$ /kmers, the MPHF is built over a key set far smaller than the /kmer set.
+The input strings are stored at 2 bits per base, alongside a prefix-sum array encoding bucket sizes and an offsets array pointing to /skmer positions within the strings.
+@fig-sshash illustrates the resulting data structure layout.
+
+:::{#fig-sshash}
+![](../fig/intro/sshash)
+
+Overview of the SSHash dictionary data structure, from @sshash.
+The input strings are stored contiguously; minimizers are mapped to bucket identifiers via an MPHF; the Sizes and Offsets arrays locate each /skmer within the strings.
+:::
+
+The *skew* component addresses the non-uniformity of bucket sizes: even with a random hash function, a small fraction of minimizers appears in a disproportionately large number of /skmers, yielding highly skewed bucket sizes.
+SSHash encodes bucket sizes using Elias-Fano [@elias1974;@fano1971], which compresses non-uniform integer sequences close to their information-theoretic minimum.
+For $m \ge 17$, where over 90% of minimizers have a single /skmer [@sshash, table 1], a secondary *skew index* groups minimizers by bucket size and builds a separate MPHF per group, limiting the number of /skmers to inspect at query time.
+
+To answer a lookup query for /kmer $x$, SSHash computes the minimizer of $x$, retrieves the corresponding bucket via the MPHF, and scans its /skmers until $x$ is found, returning its identifier or -1.
+Streaming queries benefit from caching the last minimizer: consecutive /kmers sharing the same minimizer extend the previous match without recomputing the bucket, reducing the average number of memory accesses per query.
+In practice, SSHash achieves around 7-10 bits per /kmer and answers individual queries in hundreds of nanoseconds [@sshash, table 3].
 
 ### Locality-preserving hashing: LPHash
 
