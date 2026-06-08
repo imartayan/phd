@@ -5,7 +5,7 @@ However, we've also seen that the widely used *random minimizers* achieve a dens
 This observation raises two main questions:
 how can we design new schemes with a lower density?
 And what is the lowest density we can hope to reach?
-In this chapter, we briefly cover some of the recent advances on these two questions^[A more detailed survey can be found in [@ragnar-thesis].].
+In this chapter, we briefly cover some of the recent advances on these two questions, and a more detailed survey can be found in [@ragnar-thesis].
 
 ## Universal hitting sets and decycling sets
 
