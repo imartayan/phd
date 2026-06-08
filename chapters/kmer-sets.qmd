@@ -88,8 +88,8 @@ The BOSS structure [@boss] realizes these ideas for the edge-centric de Bruijn g
 @tbl-kmer-sets-comparison summarizes these properties, using indicative numbers reported in @sshash2 for the human genome at $k = 31$.
 
 :::{#tbl-kmer-sets-comparison .large-table}
-| Approach | Input | Static / dynamic | Space<br>(bits//kmer) | Streaming lookup<br>(ns//kmer) |
-|-----|---|---|---|----|
+| Approach | Input | Static / dynamic | Space<br> (bits//kmer) | Streaming lookup<br> (ns//kmer) |
+|:----:|:--:|:--:|--:|---:|
 | SSHash [@sshash2] | SPSS | static | 7-9 | 200-400 |
 | SBWT [@sbwt] | SPSS | static | ~10.5 | 400-600 |
 | FMSI [@masked-superstring-bwt] | Masked superstring | static or dynamic^[Dynamic updates and set operations are supported via *f-masked superstrings* [@masked-superstring-set-ops].] | 3.3-4 | 1500-2500 |
