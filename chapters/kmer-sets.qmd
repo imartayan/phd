@@ -41,7 +41,7 @@ The BOSS structure [@boss] realizes these ideas for the edge-centric de Bruijn g
 ### Sparse and skew hashing: SSHash
 
 A *minimal perfect hash function* (MPHF) for a set $\mathcal{X}$ of $n$ keys is a bijection $f: \mathcal{X} \to [0, n)$ mapping each key to a distinct integer with no gaps [@survey-mphf].
-MPHFs can be constructed using close to $\log_2 e \approx 1.44$ bits per key in expectation [@bbhash;@pthash], far below the cost of storing the keys themselves.
+MPHFs can be constructed using close to $\log_2 e \approx 1.44$ bits per key in expectation [@bbhash;@pthash;@ptrhash], far below the cost of storing the keys themselves.
 Since $f$ assigns an arbitrary value in $[0, n)$ to any input outside $\mathcal{X}$, a structure relying on an MPHF must store the keys or compact fingerprints separately to verify membership.
 
 SSHash [@sshash;@sshash2] takes an SPSS as input, identifies /skmer boundaries on the fly to record their offsets within the strings, and builds an MPHF over the set of minimizers to index those offsets, while retaining the SPSS strings as the underlying storage.
