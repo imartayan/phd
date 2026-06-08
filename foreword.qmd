@@ -3,9 +3,38 @@
 TBA
 
 :::{.content-visible when-format="pdf"}
-# Acknowledgements {.unnumbered}
+# Acknowledgements / Remerciements {.unnumbered}
 
-TBA
+I would like to start by thanking all my international friends and colleagues I've had the chance to meet and work with, all these encounters have been an incredibly motivating factor during my PhD!
+Thank you Rob and everyone at UMD for giving me such a warm welcome despite the difficult times, I hope we'll have more opportunities to meet in the future.
+Thank you Ragnar, I'm so glad we got to know each other.
+Working with you has taught me so much, and our discussions have sparked countless ideas across my projects.
+I can't wait to meet again under the Mediterranean sun!
+
+I also wish to express my gratitude to the committee members for kindly agreeing to review this work.
+The rest of these acknowledgements will be in French, because it would be a shame not to properly thank those who accompanied me along the way.
+
+Avant tout, merci Camille de m'avoir guidé tout au long de ce voyage, depuis Rennes il y a 5 ans jusqu'à aujourd'hui.
+De toute évidence, j'ai eu énormément de chance de te rencontrer et je n'en serais pas là aujourd'hui sans tout ce que tu m'as apporté.
+Merci pour la confiance que tu m'as accordée dès le départ dans tous mes projets, et pour ton soutien dans les moments où j'en avais le plus besoin.
+
+Merci Antoine de m'avoir accueilli à Lille pour mon stage, d'avoir élargi mes horizons culinaires et de m'avoir lancé sur une quantité innombrable de nouveaux problèmes.
+Je penserai à toi quand j'aurai mon autographe de Faker !
+Merci Jean-Stéphane d'avoir dirigé ma thèse pendant quelques temps et de m'avoir motivé à faire de l'enseignement, ça en valait la peine !
+
+Plus généralement, merci à toute l'équipe Bonsai (avant ou après expansion à l'intégralité du 3e étage) pour toutes ces années passées ensemble !
+Merci Lilliang, Thomas et Léa de m'avoir montré qu'on pouvait survivre à un thèse !
+Merci Florian de m'avoir fait comprendre qu'il n'y a pas besoin de soleil tant qu'on a un lion.
+Merci beaucoup Tim, d'avoir été si accueillant dès que je suis arrivé, c'est en grande partie grâce à toi si je me suis senti aussi bien aussi vite.
+Bon courage Tim et Karl pour la dernière ligne droite, je vous soutiens sur tous les points !
+Merci Lucas, mon ~~stagiaire~~ voisin préféré, de m'avoir accompagné pendant toutes ces ~~vacances~~ conférences ! Vivement la prochaine !
+Merci aussi à Klára et Lore, qui doivent se demander ce que leur nom fait au milieu de ce paragraphe.
+Merci à Pierre de m'avoir fait découvrir la merveilleuse ville de Besancon !
+Merci à Jules, qui aura sans le savoir été l'un des tous premiers lecteurs de cette thèse !
+Et merci à Bastien, Bastien, Mathilde, Mathilde, Yoann, Yohan, Valendin, Madeleine, Caleb, Karim, Loïc, Étienne, Simon et Alix pour toutes ces parties au fil des journées !
+Merci Ilévia, d'avoir apporté une touche d'imprévu à des trajets qui auraient été autrement bien monotones !
+
+Enfin merci à ma famille, particulièrement mes parents et ma sœur, d'avoir toujours cru en moi et de m'avoir soutenu toutes ces années.
 :::
 
 :::{=latex}
