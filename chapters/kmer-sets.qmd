@@ -160,13 +160,22 @@ Individual /kmer insertions and deletions follow as special cases of these set o
 
 ## Comparison {#sec-kmer-comparison}
 
+The three approaches sit on a clear space-time tradeoff curve.
+SSHash is the fastest by a wide margin (74 ns//kmer for streaming), at a moderate space cost of 10.01 /bpk; it benefits from the SPSS strings being kept as contiguous raw storage, enabling cache-friendly lookups but inflating the bit budget.
+The SBWT natively uses 4--5 /bpk, doubled to 10.50 /bpk in this benchmark setting where both strands of each /kmer are indexed for canonical queries; with 266 ns//kmer for streaming, it occupies a middle ground in time and offers de Bruijn graph navigation and matching statistics out of the box.
+FMSI is by far the most compact at 3.31 /bpk, but its query time (1176 ns//kmer) is significantly slower than SSHash, since each query requires backward search over the FM-index without the cache benefits of /skmer partitioning.
+
+The space gap between FMSI and the others widens further for /kmer sets that do not follow the spectrum-like property (subsampled sketches, high-diversity metagenomes), where SPSS-based representations become fragmented.
+Conversely, SSHash's advantage is most pronounced for streaming queries on long sequences, where the /skmer caching trick amortizes lookups across consecutive /kmers.
+Among the three, only FMSI extends natively to dynamic updates and set operations through f-masked superstrings; SSHash and SBWT remain static and rely on external mechanisms for these tasks, the subject of dedicated chapters later in this thesis.
+
 @tbl-kmer-sets-comparison summarizes these properties, using values from the benchmark of @sshash2 on the human genome at $k = 31$, publicly available at <https://github.com/jermp/kmer_sets_benchmark>.
 
 :::{#tbl-kmer-sets-comparison .large-table}
 | Approach | Input | Static / dynamic | Space<br> (bits//kmer) | Streaming lookup<br> (ns//kmer) |
 |:----:|:--:|:--:|--:|---:|
 | SSHash [@sshash2] | SPSS | static | 10.01 | 74 |
-| SBWT [@sbwt] | SPSS | static | 10.50^[The factor 2 between this and the space usage presented initially is that both the SPSS and its reverse-complement have been indexed to support canonical queries.] | 266 |
+| SBWT [@sbwt] | SPSS | static | 10.50^[The 4--5 /bpk reported earlier in the chapter doubles here because both strands of each /kmer are indexed to support canonical queries.] | 266 |
 | FMSI [@masked-superstring-bwt] | Masked superstring | static or dynamic^[Dynamic updates via *f-masked superstrings*.] | 3.31 | 1176 |
 
 Summary of the three /kmer indexing approaches discussed in this chapter, with space and streaming lookup values for the human genome at $k = 31$ from the benchmark of @sshash2.
