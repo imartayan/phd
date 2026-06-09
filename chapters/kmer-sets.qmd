@@ -18,6 +18,12 @@ FMSI [@masked-superstring-kmer;@masked-superstring-set-ops;@masked-superstring-b
 
 ## Path locality and hashing {#sec-kmer-hash}
 
+:::{.callout-caution}
+## Different notations
+
+We reuse the notations from @sec-skmers: the minimizer size is denoted $m$ while $k$ denotes the number of bases in a window, i.e. $k = w + m - 1$.
+:::
+
 A first family of /kmer indexes exploits the *path locality* of consecutive /kmers in the input.
 As established in @sec-skmers, /kmers at successive positions tend to share the same minimizer and can therefore be grouped into /skmers.
 In the context of indexing, this grouping has two important consequences.
@@ -34,22 +40,24 @@ Since $f$ assigns an arbitrary value in $[0, n)$ to any input outside $\mathcal{
 SSHash [@sshash;@sshash2] takes an SPSS as input, identifies /skmer boundaries on the fly to record their offsets within the strings, and builds an MPHF over the set of minimizers to index those offsets, while retaining the SPSS strings as the underlying storage.
 Rather than hashing /kmers directly, the MPHF operates on the much smaller set of minimizers.
 This is the *sparse* component of the design: since each /skmer spans on average $(w+1)/2$ /kmers, the MPHF is built over a key set far smaller than the /kmer set.
-The input strings are stored at 2 bits per base, alongside a prefix-sum array encoding bucket sizes and an offsets array pointing to /skmer positions within the strings.
+The input strings are stored at 2 bits per base, alongside a prefix-sum array encoding partition sizes and an offsets array pointing to /skmer positions within the strings.
+Importantly, the SPSS strings remain stored as a single contiguous block: minimizer partitions are virtual, materialized through the auxiliary arrays rather than by physically grouping /skmers in memory.
 @fig-sshash illustrates the resulting data structure layout.
 
 :::{#fig-sshash}
 ![](../fig/intro/sshash)
 
 Overview of the SSHash dictionary data structure, from @sshash.
-The input strings are stored contiguously; minimizers are mapped to bucket identifiers via an MPHF; the Sizes and Offsets arrays locate each /skmer within the strings.
+The input strings are stored contiguously; minimizers are mapped to partition identifiers via an MPHF; the Sizes and Offsets arrays locate each /skmer within the strings.
 :::
 
-The *skew* component addresses the non-uniformity of bucket sizes: even with a random hash function, a small fraction of minimizers appears in a disproportionately large number of /skmers, yielding highly skewed bucket sizes.
-SSHash encodes bucket sizes using Elias-Fano [@elias1974;@fano1971], which compresses non-uniform integer sequences close to their information-theoretic minimum.
-For $m \ge 17$, where over 90% of minimizers have a single /skmer [@sshash, table 1], a secondary *skew index* groups minimizers by bucket size and builds a separate MPHF per group, limiting the number of /skmers to inspect at query time.
+The *skew* component addresses the non-uniformity of partition sizes: even with a random hash function, most minimizers appear only once while a small fraction of minimizers appears in a disproportionately large number of /skmers, yielding highly skewed minimizer partition sizes.
+In particular, for $k = 31$ and $m = 20$, over 97% of minimizers have a single occurrence [@sshash, table 1], while the most frequent minimizer appears more than 36000 times in the SPSS of a human genome.
+SSHash encodes partition sizes using Elias-Fano [@elias1974;@fano1971], which compresses non-uniform integer sequences close to their information-theoretic minimum.
+A secondary *skew index* groups frequent minimizers by partition size and builds a separate MPHF per group, limiting the number of /skmers to inspect at query time.
 
-To answer a lookup query for /kmer $x$, SSHash computes the minimizer of $x$, retrieves the corresponding bucket via the MPHF, and scans its /skmers until $x$ is found, returning its identifier or -1.
-Streaming queries benefit from caching the last minimizer: consecutive /kmers sharing the same minimizer extend the previous match without recomputing the bucket, reducing the average number of memory accesses per query.
+To answer a lookup query for /kmer $x$, SSHash computes the minimizer of $x$, retrieves the corresponding partition via the MPHF, and scans its /skmers until $x$ is found, returning its identifier or -1 if it is absent.
+Streaming queries benefit from caching the last minimizer: consecutive /kmers sharing the same minimizer extend the previous match without recomputing the partition, reducing the average number of memory accesses per query.
 In practice, SSHash achieves around 7-10 bits per /kmer and answers individual queries in hundreds of nanoseconds [@sshash, table 3].
 
 ### Improvements on SSHash
@@ -57,7 +65,7 @@ In practice, SSHash achieves around 7-10 bits per /kmer and answers individual q
 A subsequent refinement [@sshash2] improves query efficiency on two fronts.
 First, rather than storing the start of each /skmer and scanning it, the refined index stores a single position per minimizer occurrence; combined with the offset of the minimizer within the query /kmer $x$, this is sufficient to recover the exact location of $x$ in the SPSS in constant time.
 Second, a *tag* array classifies each minimizer as singleton, light, or heavy based on how many /skmers share it; for *singleton* minimizers, the unique position is encoded directly in the tag itself, so that a lookup requires only two cache misses: one to evaluate the MPHF and one to read the tag.
-Since over 97% of minimizers are singletons for $k = 31$ and $m \geq 19$, this shortcut applies to the vast majority of queries.
+Since over 97% of minimizers are singletons for $m \ge 20$, this shortcut applies to the vast majority of queries.
 @fig-sshash2 illustrates the two layouts side by side.
 
 :::{#fig-sshash2}
