@@ -53,7 +53,7 @@ The input strings are stored contiguously; minimizers are mapped to partition id
 
 The *skew* component addresses the non-uniformity of partition sizes: even with a random hash function, most minimizers appear only once while a small fraction of minimizers appears in a disproportionately large number of /skmers, yielding highly skewed minimizer partition sizes.
 In particular, for $k = 31$ and $m = 20$, over 97% of minimizers have a single occurrence [@sshash, table 1], while the most frequent minimizer appears more than 36000 times in the SPSS of a human genome.
-This observation has later been confirmed by a combinatorial analysis in [@lex-minimizer-distribution;@vigemers].
+This observation was later confirmed by combinatorial analyses [@lex-minimizer-distribution;@vigemers].
 
 SSHash encodes the prefix-sum of partition sizes using Elias-Fano [@elias1974;@fano1971], which compresses increasing integer sequences close to their information-theoretic minimum.
 A secondary *skew index* groups frequent minimizers by partition size and builds a separate MPHF per group, limiting the number of /skmers to inspect at query time.
@@ -78,7 +78,7 @@ The tag array classifies minimizers as singleton, light, or heavy; singleton min
 :::
 
 LPHash [@lphash] takes a slightly different approach: rather than building a complete dictionary with the SPSS strings as underlying storage, it constructs a locality-preserving MPHF alone, without retaining the strings.
-This omission means that a /kmer absent from the SPSS will also receive some identifier in $[0, n)$ rather than -1, so membership cannot be verified without external storage.
+This omission means that a /kmer absent from the indexed set will also receive some identifier in $[0, n)$ rather than -1, so membership cannot be verified without external storage.
 In exchange, the space footprint is substantially smaller, achieving 0.6--0.9 /bpk, and lookup queries are an order of magnitude faster than in SSHash.
 
 ## Colexicographic clustering and spectral BWT {#sec-kmer-sbwt}
@@ -97,7 +97,7 @@ The BOSS structure [@boss] realizes these ideas for the edge-centric de Bruijn g
 
 ### The spectral BWT and subset rank
 
-The spectral Burrows-Wheeler transform, or SBWT [@sbwt], builds directly on the colexicographic structure above.
+The spectral Burrows-Wheeler transform, or SBWT [@sbwt], builds directly on the colexicographic structure.
 Given a /kmer set $S$, the /kmers are sorted colexicographically and grouped by their length-$(k-1)$ suffix.
 For each group, only the first /kmer in colexicographic order carries a non-empty set of characters: those that label outgoing edges from that group in the node-centric de Bruijn graph.
 Source /kmers (those with no predecessor in $S$) are augmented with dollar-padded prefix /kmers to give them a virtual predecessor from a dummy root.
@@ -166,7 +166,7 @@ The SBWT natively uses 4--5 /bpk, doubled to 10.50 /bpk in this benchmark settin
 FMSI is by far the most compact at 3.31 /bpk, but its query time (1176 ns//kmer) is significantly slower than SSHash, since each query requires backward search over the FM-index without the cache benefits of /skmer partitioning.
 
 The space gap between FMSI and the others widens further for /kmer sets that do not follow the spectrum-like property (subsampled sketches, high-diversity metagenomes), where SPSS-based representations become fragmented.
-Conversely, SSHash's advantage is most pronounced for streaming queries on long sequences, where the /skmer caching trick amortizes lookups across consecutive /kmers.
+Conversely, SSHash's advantage is most pronounced for streaming queries on long sequences, where /skmer caching amortizes lookups across consecutive /kmers.
 Among the three, only FMSI extends natively to dynamic updates and set operations through f-masked superstrings; SSHash and SBWT remain static and rely on external mechanisms for these tasks, the subject of dedicated chapters later in this thesis.
 
 @tbl-kmer-sets-comparison summarizes these properties, using values from the benchmark of @sshash2 on the human genome at $k = 31$, publicly available at <https://github.com/jermp/kmer_sets_benchmark>.
