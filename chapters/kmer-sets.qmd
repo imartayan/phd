@@ -75,7 +75,9 @@ Comparison of the original and refined SSHash data structures, from @sshash2.
 The tag array classifies minimizers as singleton, light, or heavy; singleton minimizers have their position encoded directly in the tag, avoiding any further memory access.
 :::
 
-### Locality-preserving hashing: LPHash
+LPHash [@lphash] takes a slightly different approach: rather than building a complete dictionary with the SPSS strings as underlying storage, it constructs a locality-preserving MPHF alone, without retaining the strings.
+This omission means that a /kmer absent from the SPSS will also receive some identifier in $[0, n)$ rather than -1, so membership cannot be verified without external storage.
+In exchange, the space footprint is substantially smaller, achieving 0.6--0.9 /bpk, and lookup queries are an order of magnitude faster than in SSHash.
 
 ## Colexicographic clustering and the SBWT {#sec-kmer-sbwt}
 
