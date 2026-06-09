@@ -34,14 +34,14 @@ This wastes some space compared to variable-length encoding, but avoids the over
 
 ### The bucket lookup problem
 
-Once /skmers are grouped by minimizer into buckets, looking up a given /kmer requires finding whether it is contained in any of the bucket's /skmers.
+Looking up a /kmer in its bucket means checking whether it appears in any of the /skmers stored there.
 A /kmer has at most one possible position within a given /skmer, determined by the relative positions of their minimizers, so each individual comparison is cheap.
-The difficulty is that a bucket can hold many /skmers, and a linear scan is $\mathcal{O}(S)$ in the bucket size $S$.
+The difficulty is that buckets can be very large, so a linear scan may end up being costly.
 
-The natural remedy is to sort the /skmers and use binary search.
-However, sorting /skmers in standard lexicographic order puts the most weight on the outermost bases of the /skmer, which are precisely the least shared.
-The leftmost base of a maximal /skmer belongs to only one /kmer in the /skmer, the second leftmost to two, and so on outward from the minimizer.
-A sort order that prioritizes the outermost bases therefore fails to reduce the search space quickly: most /kmer queries share the discriminating bases only near the center, not at the edges.
+To use binary search, we need to sort the /skmers.
+However, standard lexicographic order does not help here: it weights the outermost bases first, which are the least shared among the /kmers of a /skmer.
+The leftmost base of a maximal /skmer belongs to only one of its /kmers, the next to two, and so on inward toward the minimizer.
+Effective binary search needs the discriminating bases to come first, but lexicographic order puts them last.
 
 ### Interleaving
 
