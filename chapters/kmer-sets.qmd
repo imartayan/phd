@@ -160,14 +160,14 @@ Individual /kmer insertions and deletions follow as special cases of these set o
 
 ## Comparison {#sec-kmer-comparison}
 
-@tbl-kmer-sets-comparison summarizes these properties, using indicative numbers reported in @sshash2 for the human genome at $k = 31$.
+@tbl-kmer-sets-comparison summarizes these properties, using values from the benchmark of @sshash2 on the human genome at $k = 31$, publicly available at <https://github.com/jermp/kmer_sets_benchmark>.
 
 :::{#tbl-kmer-sets-comparison .large-table}
 | Approach | Input | Static / dynamic | Space<br> (bits//kmer) | Streaming lookup<br> (ns//kmer) |
 |:----:|:--:|:--:|--:|---:|
-| SSHash [@sshash2] | SPSS | static | 7--9 | 200--400 |
-| SBWT [@sbwt] | SPSS | static | ~10.5^[The factor 2 between this and the space usage presented initially is that both the SPSS and its reverse-complement have been indexed to support canonical queries.] | 400--600 |
-| FMSI [@masked-superstring-bwt] | Masked superstring | static or dynamic^[Dynamic updates via *f-masked superstrings*.] | 3.3--4 | 1500--2500 |
+| SSHash [@sshash2] | SPSS | static | 10.01 | 74 |
+| SBWT [@sbwt] | SPSS | static | 10.50^[The factor 2 between this and the space usage presented initially is that both the SPSS and its reverse-complement have been indexed to support canonical queries.] | 266 |
+| FMSI [@masked-superstring-bwt] | Masked superstring | static or dynamic^[Dynamic updates via *f-masked superstrings*.] | 3.31 | 1176 |
 
-Summary of the three /kmer indexing approaches discussed in this chapter, with space and streaming lookup figures reported on the human genome at $k = 31$ in @sshash2.
+Summary of the three /kmer indexing approaches discussed in this chapter, with space and streaming lookup values for the human genome at $k = 31$ from the benchmark of @sshash2.
 :::
