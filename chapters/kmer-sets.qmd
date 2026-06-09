@@ -53,7 +53,9 @@ The input strings are stored contiguously; minimizers are mapped to partition id
 
 The *skew* component addresses the non-uniformity of partition sizes: even with a random hash function, most minimizers appear only once while a small fraction of minimizers appears in a disproportionately large number of /skmers, yielding highly skewed minimizer partition sizes.
 In particular, for $k = 31$ and $m = 20$, over 97% of minimizers have a single occurrence [@sshash, table 1], while the most frequent minimizer appears more than 36000 times in the SPSS of a human genome.
-SSHash encodes partition sizes using Elias-Fano [@elias1974;@fano1971], which compresses non-uniform integer sequences close to their information-theoretic minimum.
+This observation has later been confirmed by a combinatorial analysis in [@lex-minimizer-distribution;@vigemers].
+
+SSHash encodes the prefix-sum of partition sizes using Elias-Fano [@elias1974;@fano1971], which compresses increasing integer sequences close to their information-theoretic minimum.
 A secondary *skew index* groups frequent minimizers by partition size and builds a separate MPHF per group, limiting the number of /skmers to inspect at query time.
 
 To answer a lookup query for /kmer $x$, SSHash computes the minimizer of $x$, retrieves the corresponding partition via the MPHF, and scans its /skmers until $x$ is found, returning its identifier or -1 if it is absent.
