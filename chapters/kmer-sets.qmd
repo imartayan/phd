@@ -136,18 +136,27 @@ This same array also enables the SBWT to compute *matching statistics* between a
 
 ## Masked superstrings {#sec-kmer-ms}
 
-Masked superstrings [@masked-superstring-kmer] generalize spectrum-preserving string sets by allowing the representation to include /kmers absent from the input, gaining space at the cost of introducing spurious /kmers.
+Masked superstrings [@masked-superstring-kmer] generalize spectrum-preserving string sets by allowing the representation to include /kmers absent from the input, saving space at the cost of introducing spurious /kmers.
 A bitmask is added to resolve the resulting ambiguity: a *masked superstring* is a pair $(S, M)$ where $S$ is a single string containing all /kmers of the indexed set $K$ as substrings, and $M$ is a binary mask indicating which /kmer occurrences in $S$ are *active*, i.e. belong to $K$.
 Conceptually, this replaces the de Bruijn graph with an overlap graph admitting edges of any length, providing better compression power when the /kmer set does not follow the spectrum-like property, as in subsampled or high-diversity metagenomic data.
 
-Two mask variants serve different purposes: a *max-one* mask, maximizing active /kmers, optimizes for membership queries; a *min-one* mask, minimizing the number of runs, reduces redundancy and suits dictionary queries.
+Several mask variants serve different purposes.
+A *max-one* mask, maximizing active /kmers, optimizes for membership queries.
+A *min-one* mask, activating each /kmer exactly once, enables dictionary queries by giving each /kmer a unique identifier.
+A *min-runs* mask minimizes the number of runs of 1's, making the mask itself more compressible.
+
 While computing the shortest masked superstring is NP-hard, approximately shortest masked superstrings can be computed from an input /kmer set or a precomputed SPSS using the greedy tool KmerCamel [@masked-superstring-kmer].
 
 FMSI [@masked-superstring-bwt] indexes the masked superstring via the *Masked Burrows-Wheeler Transform* (MBWT), an extension of the classical BWT that incorporates the mask.
 The MBWT is computed by pairing each superstring symbol with its mask bit, sorting pairs lexicographically on the superstring symbol alone, then unzipping the result into a transformed string $S'$ and transformed mask $M'$.
 Membership of a query /kmer $x$ is answered by backward search in $S'$ to find a position range $[i, j]$, then checking $M'$ for any active /kmer in that range; the total cost is $O(k)$ rank operations.
 In practice, FMSI achieves around 3--4 /bpk [@masked-superstring-bwt], at the cost of slower queries compared to SSHash or SBWT.
-Unlike SPSS-based approaches, it does not rely on the spectrum-like property, so its space cost remains consistent on subsampled or high-diversity /kmer sets.
+Unlike SPSS-based approaches, it does not rely on the spectrum-like property, so its space cost is less sensitive to subsampled or high-diversity /kmer sets.
+
+FMSI can be extended to support /kmer set operations and dynamic updates via *f-masked superstrings* [@masked-superstring-set-ops].
+The binary mask is replaced by an integer vector so that /kmer occurrences from different input sets can be distinguished, and a *demasking function* $f$ specifies how to combine the integer values seen at all occurrences of a /kmer to decide its membership in the final set.
+Union, intersection, difference, and symmetric difference of two indexed /kmer sets are then implemented by concatenating their masked superstrings, reapplying the appropriate demasking function to compute the resulting mask, and optionally compacting the structure to reduce its size.
+Individual /kmer insertions and deletions follow as special cases of these set operations with singleton sets, providing dynamic updates without rebuilding the index.
 
 ## Comparison {#sec-kmer-comparison}
 
@@ -158,7 +167,7 @@ Unlike SPSS-based approaches, it does not rely on the spectrum-like property, so
 |:----:|:--:|:--:|--:|---:|
 | SSHash [@sshash2] | SPSS | static | 7--9 | 200--400 |
 | SBWT [@sbwt] | SPSS | static | ~10.5^[The factor 2 between this and the space usage presented initially is that both the SPSS and its reverse-complement have been indexed to support canonical queries.] | 400--600 |
-| FMSI [@masked-superstring-bwt] | Masked superstring | static or dynamic^[Dynamic updates and set operations are supported via *f-masked superstrings* [@masked-superstring-set-ops].] | 3.3--4 | 1500--2500 |
+| FMSI [@masked-superstring-bwt] | Masked superstring | static or dynamic^[Dynamic updates via *f-masked superstrings*.] | 3.3--4 | 1500--2500 |
 
 Summary of the three /kmer indexing approaches discussed in this chapter, with space and streaming lookup figures reported on the human genome at $k = 31$ in @sshash2.
 :::
