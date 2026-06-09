@@ -60,7 +60,7 @@ A secondary *skew index* groups frequent minimizers by partition size and builds
 
 To answer a lookup query for /kmer $x$, SSHash computes the minimizer of $x$, retrieves the corresponding partition via the MPHF, and scans its /skmers until $x$ is found, returning its identifier or -1 if it is absent.
 Streaming queries benefit from caching the last minimizer: consecutive /kmers sharing the same minimizer extend the previous match without recomputing the partition, reducing the average number of memory accesses per query.
-In practice, SSHash achieves around 7-10 bits per /kmer and answers individual queries in hundreds of nanoseconds [@sshash, table 3].
+In practice, SSHash achieves around 7--10 /bpk and answers individual queries in hundreds of nanoseconds [@sshash, table 3].
 
 ### Improvements on SSHash
 
@@ -81,17 +81,58 @@ LPHash [@lphash] takes a slightly different approach: rather than building a com
 This omission means that a /kmer absent from the SPSS will also receive some identifier in $[0, n)$ rather than -1, so membership cannot be verified without external storage.
 In exchange, the space footprint is substantially smaller, achieving 0.6--0.9 /bpk, and lookup queries are an order of magnitude faster than in SSHash.
 
-## Colexicographic clustering and the SBWT {#sec-kmer-sbwt}
+## Colexicographic clustering and spectral BWT {#sec-kmer-sbwt}
+
+### Colexicographic order and Wheeler graphs
 
 A second family of /kmer indexes stems from sorting /kmers in *colexicographic* order, comparing them from right to left.
 Under this ordering, /kmers sharing the same length-$(k-1)$ suffix are adjacent, since they only differ in their leftmost character.
-This clustering is the defining property of *Wheeler graphs* [@wheeler-graphs]: the de Bruijn graph of a /kmer set is a Wheeler graph, meaning its nodes can be totally ordered such that edges labeled with the same character form contiguous intervals.
+Recall that in a node-centric de Bruijn graph, an edge from /kmer $x$ to /kmer $y$ exists iff the last $k-1$ characters of $x$ match the first $k-1$ characters of $y$; we label such an edge by the last character of $y$, i.e. the character appended when extending $x$ into $y$.
+The colexicographic ordering of /kmers makes the de Bruijn graph a *Wheeler graph* [@wheeler-graphs]: nodes can be totally ordered such that edges with the same label preserve this ordering.
+A key consequence is that for any character $c$, $c$-labeled edges map a contiguous range of sources to a contiguous range of destinations, and vice versa.
 This property enables *backward search*: membership of a query /kmer $x$ can be tested by starting from the interval of all /kmers ending in the last character of $x$, then iteratively narrowing it by prepending characters of $x$ from right to left, each step intersecting with a contiguous range.
-Crucially, the colexicographic position of a /kmer implicitly encodes its identity, so the structure requires no explicit storage of the $2k$-bit label of each /kmer, only small per-node annotations.
+Crucially, the colexicographic rank of a /kmer implicitly encodes its identity, so the structure does not require explicit storage of the $2k$-bit label of each /kmer, only small per-node annotations.
 This is the root of the space efficiency of BWT-based approaches.
 The BOSS structure [@boss] realizes these ideas for the edge-centric de Bruijn graph; the SBWT [@sbwt], described below, extends them to the node-centric view.
 
-### The SBWT and subset rank
+### The spectral BWT and subset rank
+
+The spectral Burrows-Wheeler transform, or SBWT [@sbwt], builds directly on the colexicographic structure above.
+Given a /kmer set $S$, the /kmers are sorted colexicographically and grouped by their length-$(k-1)$ suffix.
+For each group, only the first /kmer in colexicographic order carries a non-empty set of characters: those that label outgoing edges from that group in the node-centric de Bruijn graph.
+Source /kmers (those with no predecessor in $S$) are augmented with dollar-padded prefix /kmers to give them a virtual predecessor from a dummy root.
+When a /kmer has multiple predecessors, only the colexicographically smallest is retained, so that every /kmer has exactly one incoming edge in the resulting structure.
+The resulting sequence of character subsets, one entry per /kmer, is the SBWT.
+@fig-sbwt illustrates the construction on a small example.
+
+:::{#fig-sbwt}
+![](../fig/intro/sbwt)
+
+Example of SBWT construction on a small /kmer set, from @survey-kmer-sets.
+The /kmers are sorted colexicographically, as listed on the right.
+Only the first /kmer in each length-$(k-1)$ suffix group carries the outgoing edge subset, while the other edges (dashed in red) are pruned.
+After construction, the SBWT only retains the subsets of outgoing edge labels, listed in orange on the right.
+Note that this figure omits the dollar-padded prefix /kmers for clarity.
+:::
+
+Membership queries rely on a single primitive: *subset rank*.
+Given a character $c$ and a position $i$, $\text{SubsetRank}_c(i)$ counts how many of the first $i$ subsets contain $c$.
+To query /kmer $x = x_1 \dots x_k$, backward search starts from the full interval $[1, n]$ and iterates over the characters of $x$ from left to right, narrowing the interval at each step using:
+$$\ell' = 1 + C[c] + \text{SubsetRank}_c(\ell - 1) + 1, \quad r' = 1 + C[c] + \text{SubsetRank}_c(r)$$
+where $C[c]$ counts /kmers whose last character is smaller than $c$.
+After $k$ steps, a non-empty interval indicates that $x$ is present, and the resulting $\ell$ is the colexicographic rank of $x$, serving directly as its integer identifier.
+The total cost is $O(k)$ subset rank operations.
+Note that, using the same process, the SBWT can actually query any /mmer for $m \le k$.
+
+A further benefit is that de Bruijn graph navigation comes for free: successors and predecessors of any /kmer can be read off from the index with a single step of the same algorithm, without auxiliary structures.
+
+Several data structures can be used to support subset rank queries, offering different time-space tradeoffs.
+The most commonly used in practice is the *bit-matrix SBWT*, which stores one bitvector of length $n$ per character $c \in \Sigma$, where bit $i$ is set if $c \in X_i$.
+$\text{SubsetRank}_c(i)$ then reduces to a standard rank query on the $c$-th bitvector, and occupies around 4--5 /bpk^[The bit-matrix itself uses exactly 4 /bpk; the overhead above this comes from rank support and the dollar-padded prefix /kmers added for source nodes.] [@sbwt].
+More space-efficient variants exist, the most compact being the *subset wavelet tree SBWT*, which compresses the subset sequence to its zeroth-order entropy, achieving 2.6--2.8 /bpk in practice at the cost of slower queries.
+
+The SBWT can be further augmented with a *longest common prefix* array to accelerate streaming queries [@sbwt-lcp], by allowing consecutive /kmer lookups to reuse intervals computed at the previous position.
+This same array also enables the SBWT to compute *matching statistics* between a query sequence and the indexed /kmer set [@sbwt-matching-statistics], extending its use to pseudo-alignment and sequence similarity tasks.
 
 ## Masked superstrings {#sec-kmer-ms}
 
@@ -102,9 +143,9 @@ The BOSS structure [@boss] realizes these ideas for the edge-centric de Bruijn g
 :::{#tbl-kmer-sets-comparison .large-table}
 | Approach | Input | Static / dynamic | Space<br> (bits//kmer) | Streaming lookup<br> (ns//kmer) |
 |:----:|:--:|:--:|--:|---:|
-| SSHash [@sshash2] | SPSS | static | 7-9 | 200-400 |
-| SBWT [@sbwt] | SPSS | static | ~10.5 | 400-600 |
-| FMSI [@masked-superstring-bwt] | Masked superstring | static or dynamic^[Dynamic updates and set operations are supported via *f-masked superstrings* [@masked-superstring-set-ops].] | 3.3-4 | 1500-2500 |
+| SSHash [@sshash2] | SPSS | static | 7--9 | 200--400 |
+| SBWT [@sbwt] | SPSS | static | ~10.5 | 400--600 |
+| FMSI [@masked-superstring-bwt] | Masked superstring | static or dynamic^[Dynamic updates and set operations are supported via *f-masked superstrings* [@masked-superstring-set-ops].] | 3.3--4 | 1500--2500 |
 
 Summary of the three /kmer indexing approaches discussed in this chapter, with space and streaming lookup figures reported on the human genome at $k = 31$ in @sshash2.
 :::
