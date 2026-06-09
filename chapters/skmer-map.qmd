@@ -1,4 +1,4 @@
-# Super‑*k*‑mer maps {#sec-skmer-maps}
+# Dynamic super‑*k*‑mer maps {#sec-skmer-maps}
 
 :::{.callout-note}
 This chapter is partially adapted from {{< longcite brisk >}}.
@@ -12,48 +12,25 @@ This chapter is partially adapted from {{< longcite brisk >}}.
 ---
 
 @sec-skmers introduced super-/kmers as a natural byproduct of minimizer-based parsing: consecutive /kmers sharing a minimizer are grouped into a single string, reducing both the number of objects to index and the memory needed to represent each one.
-Super-/kmers were presented there primarily as a partitioning and streaming tool.
-This chapter asks a different question: can /skmers serve as the primary representation inside a dynamic /kmer dictionary, replacing individual /kmer entries altogether?
+This chapter asks whether /skmers can serve as the primary representation inside a *dynamic* /kmer dictionary, replacing individual /kmer entries altogether.
 
-Two problems arise that do not appear when /skmers are used merely for partitioning.
+Using /skmers as a full dictionary representation, however, raises two new problems.
 The first is lookup: given a /kmer, finding it efficiently inside a bucket of /skmers is not straightforward, because sorting /skmers lexicographically does not help locate a specific /kmer.
 The second is representation: when a /kmer contains more than one occurrence of its minimizer, the choice of which occurrence to use must be made deterministically, or the same /kmer can end up encoded differently depending on the parsing context.
 The main contributions of this chapter are a solution to both problems: a deterministic minimizer selection procedure that covers all edge cases, and a novel /skmer encoding called the *interleaved transform* that enables binary search within a bucket.
 We also examine the load-balancing problem that arises from skewed bucket size distributions, and place the /skmer-level approach in relation to the /kmer-level approach of the previous chapter.
 
-Static /skmer-based indexes such as SSHash [@sshash] take a different approach, relying on a precomputed spectrum-preserving string set and a minimal perfect hash function.
-The structure described here is dynamic: /kmers can be inserted one at a time in streaming, without any prior knowledge of the full dataset.
+## Interleaved /skmers {#sec-interleaved-skmer-map}
 
-## Canonical encoding of /skmers {#sec-encoding-skmer-map}
+### Lazy encoding of minimizers {#sec-encoding-skmer-map}
 
-### Lazy encoding
-
-Since all /skmers in a bucket share the same minimizer, that minimizer need not be stored in each /skmer individually.
+The dictionary is organized as a collection of buckets, one per minimizer: each /kmer is routed to the bucket of its minimizer and stored implicitly inside one of the /skmers held there.
+Since all /skmers in a bucket share the same minimizer, we can avoid storing that minimizer in each /skmer.
 In a maximal /skmer, the position of the minimizer within the sequence is determined by the /skmer's length, so the minimizer can be omitted from the encoding and reconstructed on demand.
 This *lazy encoding* lowers the per-/kmer bit cost: a maximal /skmer of length $2k - m$ bases encodes on average $(k - m + 1)/2$ /kmers, giving a ratio of $\frac{8(k - m)}{k - m + 1}$ bits per /kmer, which for practical values of $k$ and $m$ is close to 8 bits.
 
 To simplify memory management and allow constant-time access to any /skmer in a list, every /skmer is allocated at its maximum possible length of $2k - m$ bases, with padding where the sequence is shorter.
 This wastes some space compared to variable-length encoding, but avoids the overhead of storing and decoding per-/skmer lengths and makes the list amenable to binary search.
-
-The mean /skmer length grows with $k$ and shrinks with $m$, and can be further improved by using lower-density minimizer schemes as discussed in @sec-low-density-minimizers.
-
-### Canonical minimizer selection
-
-Lazy encoding requires that each /kmer be associated with a unique minimizer position and strand.
-For most /kmers this is unambiguous: the minimal /mmer occurs once, and choosing the canonical strand fixes the encoding entirely.
-When the canonical minimizer appears more than once within a /kmer or across its reverse complement, additional rules are needed to ensure determinism.
-
-We handle this with a three-level selection procedure.
-First, only canonical /mmers (those lexicographically smaller than their reverse complement) are considered as minimizer candidates, which immediately fixes the strand in the common case since only one strand contains the canonical /mmer.
-Second, when the canonical /mmer occurs multiple times, the leftmost occurrence across both the /kmer and its reverse complement is selected.
-Third, when two leftmost occurrences appear at the same relative position on different strands (the "mirror" case), the occurrence on the canonical /kmer strand is preferred.
-
-@fig-brisk-canon illustrates all four cases that arise in practice.
-This procedure is complete: every /kmer is assigned a unique minimizer occurrence regardless of $k$ parity, palindromic /kmers, or repeated /mmers.
-
-![Four cases of canonical minimizer selection within a /kmer. Blue bars represent the canonical /kmer and gray bars the complementary /kmer. White arrows mark canonical /mmer occurrences and black arrows mark non-canonical ones. The selected occurrence is highlighted in green. Case A is the common case with no duplication. Cases B and C involve canonical occurrences on the same strand and on both strands respectively, resolved by rule 2. Case D is the mirror case where both strands yield a leftmost occurrence at the same position, resolved by rule 3 in favor of the canonical /kmer.](../fig/brisk/CANON){#fig-brisk-canon}
-
-## Interleaved /skmers {#sec-interleaved-skmer-map}
 
 ### The bucket lookup problem
 
@@ -78,7 +55,7 @@ Positions with no base (because the /skmer does not extend as far in one directi
 The same transform applied to a /kmer (viewed as a /skmer of minimal length) yields a key structural property: a /kmer is contained in a /skmer if and only if its interleaved form is a prefix of the interleaved /skmer, where N matches any character.
 This follows because the bases of a /kmer and of any longer /skmer that contains it agree on the /kmer's extent, and the interleaved order respects this nesting.
 
-With this property in place, /skmers can be sorted lexicographically in their interleaved form and queried by binary search.
+Given this property, /skmers can be sorted lexicographically in their interleaved form and queried by binary search.
 Each non-N base in the query /kmer narrows the search space by a factor of up to four, so in most cases the bucket is searched in $\mathcal{O}(\log S)$ steps rather than $\mathcal{O}(S)$.
 
 ### Limitations
@@ -96,7 +73,7 @@ In practice, the minimizer occupies an interior position for the large majority 
 ### Skewed bucket sizes
 
 The interleaved sort provides sublinear lookup within a bucket, but the benefit is diluted when bucket sizes are highly skewed.
-Genomic sequences are not random strings: biological repeats, low-complexity regions, and reverse-complement symmetry all cause certain minimizers to attract far more /skmers than others, and a handful of very large buckets can dominate overall query time even when the average size is moderate.
+As established in @sec-kmer-sets, minimizer partition sizes are highly non-uniform in practice: a small fraction of minimizers attract a disproportionately large number of /skmers, and these very large buckets can dominate overall query time even when the average size is moderate.
 
 ### Superbuckets via bijective hashing
 
