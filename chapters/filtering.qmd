@@ -8,7 +8,7 @@ The previous chapters of this part developed efficient algorithms for parsing se
 This chapter presents an application of these building blocks to *sequence filtering*, a problem that arises naturally at the boundary between large-scale /kmer indexing and exact sequence analysis.
 
 Large-scale /kmer indexes can efficiently identify a small, relevant subset of documents (e.g., read sets, unitigs, contigs).
-However, this initial filtering isn't final.
+However, this initial filtering is not final.
 Due to false positives from  probabilistic indexes, or sparse/non-collinear matches, queried /kmers may not be truly present or usable for mapping.
 Therefore, recovering specific sequences within identified documents that genuinely share /kmers with the query is crucial.
 This refinement, moving from relevant documents to relevant sequences suitable for alignment, mitigates downstream scalability issues and can reduce data volume by orders of magnitude, such as identifying a few relevant sequences from  billions.
@@ -32,6 +32,7 @@ Finally, while to our knowledge it has not been used for sequence filtering, the
 
 #### Contributions {.unnumbered}
 
+<!-- à quoi va servir l'application. Un exemple qui pourrait l'illustrer ? -->
 This work presents three main contributions.
 First, we introduce a new algorithm that uses random minimizers to quickly filter out sequences that contains too few /kmers of interest, effectively reducing the cost of negative matches by a factor $w / 2$.
 Second, we propose an optimized implementation named *K2Rmini*, that takes advantage of vectorized instructions to parse sequences, hash /kmers and compute minimizers efficiently.
@@ -263,7 +264,7 @@ Overall, these experiments confirm that K2Rmini is not only the fastest of the e
 To complement the synthetic benchmarks, we compared BackToSequences and K2Rmini on several real datasets with heterogeneous sequence lengths and structures, summarized in @tbl-k2r-bts-perf.
 The evaluation includes Oxford Nanopore ultra-long reads (`SRR23365080`), PacBio HiFi reads of 10--20 Kbp (`SRX7897685-8`), and Illumina 250 bp reads (`ERR3239454`).
 We also evaluated assembled sequences from the Logan project [@logan], including both contigs and unitigs (`SRR7853572`), and the complete human T2T reference genome (`GCF_009914755.1`), which represents very long contiguous sequences.
-These experiments were run on a laptop equipped with a 13th Gen Intel Core i9-13950HX processor, 64\,GB of RAM, and an SSD, using 8 threads.
+These experiments were run on a laptop equipped with a 13th Gen Intel Core i9-13950HX processor, 64 GB of RAM, and an SSD, using 8 threads.
 For the positive case, the queried patterns were sequences of length 1000 selected from each dataset, using 100 patterns for short reads and unitigs so as to total 10^6^ queried bases.
 For the negative case, the queried patterns were random sequences of length 1000.
 Across all datasets and in both positive and negative settings, K2Rmini is consistently faster than BackToSequences in both CPU time and wall-clock time.
