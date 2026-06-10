@@ -59,21 +59,24 @@ Positions with no base (because the /skmer does not extend as far in one directi
 
 ![Toy example of the AAAAAAA bucket associated to four /skmers in their interleaved representation.](../fig/brisk/interleaved){#fig-brisk-interleaved}
 
-The same transform applied to a /kmer (viewed as a /skmer of minimal length) yields a key structural property: a /kmer is contained in a /skmer if and only if its interleaved form is a prefix of the interleaved /skmer, where N matches any character.
-This follows because the bases of a /kmer and of any longer /skmer that contains it agree on the /kmer's extent, and the interleaved order respects this nesting.
+The same transform applies to a /kmer, viewed as a /skmer of minimal length, and gives a key property: a /kmer is contained in a /skmer if and only if its interleaved form is a prefix of the interleaved /skmer, with N matching any character.
+To see why, note that interleaving lists positions outward from the minimizer.
+A /kmer contained in a /skmer extends in both directions no further than the /skmer does, so its positions come first in the interleaved order.
+Its bases therefore form a prefix of the /skmer's interleaved form, with N filling the positions beyond the /kmer's own extent.
 
 Given this property, /skmers can be sorted lexicographically in their interleaved form and queried by binary search.
 Each non-N base in the query /kmer narrows the search space by a factor of up to four, so in most cases the bucket is searched in $\mathcal{O}(\log S)$ steps rather than $\mathcal{O}(S)$.
+@fig-brisk-supersort illustrates several example searches in a bucket of 32 /skmers.
+
+![Examples of /kmer search in a bucket of 32 /skmers. M denotes the bucket minimizer. Colored bars show the successive search spaces after each step. /kmer 1 (blue) reaches a unique match quickly. /kmer 2 (green) encounters an N mid-search and briefly stalls before the next base resolves the search. /kmer 3 (red) starts with an N and must explore all four branches at the first step, recovering only after a discriminating base is found.](../fig/brisk/SortedSuperkmers){#fig-brisk-supersort width=70%}
 
 ### Limitations
 
-The N characters in the query play a special role: because N must match any character, a step involving an N does not reduce the search space, and all four sub-searches must be pursued in parallel from that point.
+Because N must match any character, a step involving an N does not reduce the search space, and all four sub-searches must be pursued in parallel from that point.
 This is harmless when N characters appear only at the end of the query, after the search space has already been reduced to a small number of candidates.
-It is costly when the minimizer sits at the very start or end of the /kmer, which places N characters at the beginning of the interleaved form and prevents any early reduction of the search space (@fig-brisk-supersort).
+It is costly when the minimizer sits at the very start or end of the /kmer, which places N characters at the beginning of the interleaved form and prevents any early reduction of the search space, as in /kmer 2 or 3 of @fig-brisk-supersort.
 Such /kmers degrade to near-linear probing.
 In practice, the minimizer occupies an interior position for the large majority of /kmers, so this worst case is rare, arising mainly at sequence boundaries or with very small window sizes.
-
-![Examples of /kmer search in a bucket of 32 /skmers. M denotes the bucket minimizer. Colored bars show the successive search spaces after each step. /kmer 1 (blue) reaches a unique match quickly. /kmer 2 (green) encounters an N mid-search and briefly stalls before the next base resolves the search. /kmer 3 (red) starts with an N and must explore all four branches at the first step, recovering only after a discriminating base is found.](../fig/brisk/SortedSuperkmers){#fig-brisk-supersort width=70%}
 
 ## Load balancing and superbuckets {#sec-superbuckets-skmer-map}
 
