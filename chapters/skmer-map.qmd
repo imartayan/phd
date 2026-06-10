@@ -162,3 +162,43 @@ Multi-threaded performance of Brisk, Jellyfish, CBL, and Rust `HashMap` across g
 
 Single-threaded construction time of Brisk, Jellyfish, CBL, and Rust `HashMap`, controlling for the fact that CBL and Rust `HashMap` are not parallelized.
 ::::
+
+## Toward streaming deduplication {#sec-skmer-dedup}
+
+The structural limitation of /skmer dictionaries identified above stems from a single underlying cause: testing which /kmers of a query are already present requires locating them one by one inside the containing /skmers.
+A natural way to bypass this is to recast every such operation as a check on the prefixes and suffixes of /skmers themselves, without materializing individual /kmers.
+I am exploring this direction in ongoing work, prototyping a dynamic /skmer dictionary that supports on-the-fly deduplication and compaction.
+
+### A compact /skmer representation
+
+The approach I propose packs each /skmer into a compact two-word encoding.
+The first word holds the minimizer along with the prefix and suffix lengths.
+The second word holds the prefix and suffix bases interleaved at the bit-pair level: positions in the word alternate between left bases and right bases, with 2 bits per base.
+This fits up to 16 bases on each side of the minimizer, giving the constraint $k - m \le 16$.
+
+In this layout, comparing two /skmers that share the same minimizer reduces to a single XOR between their encodings, followed by independent leading-zero counts over the left and right halves.
+The result is a pair $(p_L, p_R)$, the lengths of the common interleaved prefix on each side, computed in a few cycles.
+The same representation supports constant-time truncation of either side and stitching the left side of one /skmer with the right side of another.
+These operations are enough to manipulate /skmers without ever scanning bases individually.
+
+### Coverage-based insertion
+
+Given a query /skmer $Q$, the goal at insertion time is to determine which of its /kmers are already present in the bucket, and only store the new ones.
+The candidates to compare against are the bucket's /skmers that share $Q$'s minimizer, found by binary search on the sorted prefix of the bucket.
+For each candidate $S$, the comparison above returns a pair $(p_L, p_R)$ measuring how far the two /skmers agree on each side of the minimizer.
+If $p_L + p_R \ge k - m$, the agreement spans at least one full /kmer, so $S$ contains a contiguous range of $Q$'s /kmers, determined by where the match starts and ends relative to the minimizer.
+
+The covered ranges from all candidates are combined into a single coverage of $Q$'s /kmers.
+If every /kmer is covered, the insertion is skipped entirely.
+Otherwise, for each uncovered range, the insertion either extends an existing /skmer (using the side-stitching operations above) to incorporate the missing /kmers, or stores a truncated copy of $Q$ spanning only that range.
+
+The key property of this scheme is that the detection cost is bundled with the standard lookup: the bucket is already scanned to find the matching minimizer, and the coverage computation adds only a few bit operations per candidate.
+Insertion-time deduplication therefore preserves the streaming property of the original /skmer-level approach, with no separate post-processing pass.
+
+### Open extensions
+
+The current prototype implements insertion-time deduplication, which already addresses the main structural limitation discussed above.
+Several extensions remain open work.
+Deletion has no streaming equivalent of the coverage mechanism, since removing /kmers from the middle of a /skmer requires splitting it.
+Set operations beyond insertion, in particular union and intersection over two indexes, can be expressed in principle as bucket-by-bucket coverage computations, but the interleaved representation does not yet expose the necessary primitives to enumerate shared /kmers across two sorted /skmer lists efficiently.
+Finally, dynamic resizing of the superbucket layout to absorb growing datasets without rebuilding the index is also under investigation.
