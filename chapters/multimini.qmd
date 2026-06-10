@@ -29,10 +29,11 @@ We follow the notations of @sec-intro-minimizers and denote $\mathcal{O}_m$ for 
 In practice, $\mathcal{O}_m$ is induced by a random hash function with $U = 2^{64}$, which we treat as collision-free [@lphash].
 We denote by $\mathcal{S}_f(S)$ the set of selected indices of a string $S$ under a scheme $f$, and by $d(S) = |\mathcal{S}_f(S)| / (|S| - k + 1)$ its particular density.
 The expected density $d$ is the limit of $\mathbb{E}[d(S)]$ over random strings of growing length.
-Hereafter, the definitions are stated in a non-canonical context (but are easily extended), whereas the practical experiments presented later on are based on canonical /kmers, although our implementations cover both contexts.
+The definitions below are stated in a non-canonical context, though they extend easily.
+The practical experiments are based on canonical /kmers, but our implementations cover both contexts.
 
-Consider the expected number of selected positions in a window of size $w$ -- by definition, it is equal to $d \cdot w$.
-Intuitively, this quantity is also equal to $w$ divided by the expected distance between two selected consecutive positions -- that we denote here by $\mu$.
+Consider the expected number of selected positions in a window of size $w$, equal to $d \cdot w$ by definition.
+Intuitively, this quantity is also equal to $w$ divided by the expected distance between two selected consecutive positions, which we denote here by $\mu$.
 Indeed, if we select a position every $\mu$ bases, we expect to choose $w/\mu$ positions on average in a window.
 Hence, with $dw \approx w/\mu$, we expect $d \approx \frac{1}{\mu}$.
 This intuitive link has already been noticed in the literature [@schleimer2003winnowing; @polar-sets; @hyperkmers], but never, to the best of our knowledge, explicitly formalized as such, nor proved for any scheme.
@@ -151,8 +152,8 @@ Then, we have $d \cdot \mu = 1$.
 The proof is deferred to @sec-multimini-app-density-distance.
 :::
 
-Basically, @thm-multimini-density-distance states that if we assume that the distances between consecutive selected positions of minimizers are somehow equally distributed, then their expected value is exactly $1/d$.
-This assumption is the minimum viable hypothesis for establishing the result (since $\mu$ must be well defined), and note also that this hypothesis does not depend on the process by which the $R_i$'s values are obtained, nor how the positions of the minimizers $P_1, P_2, \ldots$ are selected in successive windows, thus making our result very general.
+@thm-multimini-density-distance states that if we assume that the distances between consecutive selected positions of minimizers are somehow equally distributed, then their expected value is exactly $1/d$.
+This assumption is the minimum viable hypothesis for establishing the result (since $\mu$ must be well defined), and it does not depend on the process by which the $R_i$'s values are obtained, nor how the positions of the minimizers $P_1, P_2, \ldots$ are selected in successive windows.
 
 At this point, we have not made any assumptions on the random vectors $\mathbf{R}, \mathbf{P}$ and $\mathbf{P}^\ast$.
 It is not trivial to formally verify whether the assumption regarding the $\mathbb{E}[\Delta_i]$'s is verified or not, as the variables are most likely not to be independent nor identically distributed.
@@ -168,7 +169,8 @@ As discussed in [@minimizers-ordering], while "not strictly true in practice", t
 However, the formulation is unfortunate because it does not take into account the dependency between windows.
 If we consider a window $(R_i, \ldots, R_{i+w-1})$ outside of its context, then the hypothesis can be reformulated as $P_i \sim \mathcal{U}(\llbracket 1, w \rrbracket)$.
 Unfortunately, since the same minimizer will likely be selected by several successive windows, $P_i$ cannot be considered independent, nor even identically distributed (since $P_i = P_{i-1}$ with a non-zero probability).
-Here, we propose starting from a more elementary hypothesis concerning the $R_i$'s and observing, empirically and theoretically, the behavior of the variables derived from them, $\mathbf{P}$, $\mathbf{P}^\ast$ and $\boldsymbol{\Delta}$, in order to study the difference between @hyp-multimini-uniform-position and reality, as well as the hypothesis concerning the expectation of the $\Delta_i$'s.
+Here, we propose starting from a more elementary hypothesis concerning the $R_i$'s.
+We then study, empirically and theoretically, the behavior of the derived variables $\mathbf{P}$, $\mathbf{P}^\ast$ and $\boldsymbol{\Delta}$, to assess the gap between @hyp-multimini-uniform-position and reality, and to test the expectation hypothesis on the $\Delta_i$'s.
 Our working assumption is the following.
 
 :::{#hyp-multimini-iid}
@@ -176,7 +178,7 @@ The random variables $R_1, R_2, \ldots$ are i.i.d., uniformly distributed over $
 :::
 
 :::{#rem-multimini-collision}
-Assuming a perfect hash function when computing the random order, our assumption states that the probability of collision between $R_i$'s is $1/\sigma^m$ -- which is consistent with [@polar-sets, Lemma S7], that establishes that two distinct /mmers are identical in a random sequence with probability $1/\sigma^m$.
+Assuming a perfect hash function when computing the random order, our assumption states that the probability of collision between $R_i$'s is $1/\sigma^m$, which is consistent with [@polar-sets, Lemma S7], that establishes that two distinct /mmers are identical in a random sequence with probability $1/\sigma^m$.
 :::
 
 It is not too difficult to establish the law of $P_1 = P_1^\ast = \Delta_1$ from @hyp-multimini-iid:
@@ -192,12 +194,13 @@ It follows that $P_1 \xrightarrow{a.s.} \mathcal{U}(\llbracket 1, w \rrbracket)$
 The proof is deferred to @sec-multimini-app-uniform.
 :::
 
-In @sec-multimini-app-convergence-p1, we observe that the limit distribution is reached very quickly, for fairly small values of $m$ ($m=8$ in our case), which implies that for all values of $m$ likely to be used in practice, @hyp-multimini-uniform-position is verified for $P_1$, and $\Delta_1$ also follows a uniform distribution, meaning that $\mathbb{E}[\Delta_1] = \frac{w+1}{2}$.
+In @sec-multimini-app-convergence-p1, we observe that the limit distribution is reached very quickly, for fairly small values of $m$ ($m=8$ in our case).
+This implies that for all values of $m$ likely to be used in practice, @hyp-multimini-uniform-position holds for $P_1$, and $\Delta_1$ also follows a uniform distribution, meaning that $\mathbb{E}[\Delta_1] = \frac{w+1}{2}$.
 If, indeed, all subsequent $\Delta_i$'s have the same expectation, then, using @thm-multimini-density-distance, we retrieve the well-known density of random minimizers, $d = \frac{2}{w+1}$ [@schleimer2003winnowing; @roberts2004reducing].
 
 Unfortunately, formally establishing the law of further variables becomes rapidly intractable due to the dependencies between them.
 To complete the study of subsequent $\mathbb{E}[\Delta_i]$'s, we resort to Monte-Carlo simulations of our probabilistic model and obtain the results depicted in @sec-multimini-app-monte-carlo.
-From our results, the assumption that $\mathbb{E}[\varepsilon] = 0$ is empirically verified (numerically, we get $\mathbb{E}[\varepsilon] \approx 0.0060$), and the $\mathbb{E}[\Delta_i]$'s are indeed distributed around $\mu = \frac{w+1}{2} = 5.5$ (using $w=10$) -- see supplementary @fig-multimini-monte-carlo-mean.
+From our results, the assumption that $\mathbb{E}[\varepsilon] = 0$ is empirically verified (numerically, we get $\mathbb{E}[\varepsilon] \approx 0.0060$), and the $\mathbb{E}[\Delta_i]$'s are indeed distributed around $\mu = \frac{w+1}{2} = 5.5$ (using $w=10$); see supplementary @fig-multimini-monte-carlo-mean.
 We obtain numerically a density of 0.1808, i.e. 0.55% of error compared to the theoretical value of $0.\overline{18}$.
 This empirical result highlights that @hyp-multimini-iid is indeed a proper assumption to work with, and also that the assumption of @thm-multimini-density-distance is reasonable, since it is verified in practice.
 
@@ -211,7 +214,7 @@ In this regard, the best possible minimizer scheme would select /mmers at a dist
 However, without a way to retrieve which /mmer was chosen for a specific /kmer, querying a /kmer would require checking if any of its $k - m + 1$ /mmers was selected as its minimizer.
 The same problem arises when inserting a /kmer into a database: one must perform $k - m + 1$ checks to verify whether it is already present or not.
 
-To reduce this prohibitive cost, we propose a simple yet efficient solution leveraging the notion of /skmers.
+To reduce this prohibitive cost, we propose a solution based on /skmers.
 As defined in @sec-skmers, a /skmer is a maximal sequence of consecutive /kmers sharing the same minimizer.
 Our technique starts by generating $N$ distinct hash functions (e.g. using $N$ distinct random seeds).
 Then, we use these $N$ hash functions to generate $N$ distinct random minimizer schemes.
@@ -340,17 +343,18 @@ This ensures covering all /kmers, or equivalently, all windows of $w = k - m + 1
 Formally, a local scheme is a function $f : \Sigma^k \to \llbracket 1, w \rrbracket$.
 Importantly, the local scheme is both used at construction (e.g. when partitioning /kmers based on their minimizer) and query (e.g. to determine in which bucket a /kmer might be present).
 For a given /kmer $x \in \Sigma^k$, the position $f(x)$ is uniquely determined.
-While minimizers are local schemes, multiminimizers are not, as they differ drastically in their approach:
 
-- At construction, we need to know when the previous /skmer ends, and where the candidate /skmers end, information that a /kmer alone cannot provide. In this regard, the multiminimizer scheme has both to "remember the past" to determine when to select a new minimizer, and "delve into the future" to choose which minimizer candidate to keep.
-- At query, for a given /kmer, we have to compute and lookup the $N$ minimizer candidates to determine whether it has already been seen, since the broader context(s) in which it might have been seen are not known.
+While minimizers are local schemes, multiminimizers are not, as they differ drastically in their approach.
+At construction, we need to know when the previous /skmer ends, and where the candidate /skmers end, information that a /kmer alone cannot provide.
+In this regard, the multiminimizer scheme has both to "remember the past" to determine when to select a new minimizer, and "delve into the future" to choose which minimizer candidate to keep.
+At query, for a given /kmer, we have to compute and look up the $N$ minimizer candidates to determine whether it has already been seen, since the broader context(s) in which it might have been seen are not known.
 
 Ultimately, the multiminimizer scheme does not behave like a local scheme, either at construction or at query time.
-It is advantageous as it implies that its density is not subject to the lower bound of local schemes by @density-lower-bound -- although the $1/w$ bound obviously remains.
+It is advantageous as it implies that its density is not subject to the lower bound of local schemes by @density-lower-bound, although the $1/w$ bound still applies.
 As showed in upcoming @sec-multimini-density, the multiminimizer scheme does indeed beat this lower bound, and approach density of $1/w$ as $N$ increases.
-This gain in density comes at the price of (bounded) increased query time, as per the discussion above.
+This gain in density comes at the price of (bounded) increased query time, as discussed above.
 
-Finally, note that the multiminimizer construction is not limited to random minimizer schemes, but could be used with any combination of $N$ distinct local schemes (whether by varying parameters or using concurrent schemes) -- in that sense, multiminimizers are a sort of *meta* scheme.
+Finally, note that the multiminimizer construction is not limited to random minimizer schemes, but could be used with any combination of $N$ distinct local schemes, whether by varying parameters or using concurrent schemes; in that sense, multiminimizers are a sort of *meta* scheme.
 To illustrate this point, in upcoming @sec-multimini-results, we investigate two implementations of the multiminimizer construction, one with random minimizers, and the other with open-closed mod-minimizers [@ocmm].
 
 ## On deduplicated density {#sec-multimini-dedup-density}
@@ -361,7 +365,7 @@ We then study minimizing deduplicated density in the multiminimizer framework, p
 This detour clarifies the relationship between the two densities and highlights a remaining open problem: establishing the computational complexity of minimizing classical density itself. -->
 
 It appears the standard density possesses a "twin" concept, that we call *deduplicated density* (which we denote by $d^\ast$), and that we define as the fraction of distinct minimizers needed to cover all /kmers of a set of sequences (or, equivalently, a set of /kmers), instead of the fraction of positions selected along a sequence.
-To the best of our knowledge, the deduplicated density has never been mentioned in the literature, even if it is implicitly linked to filtering tasks, such as the ones tackled by Needle [@needle].
+The deduplicated density does not appear to have been studied before, even if it is implicitly linked to filtering tasks, such as the ones tackled by Needle [@needle].
 
 :::{#def-multimini-mincover}
 ## Minimizer Cover
@@ -401,14 +405,14 @@ $$d^\ast = \frac{1}{2^{\sigma^k} - 1} \sum_{n=1}^{\sigma^k} \binom{\sigma^k}{n} 
 The proof is deferred to @sec-multimini-app-dedup-density.
 :::
 
-The dependence on $\sigma^k$ is unfortunate, making it intractable to compute $d^\ast$ when $k$ is large.
+The dependence on $\sigma^k$ makes it intractable to compute $d^\ast$ when $k$ is large.
 We nonetheless computed the first values, shown in @fig-multimini-deduplicated (left); one can see that $d^\ast$ seems to be driven by the value of $w$ rather than $k$, hence we conjecture that $d^\ast$ might only depend on $w$.
 Besides, it seems that $d^\ast < d$ holds.
 To access higher values, we resorted to Monte-Carlo simulations, following the same probabilistic model as before, using @hyp-multimini-iid.
 We observed how the standard density $d$ and the deduplicated density $d^\ast$ evolved over the course of parsing a random sequence, as shown in @fig-multimini-deduplicated (right).
 While both densities seem to be equal for the first few thousand windows, they rapidly diverge.
 We looked into the data and observed that the number of distinct /kmers and distinct windows observed are equal (it is not surprising since the probability of collision of /kmers is negligible), so the difference between the densities is entirely explained by the discrepancy between the number of selected positions and the number of distinct minimizers.
-While those values are equal at first, soon we obtain repeated minimizers^[While the *positions* of minimizers are somehow uniformly distributed within a window, as seen in @sec-multimini-density-distance, it is not the case of their *values* -- that are the ones that repeat and therefore lead to a decrease in $d^\ast$. Indeed, the values of the minimizers are distributed as $\min(R_1, \ldots, R_w)$ where $R_i$ are i.i.d. uniform variables, and therefore are strongly biased towards small values.], hence the drop in $d^\ast$.
+While those values are equal at first, soon we obtain repeated minimizers^[While the *positions* of minimizers are somehow uniformly distributed within a window, as seen in @sec-multimini-density-distance, it is not the case of their *values*, which are the ones that repeat and therefore lead to a decrease in $d^\ast$. Indeed, the values of the minimizers are distributed as $\min(R_1, \ldots, R_w)$ where $R_i$ are i.i.d. uniform variables, and therefore are strongly biased towards small values.], hence the drop in $d^\ast$.
 
 :::{#fig-multimini-deduplicated layout-ncol=2}
 ![Theoretical values of $d^\ast$ for $2 \leq k \leq 6$ as a function of $1 \leq w \leq k$, obtained with the formula of @prp-multimini-dedup-density.](../fig/multimini/deduplicated_density_random_minimizers){#fig-multimini-dedup-theory}
@@ -418,7 +422,7 @@ While those values are equal at first, soon we obtain repeated minimizers^[While
 (left) Theoretical values of $d^\ast$ for small $k$. (right) Evolution of $d$ and $d^\ast$ over the course of parsing a random sequence.
 :::
 
-There are obviously many more aspects of deduplicated density to be studied and discovered, but they are beyond the scope of this work.
+There are obviously many more aspects of deduplicated density to be studied, but they are beyond the scope of this work.
 To conclude this section, we propose to consider applying multiminimizers to deduplicated density.
 
 :::{#def-multimini-multicover}
@@ -440,7 +444,7 @@ Provided a set $\mathcal{X}$ of /kmers and $N$ orders on /mmers $\mathcal{O}_m^1
 This problem is closely related to the one of **MinimumHittingSet**: provided an integer $k$, and a set $\mathcal{X}$ of /kmers, find a set $\mathcal{Y}$ of /mmers (called a hitting set) such that each /kmer of $\mathcal{X}$ contains at least one /mmer from $\mathcal{Y}$, and of minimum cardinality.
 This problem is known to be NP-hard [@orenstein2016compact; @orenstein2017designing].
 Here the problem is slightly different, as we do not ask the elements of $\mathcal{Y}$ to simply appear in the /kmers of $\mathcal{X}$, but also to be their minimizers for at least one of the orders.
-This problem also proves to be difficult, as per the following result.
+This problem also turns out to be difficult, as the following result shows.
 
 :::{#thm-multimini-mincover}
 ## NP-completeness of MultiMinCover
@@ -474,7 +478,7 @@ The intuition is that increasing the number of /skmer candidates increases the c
 
 To show this density reduction, we generated a random sequence (5M bases) and computed the density of our scheme on it, for 1 to 8 hash functions, using $w=15$ and varying $m$ (thus $k$).
 We observed that the higher the number of hash functions, the lower the density, which allows us to reach densities lower than any other scheme (see @fig-multimini-density-w).
-To our knowledge, multiminimizer is the first iterator over minimizers with a density lower than the lower bound introduced by [@density-lower-bound].
+We are not aware of any prior iterator over minimizers with a density lower than the lower bound introduced by [@density-lower-bound].
 Figures for additional $m$ and $w$ values are available in @sec-multimini-app-more-w.
 
 Although multiminimizers are not a local scheme, we have observed that the empirical density $\hat{d}$ and the empirical average distance between selected positions $\hat{\mu}$ were indeed related as $\hat{d} \approx 1/\hat{\mu}$, hence showing that @thm-multimini-density-distance might apply beyond the scope of local schemes.
@@ -511,8 +515,7 @@ This is still higher than the lower bound of 2 /bpk, due to random minimizers ha
 Since our multiminimizer scheme approaches a density of $\frac{1}{w}$, using a multiminimizer scheme could allow /hkmers to tend toward 2 /bpk in the input sequence.
 To test this hypothesis, we replaced the iterator over minimizer of KFC (a /hkmer-based /kmer counter introduced in [@hyperkmers]) by our iterator over multiminimizer and report the result in @fig-multimini-size-hyperkmer.
 Note that KFC is optimized for large $k$ values (e.g. > 60), so we tested our hypothesis in this range.
-Our results show that KFC converges to 2 /bpk in $S$.
-To the best of our knowledge, this is the first streaming /kmer representation to achieve it.
+Our results show that KFC converges to 2 /bpk in $S$, which we believe to be the first streaming /kmer representation to do so.
 
 :::{#fig-multimini-space layout-ncol=2}
 ![/Skmer representation + multiminimizers.](../fig/multimini/space_sk_mm){#fig-multimini-superkmer-space}
@@ -531,7 +534,7 @@ We developed a simple proof-of-concept minimizer index to demonstrate the utilit
 Such an index stores a set of minimizers that collectively cover all /kmers of interest, enabling efficient filtering as an indexed minimizer is a necessary condition for an indexed /kmer, and with sufficiently large minimizers, passing the filter already implies substantial sequence similarity.
 Our prototype relies on exact hash tables and handles a single uncolored set; the same idea can be readily adapted to colored or approximate index structures.
 During construction, we test the presence of /kmers and then greedily select minimizers to cover any uncovered sequences.
-We evaluate the approach on the Human HiFi accession `SRR11292123` (~24 Gb) in @fig-multimini-pin, and observe a substantial reduction in index size with competitive build and query times.
+We evaluate the approach on the Human HiFi accession `SRR11292123` (~24 Gb) in @fig-multimini-pin, and observe a smaller index at a moderate cost in build and query time.
 Merely switching from a single to two hash functions yields an index about 20% smaller, with roughly a 20% increase in construction time and about 85% in query time.
 
 :::{#fig-multimini-pin}
