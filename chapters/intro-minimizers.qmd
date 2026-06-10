@@ -52,7 +52,12 @@ These two properties together ensure that minimizers can serve as *anchors* for 
 
 ## Density and orderings {#sec-minimizer-orderings}
 
+:::{#def-density}
+## Density of a minimizer scheme
+
 The *density* of a minimizer scheme is the expected fraction of /kmers selected over all positions of a random sequence.
+:::
+
 Since consecutive minimizers are at most $w$ positions apart (@pty-bounded-dist), the density is always lower-bounded by $1/w$.
 We'll see in the following subsections that the ordering used to compare /kmers can have a big impact on the density, and thus on the size of the resulting sketch.
 
