@@ -2,6 +2,10 @@
 
 :::{.callout-note}
 This chapter is adapted from {{< longcite fhs >}} and {{< longcite fhs-multiset >}}.
+
+Antoine Limasset and Camille Marchet came up with the original idea.
+Timothé Rouzé wrote most of the code and ran all the experiments.
+I proposed the notion of fractional hitting sets, derived the bounds, wrote all the proofs and implemented the decycling sets optimization.
 :::
 
 As discussed in @sec-intro-sketching, FracMinHash [@fracminhash] is a practical method for large-scale containment and Jaccard estimation of /kmer sets: its sketches scale linearly with input, avoiding the fixed-budget limitations of tools like Mash [@mash], and can handle documents of widely differing sizes.

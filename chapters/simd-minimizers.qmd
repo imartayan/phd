@@ -2,6 +2,9 @@
 
 :::{.callout-note}
 This chapter is adapted from {{< longcite simd-minimizers >}}.
+
+Ragnar Groot Koerkamp designed the initial AVX2 implementation, which we then improved and turned into the `simd-minimizers` library together.
+The paper itself has equal contributions from both of us.
 :::
 
 @sec-rolling-hash covered efficient implementations of rolling hashes, allowing us to hash /kmers at high throughput.

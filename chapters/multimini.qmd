@@ -2,6 +2,12 @@
 
 :::{.callout-note}
 This chapter is adapted from {{< longcite multiminimizers >}}.
+
+Antoine Limasset and I came up with the original idea.
+Florian Ingels proposed the formalization, and we did the proofs together.
+Lucas Robidou wrote most of the code, based on algorithms that we designed together.
+I also wrote the experiments script for the density analysis.
+Camille Marchet helped us writing the paper.
 :::
 
 As surveyed in @sec-low-density-minimizers, recent progress on low-density minimizer schemes has brought practice very close to the forward local scheme lower bound, suggesting diminishing returns from further improvements in that direction.

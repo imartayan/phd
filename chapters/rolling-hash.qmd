@@ -2,6 +2,10 @@
 
 :::{.callout-note}
 This chapter is partially adapted from {{< longcite simd-minimizers >}}.
+
+Ragnar Groot Koerkamp designed the initial AVX2 implementation, which we then improved and turned into the `packed-seq` and `seq-hash` libraries together.
+The paper itself has equal contributions from both of us.
+The analysis of NtHash biases is my own later work, and is not part of the original publication.
 :::
 
 We've seen in @sec-simd-parsing how to parse and bitpack sequences efficiently.
