@@ -544,21 +544,22 @@ As an indicator, for $N=1$, there are $\approx 850 \times 10^6$ minimizers, cons
 
 ## Conclusion
 
-This work advances both the theory and practice of minimizer-based sampling by (i) establishing a general density–distance equivalence under minimal assumptions (@thm-multimini-density-distance); (ii) introducing the novel notion of the deduplicated density, which captures the fraction of distinct minimizers covering a set of /kmers and for which we provide an analytical expression and empirical characterization in the random minimizers case; and (iii) designing the multiminimizer scheme, a simple yet effective scheme that trades time for space and achieves densities below the forward-scheme lower bound while preserving linear runtime.
-We also propose a proof-of-concept of a multi open-closed mod-minimizer scheme, achieving even lower densities.
-Empirically, increasing the number of hash functions consistently reduces density and memory footprint, and the benefits translate directly to /skmers, /hkmer representations, and filtering indexes.
+Multiminimizers trade a bounded amount of query time for lower density.
+The construction is agnostic to the underlying scheme: we instantiated it with random minimizers and with open-closed mod-minimizers, and in both cases the density drops below the forward-scheme lower bound of [@density-lower-bound] as the number of hash functions grows, approaching $1/w$.
+The gain carries over to downstream representations.
+Plugging our iterator into KFC brings /hkmer storage close to 2 /bpk, the first streaming /kmer representation to reach this regime as far as we know.
+The Pin prototype shows the same pattern for filtering indexes, where even $N=2$ already cuts index size by about 20% at modest cost.
 
-Several theoretical questions remain open.
-First of all, the theoretical density of the multiminimizer scheme remains to be studied.
-Since it empirically reaches densities lower than the bound for local schemes [@density-lower-bound], it would be of great interest to find a way to express its density both in terms of the number and the underlying densities of the schemes used to build the multiminimizer meta scheme.
-Additionally, theoretical guarantees on the conservation of multiminimizers remain to be established.
-Then, the computational complexity of globally minimizing the standard density is still unknown, despite our NP-completeness result for the deduplicated counterpart; clarifying this complexity, including connections to polar-set formulations, is a natural next step.
-Beyond random minimizers, extending the analysis of deduplicated density to other scheme families and simplifying its expression in the random case would strengthen the theoretical picture.
-From an algorithmic standpoint, developing effective local or global heuristics for MultiMinCover is a promising path.
-Finally, on the practical side, two areas can be explored.
-Firstly, combining multiminimizers with other existing low-density schemes to form multi-seeded variants could further reduce density in practice while retaining fast iteration.
-The proof of concept "multiminimizers on open-closed mod-minimizer" could be vastly improved by, e.g., using SIMD instructions to speed up computation.
-Secondly, replacing traditional minimizer iterators with our Rust library could improve a vast number of existing tools, beyond our work here on improving a /hkmer-based /kmer counter.
+The chapter also developed two pieces of theory that stand on their own.
+The density-distance equivalence of @thm-multimini-density-distance gives a way to reason about density under a single, minimal assumption on the expected spacing of selected positions, and it appears to hold empirically even outside the local-scheme setting where we proved it.
+The deduplicated density $d^\ast$ emerged as a natural twin to standard density when the object of interest is a /kmer set rather than a sequence.
+We gave an analytical expression in the random-minimizer case, observed that it diverges from $d$ on long sequences, and showed that minimizing it under the multiminimizer model is NP-complete.
 
-Different sequence-mapping tools have highlighted the need for heuristics to fill in the deserts where sampled alignment landmarks are missing, as well as to better handle low complexity regions.
-We believe that the formalization of choice and selection-based schemes, such as those introduced in this work, will support improved alignment strategies in future developments.
+Several questions remain open.
+The theoretical density of the multiminimizer scheme is still to be worked out, ideally as a function of $N$ and of the densities of the base schemes; conservation properties also lack a formal treatment.
+The complexity of minimizing standard density globally is still unknown, despite the NP-completeness result for its deduplicated counterpart.
+Extending deduplicated density to other scheme families, and simplifying its expression, would help clarify how the two notions relate.
+Better local or global heuristics for MultiMinCover seem worth pursuing.
+
+On the practical side, the MOCMM proof of concept already shows that pairing multiminimizers with other low-density schemes is straightforward; a SIMD-friendly implementation is the natural next step.
+Replacing existing iterators with our Rust library is also a low-effort way to test whether the gains we saw on /hkmer-based counting extend to other minimizer-based tools.
