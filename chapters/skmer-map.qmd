@@ -9,22 +9,15 @@ We discussed algorithmic improvements together and I wrote experiments scripts.
 The final section presents my ongoing work on deduplication strategies, not part of the original paper.
 :::
 
-- trim the article to focus on interleaved /skmer representation
-- discuss load balancing strategies, when (not) to sort
-- pros and cons compared to CBL (/kmer level vs /skmer level representation)
-- the challenge of deduplicating /kmers with this representation (ongoing work)
-
----
-
 @sec-skmers introduced super-/kmers as a natural byproduct of minimizer-based parsing: consecutive /kmers sharing a minimizer are grouped into a single string, reducing both the number of objects to index and the memory needed to represent each one.
 This chapter asks whether /skmers can serve as the primary representation inside a *dynamic* /kmer dictionary, replacing individual /kmer entries altogether.
 
-Using /skmers as a full dictionary representation, however, raises two new problems.
+Using /skmers as a full dictionary representation, however, raises two practical challenges.
 The first is lookup: given a /kmer, finding it efficiently inside a bucket of /skmers is not straightforward, because sorting /skmers lexicographically does not help locate a specific /kmer.
-The second is representation: when a /kmer contains more than one occurrence of its minimizer, the choice of which occurrence to use must be made deterministically, or the same /kmer can end up encoded differently depending on the parsing context.
-The main contributions of this chapter are a solution to both problems: a deterministic minimizer selection procedure that covers all edge cases, and a novel /skmer encoding called the *interleaved transform* that enables binary search within a bucket.
-We also examine the load-balancing problem that arises from skewed bucket size distributions, and place the /skmer-level approach in relation to the /kmer-level approach of the previous chapter.
-These ideas are implemented in Brisk, available at <https://github.com/Malfoy/Brisk>.
+The second is load balancing: minimizer partitions are highly non-uniform on real genomic data, so a handful of very large buckets can dominate overall query time.
+The main contributions of this chapter are a /skmer encoding called the *interleaved transform* that enables binary search within a bucket, and a superbucket scheme that flattens the skewed minimizer distribution.
+We also place the /skmer-level approach in relation to the /kmer-level approach of the previous chapter.
+The interleaved transform and superbucket scheme are implemented in Brisk, available at <https://github.com/Malfoy/Brisk>.
 
 ## Interleaved /skmers {#sec-interleaved-skmer-map}
 
@@ -136,15 +129,36 @@ For applications that revisit /kmers frequently or require deletion, the /kmer-l
 
 ## Performance in practice {#sec-results-skmer-map}
 
-The memory savings from lazy encoding and superbuckets translate into a substantially lower footprint than a plain hash table across dataset sizes, as shown in @fig-brisk-mainplot for $k = 31$.
-The gap widens for larger $k$ since the minimizer then represents a smaller fraction of each /kmer, and the savings from omitting it are proportionally greater.
-Construction throughput in the single-threaded setting is competitive with a standard hash map for $k = 31$ (@fig-brisk-mainplot), confirming that the binary search overhead is not a bottleneck in practice.
+We compare Brisk against three reference structures: Jellyfish [@jellyfish], a popular /kmer counter built on an efficient hash table; CBL [@cbl], the dynamic /kmer set structure discussed in @sec-necklaces; and the standard Rust `HashMap`, used as a baseline for general-purpose dynamic dictionaries.
+Benchmarks were performed on growing collections of bacterial genomes ($2^0$ to $2^{14}$ genomes), at two /kmer sizes: $k = 31$, a common choice that fits in a 64-bit integer, and $k = 59$, the maximum size supported by CBL.
 
-::::{#fig-brisk-mainplot layout-ncol=2}
+@fig-brisk-mainplot shows the memory footprint and construction time across all four tools.
+For both /kmer sizes, Brisk uses substantially less memory than the reference structures, and the gap widens at $k = 59$ as hash-based methods store proportionally more bits per /kmer while Brisk's lazy encoding amortizes the cost across each /skmer.
+At $k = 31$, Brisk matches Jellyfish's throughput.
+At $k = 59$ it becomes the fastest of the four.
+
+The multi-threaded comparison is not entirely fair, however: Brisk and Jellyfish parallelize, whereas CBL and the Rust `HashMap` do not.
+@fig-brisk-monothread isolates this by repeating the benchmark on a single core.
+The picture is qualitatively similar: Brisk is slightly slower than the Rust `HashMap` at $k = 31$ but remains the fastest indexer at $k = 59$.
+
+::::{#fig-brisk-mainplot layout="[[1,1],[1,1]]"}
 
 ![Memory usage for $k=31$](../fig/brisk/plots/plot_k31_multi_ram.png){#fig-brisk-mainplot-ram-k31}
 
 ![Construction time for $k=31$](../fig/brisk/plots/plot_k31_multi_time.png){#fig-brisk-mainplot-time-k31}
 
-Memory usage and construction time for /kmer indexing with $k=31$, across increasing dataset sizes.
+![Memory usage for $k=59$](../fig/brisk/plots/plot_k59_multi_ram.png){#fig-brisk-mainplot-ram-k59}
+
+![Construction time for $k=59$](../fig/brisk/plots/plot_k59_multi_time.png){#fig-brisk-mainplot-time-k59}
+
+Multi-threaded performance of Brisk, Jellyfish, CBL, and Rust `HashMap` across growing collections of bacterial genomes, for $k = 31$ (top) and $k = 59$ (bottom).
+::::
+
+::::{#fig-brisk-monothread layout-ncol=2}
+
+![Single-threaded construction time for $k = 31$](../fig/brisk/plots/k31m21_time_mono.jpeg){#fig-brisk-monothread-k31}
+
+![Single-threaded construction time for $k = 59$](../fig/brisk/plots/k59m21_time_mono.jpeg){#fig-brisk-monothread-k59}
+
+Single-threaded construction time of Brisk, Jellyfish, CBL, and Rust `HashMap`, controlling for the fact that CBL and Rust `HashMap` are not parallelized.
 ::::
