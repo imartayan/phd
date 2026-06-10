@@ -81,7 +81,7 @@ A convenient way to encode bases is to extract the second and third lowest bits 
 However, sequences may still contain non-ACTG characters for IUPAC codes that we cannot bitpack losslessly, so we have to handle them separately.
 We propose two different ways to solve this.
 One solution is to treat non-ACTG characters as splits and only return contiguous chunks of ACTGs.
-Another solution a lossy encoding that returns an additional bitmask marking ambiguous positions with ones (thus requiring 3 bits per base in total).
+Another solution is to use a lossy encoding that returns an additional bitmask marking ambiguous positions with ones (thus requiring 3 bits per base in total).
 
 #### Packed format
 
@@ -404,7 +404,7 @@ Compared to the results on the human genome, we observe that the overall through
 This is mainly explained because FASTQ parsing requires less work (keeping track of the line count is sufficient to transition between states) and because the sequence of each record is not split across multiple lines, thus allowing a zero-copy strategy.
 On the other hand, bitpacked configurations do not benefit from this property and are comparatively slower than outputting plain strings.
 The results on long reads, shown in @fig-throughput-long-reads in appendix, are even less pronounced.
-Having longer contiguous sequences make the zero-copy strategy is even more noticeable and file I/O becomes a bigger limitation.
+Having longer contiguous sequences makes the zero-copy strategy even more noticeable and file I/O becomes a bigger limitation.
 
 To illustrate the impact of compile-time specialization of the parser, we compared the throughput of collecting the sequence string for each record against a configuration that only counts the number of ACTG bases (skipping other IUPAC codes) on the human genome.
 This comparison, presented in @fig-throughput-count in appendix, confirms that a lighter configuration requirement successfully produces more efficient code.

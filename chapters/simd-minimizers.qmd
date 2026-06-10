@@ -443,7 +443,7 @@ Note that the deduplication step is not needed here since syncmer positions are 
 ### Other minimizer schemes
 
 Finally, we can change the implementation of the minimizer scheme itself.
-First, if we want to change the order on /kmers, we can replace the rolling hash by the the function of our choice.
+First, if we want to change the order on /kmers, we can replace the rolling hash by the function of our choice.
 For instance, we can simply use the identity for a lexicographic order, or flip the first bits for an anti-lexicographic order [@ragnar-thesis].
 
 Additionally, we can tweak the sliding window scan to implement other low-density schemes (further discussed in @sec-low-density-minimizers).
@@ -517,7 +517,7 @@ Appending all `u32x8` SIMD vectors containing the bases to a vector takes 0.30 n
 Collecting the second $k-1$-delayed stream of characters that leave the /kmer (by adding them to the non-delayed stream) has no additional overhead.
 Computing ntHash only takes 0.02ns/bp extra on AVX2, but adds 0.15 ns/bp on NEON.
 The sliding window computation nearly triples the total time.
-Collecting the minimizer positions to a linear vector (i.e., transposing matrices and writing output for each of the 8 chunks) again incurs 50% overhead, ad deduplicating them actually again adds some time.
+Collecting the minimizer positions to a linear vector (i.e., transposing matrices and writing output for each of the 8 chunks) again incurs 50% overhead, and deduplicating them again adds some time.
 
 Going back a step, using canonical ntHash instead of forward ntHash takes 0.14 ns/bp extra on AVX2 but only 0.03 ns/bp on NEON, and determining the canonical strand (via a third $\ell$-delayed stream and counting `GT` bases) takes another 0.49 ns/bp on AVX2 and 0.31 ns/bp on NEON.
 As before, collecting and deduplicating are slow and add around 0.70ns/bp.

@@ -3,7 +3,7 @@
 Spectrum-preserving string sets, introduced in @sec-intro-kmers, offer one compact way to represent a /kmer spectrum.
 By itself, however, such a representation gives no direct way to test whether an arbitrary /kmer belongs to the spectrum or not.
 Building an efficient *index* is therefore a necessary step in any /kmer-based pipeline, from read mapping and taxonomic classification to genome assembly.
-Depending on the application, this index may be built from an (r)SPSS, directly from raw reads, or from a reference genome, all of which may contain repeated /kmers.
+Depending on the application, this index may be built from an SPSS (repetitive or not), directly from raw reads, or from a reference genome, all of which may contain repeated /kmers.
 
 At the most basic level, a /kmer *set* supports a single operation: *membership*, testing whether a given /kmer is present or not.
 Many applications require more than this and associate each /kmer with satellite information such as an abundance count or a color.

@@ -171,7 +171,7 @@ The entire iteration pipeline is illustrated in @fig-packed-iter.
 :::{#fig-packed-iter}
 ![](../fig/hashing/packed_iter)
 
-Overview of parallel iteration on a packed sequence, each color correspond a SIMD lane associated to a given chunk.
+Overview of parallel iteration on a packed sequence, each color corresponds to a SIMD lane associated to a given chunk.
 Note that while the figure shows $L=4$ lanes, we use $L=8$ lanes in practice for 256-bit registers.
 :::
 

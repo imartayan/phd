@@ -148,7 +148,7 @@ In this section, I will cover some that I find especially promising.
 
 ### DotHash for intersection size
 
-DotHash [@dothash] takes a different approach than MinHash-like sketches: rather that sampling a subsets of /kmers and storing their hash, it computes a random projection for every /kmer and aggregates *all of them* in a vector of fixed dimension $d$.
+DotHash [@dothash] takes a different approach than MinHash-like sketches: rather that sampling a subset of /kmers and storing their hash, it computes a random projection for every /kmer and aggregates *all of them* in a vector of fixed dimension $d$.
 Note that $d$ is independent of the size $n$ of the /kmer set but the precision required for each aggregated component increases with $n$.
 
 A key property of DotHash is that it can efficiently estimate the intersection size of two sets $A$ and $B$ by computing the dot product of the corresponding sketch vectors.

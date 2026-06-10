@@ -1,6 +1,6 @@
 # Comparing using *k*‑mers {#sec-intro-kmers}
 
-In contrast to full-text methods such as the Burrows-Wheeler Transform (BWT) [@bwt;@fm-index], which aim to losslessly represent the original sequence while enabling more operations, we can often afford to loose some information on a sequence if this allows us to reduce its memory footprint or speed up comparisons.
+In contrast to full-text methods such as the Burrows-Wheeler Transform (BWT) [@bwt;@fm-index], which aim to losslessly represent the original sequence while enabling more operations, we can often afford to lose some information on a sequence if this allows us to reduce its memory footprint or speed up comparisons.
 In this thesis, we will not cover full-text representations, and will focus on representing substrings of fixed-size *k*, or /kmers.
 In particular, we will often see sequences as *sets* of /kmers, without accounting for their positions or number of occurrences.
 
@@ -159,7 +159,7 @@ A simple way to build a (non-minimal) SPSS is to decompose the edge-centric DBG 
 For instance, the DBG in @fig-dbg-edge-centric is decomposed as $\{\textsf{CTAA}, \textsf{AAG}, \textsf{AGAA}, \textsf{AGGT}\}$.
 The resulting graph is called a *compacted de Bruijn graph* (cDBG), and can be computed efficiently in (external) memory [@bcalm2;@cuttlefish2;@ggcat].
 
-While building unitigs does not result in a minimal SPSS (unless the there are no branches), @eulertigs introduced *eulertigs* as an optimal solution based on Eulerian circuits that can be computed in linear time.
+While building unitigs does not result in a minimal SPSS (unless there are no branches), @eulertigs introduced *eulertigs* as an optimal solution based on Eulerian circuits that can be computed in linear time.
 Moreover, we can relax the unicity constraint and allow repeated /kmers to further reduce output size, generalizing SPSS into *repetitive SPSS* (rSPSS).
 @matchtigs proposed an algorithm based on perfect matching and Eulerian circuits to find minimal rSPSS, referred to as *matchtigs*, and presented a faster greedy heuristic to approximate it.
 All these solutions have since been implemented as part of GGCAT [@ggcat].
