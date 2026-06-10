@@ -2,6 +2,8 @@
 
 :::{.callout-note}
 This chapter is adapted from {{< longcite hyperkmers >}}, accepted to RECOMB 2025 and to be published.
+
+Lucas Robidou and I contributed equally to this work.
 :::
 
 TBA
@@ -13,110 +15,26 @@ TBA
 
 ---
 
-:::{.callout-caution}
-Unedited draft from {{< longcite hyperkmers >}}.
-:::
+The previous chapters built /kmer dictionaries on top of contiguous /skmers, one bucket per minimizer.
+At the /kmer sizes most prior work is calibrated for, around $k = 31$, the per-/kmer cost of this layout is moderate.
+It degrades as $k$ grows: each /skmer carries $k - 1$ bases of overlap with each of its two neighbors, so a /skmer representation asymptotes to 6 bits per nucleotide as discussed in @sec-skmers, three times the 2-bit lower bound.
+Static representations such as unitigs and eulertigs do reach 2 bits per nucleotide, but they are built once from a finalized /kmer set, require a separate counting pass, and dissolve the per-minimizer partitioning that the structures of @sec-skmer-maps rely on for cache-friendly indexing and load balancing.
 
-Representing DNA sequences as sets of /kmers, fixed-length sub-strings of length $k$, is a simple yet highly efficient approach in sequence bioinformatics by enabling accurate estimation of sequence similarity in linear time, circumventing the need for computationally intensive alignment steps.
-Moreover, it naturally handles redundancy, as each unique /kmer is stored only once, regardless of its frequency in the DNA sequence.
-This property is particularly beneficial when dealing with sequencing datasets that are inherently redundant due to high coverage depths (in the order of 1000x in large sequencing datasets).
-Over the years, the use of /kmers has been extended to various applications such as genotyping [@nebula], phylogeny reconstruction [@ffp-comparison], and read error correction [@limasset_toward_2020].
-However, naive storage of /kmers leads to significant space overheads, potentially up to a factor of $k$, since each position in the DNA sequence can generate a /kmer.
-Additionally, sequencing errors introduce erroneous non-biologically-relevant /kmers.
-As observed by Velvet [@velvet], for sufficiently large $k$'s, spurious /kmers only repeat a few times, since it is unlikely for two independent errors to produce the same /kmer.
-However, due to high coverage depths, the total number of erroneous /kmers can easily outnumber the true genomic /kmers by orders of magnitude.
-Filtering out infrequent /kmers, while retaining the highly frequent ones, has proven to be an extremely effective strategy for distinguishing true /kmers from errors.
-This observation led to one of the simplest, yet most fundamental tasks in computational biology, known as */kmer counting*, which aims to associate /kmers to their occurrence counts in a dataset for filtering purposes.
-Despite its apparent simplicity, /kmer counting is quite resource-intensive, as storing large numbers of /kmers along with their counts is expensive in terms of both memory and time.
-Given their critical role in various applications, /kmer counting tools have historically focused on speed while limiting memory usage to practical levels.
-A significant milestone was achieved with Jellyfish [@jellyfish], which implements a mutex-free hash table for high-throughput parallelism, achieving counting speeds akin to simple file reading.
-Alternative approaches have utilized more efficient data structures for counting, such as counting quotient filters [@squeakr; @cqf], Burst tries [@kcmbt], and cuckoo hashing [@hackgap].
-However, these methods still face the challenge of storing entire /kmers in main memory.
-Some tools trade results accuracy for reduced memory usage by using probabilistic data structures like Bloom filters [@bfcounter; @roy2014turtle] or quotient filters [@squeakr] to remove low abundance /kmers before counting.
-Another approach to reduce memory is to partition /kmers into buckets.
-Buckets can be safely stored on disk and independently processed thus limiting the number of /kmers in main memory [@kmc2; @dsk].
-Finally, some methods have attempted to accelerate /kmer counting by leveraging GPUs [@suzuki2014accelerating; @gerbil].
+This regime of large /kmer sizes is becoming practically relevant, as long-read technologies now reach error rates below 1% for Oxford Nanopore [@sereika2021oxford] and 0.1% for PacBio HiFi [@bankevich2022multiplex], which makes /kmer sizes in the hundreds tractable and useful for genome assembly, pangenomic comparisons, and fine-grained /kmer analyses.
 
-A significant advancement in reducing the memory footprint of /kmer storage was the introduction of /skmers [@superkmers;@mspkmercounter;@kmc2].
-/Skmers encode $N$ successive /kmers sharing the same minimizer---the smallest sub-string of length $m$ within a /kmer, for a given ordering [@schleimer2003winnowing; @roberts2004reducing; @bcalm1]---into $k + N - 1$ nucleotides.
-Minimizers exhibit locality-sensitive hashing properties, functioning as a special case of MinHash with a single fingerprint, and have been widely used in /kmer partitioning [@bcalm2; @marchet2023scalable].
-With the behavior of minimizers now well understood [@fhs], we can accurately estimate the representation cost of /skmers, leading to significant improvements in efficiency.
-The adoption of /skmers has mitigated the memory issues of /kmer counting, and /skmer-based tools such as KMC3 [@kmc3] and FASTK [@fastk] are among the best tools of this competitive field.
+In this chapter, we introduce a representation called */hkmers* that aims to keep the streaming, partitioned nature of /skmers while approaching the asymptotic efficiency of static representations.
+The core idea, developed formally in @sec-hkmers, is to share each $k - 1$ base overlap between consecutive /skmers instead of duplicating it on each side, bringing the cost from 6 down to 4 bits per nucleotide at large $k$.
 
-Even in the absence of errors, efficient /kmer representations are still required to minimize memory footprint.
-However, /skmers are still far from the optimal space efficiency, due to overlaps at their extremities, leading to unwanted redundancies.
-Over the years, multiple efficient encodings of /kmer sets have been proposed [@bcalm1; @eulertigs; @matchtigs], and allowed lightweight /kmer based tools [@ggcat; @sshash; @fulgor].
-The common underlying principle is that redundancy can be decreased by merging overlapping /kmers.
-One of the most well-known instances of this idea is the concept of *unitigs*, which are sequences formed by non-branching paths in de Bruijn graphs [@bcalm1].
-Unitigs are one of the most well-known de Bruijn graph representations, with duplications only occurring near branching paths.
-Subsequent representation proposed to allow more merging even if they may be unsure biologically to be more succinct.
-Such representations are essentially static, as they are constructed once from a complete set of /kmers.
-In contrast, /skmers can be constructed on-the-fly during sequence parsing, making them a more versatile representation.
-Moreover, this representation is inherently partitioned, since each /skmer (and thus each /kmer) is associated with its minimizer, which naturally facilitates indexing [@reindeer; @blight; @lphash].
-A fundamental question is whether we can improve this convenient light-weight and partitioned representation to be as memory-efficient as static ones, thereby obtaining the best of both worlds.
-Static representations achieve space close to the lower bound of 2 bits per nucleotide (over the four letters DNA alphabet), whereas /skmer representations are several times larger for commonly-used /kmer sizes ($k \approx 31$).
-However, for $k \to +\infty$, /skmers tend to 6 bits per /kmer [@fhs].
-Up until now, /kmer sizes have been quite small, due to the limited read lengths of next-generation sequencing (NGS) datasets.
-However, larger /kmer sizes are becoming more practical thanks to continuous improvements in the accuracy of long-read sequencing technologies, such as Oxford Nanopore Technologies (ONT), whose reads are approaching 1% error rates [@sereika2021oxford], and PacBio HiFi sequencing with error rates as small as 0.1% [@bankevich2022multiplex].
-These advancements enable the use of very large /kmer sizes in applications like genome assembly, /kmer analysis, and pangenomics.
-Conversely, very large /kmer sizes degrade the performance of traditional efficient encoding methods (unitigs, simplitigs, eulertigs...), as overlap sizes increase linearly with $k$.
-To address this challenge, we introduce the concept of */hkmers* as an alternative to /skmers, aiming to bridge the gap between dynamic and static representations.
-Compared to /skmers, /hkmer-based representations are 33% lighter while displaying similar properties.
-We demonstrate the practical interest of our approach by implementing and testing a new /kmer counting tool called KFC based on /hkmers.
-KFC is both the fastest and the more memory-efficient tool for large $k$'s ($k \geq 200$), being the only one being more efficient as $k$ increases.
-KFC supports `KFF`, a new standardized format for representing /kmer sets [@kff].
+We put /hkmers to work in KFC, a streaming /kmer counter available at <https://github.com/lrobidou/KFC> that uses /hkmers as primary storage.
+We describe the counting algorithm in @sec-kfc and compare KFC against existing /kmer counters in @sec-kfc-evaluation.
 
-The rest of the chapter is organized as follows.
-In @sec-skmer-definitions, we formally define the concepts of /kmers, minimizers, /skmers, /hkmers, and the main goal of our work.
-@sec-skmer-methods presents the theoretical analysis of /hkmers and details the algorithm and ideas behind our tool KFC.
-@sec-kfc-evaluation reports experimental results to assess KFC's performance compared to other /kmer counting tools.
-We conclude with discussions on possible future directions and general considerations.
+## Space analysis of /skmers and closed syncmers
 
-## Definitions and problem statement {#sec-skmer-definitions}
-
-In this section, we introduce the concepts at the basis of our exposition about /hkmers in @sec-skmer-methods.
-For the most part, we re-use the notation from @mod-mini and @sshash, which we report here for convenience.
-We considered strings defined over the alphabet $\Sigma = \{A, C, G, T\}$ of size $\sigma = 4$, and we use the terms *character*, *base* and *nucleotide* interchangeably.
-Let $S \in \Sigma^*$ be a (genomic) string.
-We refer to $S[i..j)$ as the substring of length $j - i$, starting at position $i$ (included) and ending at position $j$ (excluded).
-
-:::{#def-kmer}
-## /kmer
-
-/kmers are substrings $S[i..i+k)$ of fixed length $k$.
-:::
-
-:::{#def-order}
-## Order
-
-An order $\mathcal{O}_m$ on $m$-mers is an injective function $\mathcal{O}_m : \Sigma^m \rightarrow \mathbb{R}$, such that $x \leq_{\mathcal{O}_m} y$ if and only if $\mathcal{O}_m(x) \leq \mathcal{O}_m(y)$.
-:::
-
-In practice, (pseudo-)random hash functions $h : \Sigma^m \rightarrow U$ are used to define an order [@lphash], where $U$ is a sufficiently large universe of possible values, like $U = 2^{64}$ if using 64-bit hash functions.
-
-:::{#def-minimizer}
-## (Random) minimizer
-
-A minimizer of a /kmer $K$ is its minimal substring of length $m < k$ for a given (random) order $\mathcal{O}_m$.
-:::
-
-Minimizers have been widely studied in the literature [@schleimer2003winnowing; @roberts2004reducing; @mod-mini] and multiple selection methods, called *minimizer schemes*, have been proposed.
-The efficiency of a minimizer scheme is usually measured by its *density*.
-
-:::{#def-density}
-## Density of a minimizer scheme
-
-The density of a minimizer scheme is the expected proportion of selected minimizers over the number of $m$-mers in a random string.
-:::
-
-In particular, the density of random minimizers is equal to $d = 2 / (w + 1)$ [@schleimer2003winnowing], where $w = k - m + 1$ is the window size (the number of $m$-mers in a /kmer).
-Thus, two neighboring /kmers overlapping by $k-1$ bases often share the same minimizer.
-
-:::{#def-superkmer}
-## /Skmer
-
-A maximal sequence of consecutive /kmers having the same minimizer [@superkmers].
-:::
+We reuse the notation introduced in @sec-intro-minimizers: $\Sigma = \{A, C, G, T\}$ is the DNA alphabet of size $\sigma = 4$, $S \in \Sigma^*$ a genomic string, and $S[i..j)$ the substring of length $j - i$ starting at position $i$ (included) and ending at $j$ (excluded).
+/Kmers are substrings of fixed length $k$, and /skmers are maximal sequences of consecutive /kmers sharing the same minimizer of length $m < k$, drawn from a random order (@sec-skmers).
+We let $d$ denote the density of the chosen minimizer scheme (@def-density) and $w = k - m + 1$ the window size.
+In particular, random minimizers have density $d = 2 / (w + 1)$ [@schleimer2003winnowing], so two neighboring /kmers overlapping by $k - 1$ bases often share the same minimizer.
+We also introduce one notion that the /hkmer construction will need, the overlap between consecutive /skmers.
 
 :::{#def-overlap}
 ## Overlap of consecutive /skmers
@@ -124,21 +42,9 @@ A maximal sequence of consecutive /kmers having the same minimizer [@superkmers]
 Given two consecutive /skmers $u$ and $v$, we define the overlap of $u$ and $v$, denoted $\operatorname{ov}(u, v)$, as the $k - 1$ bases shared by the rightmost /kmer of $u$ and the leftmost /kmer of $v$.
 :::
 
-A straightforward method to reduce /kmer memory consumption is to store /skmers instead of /kmers.
-Let $\mathscr{S}$ be the set of /kmers of string $S$.
-Each character (base) in $S$ can be encoded using 2 bits since $\sigma = 4$.
-Thus, naively storing set $\mathscr{S}$ requires $2k$ bits per nucleotide in $S$ (each character in $S$ is covered by $k$ /kmers, except the extremities), whereas a /skmer representation only requires 6 bits per nucleotide [@fhs].
-While undoubtedly an improvement, /skmer space usage is still far away from the optimal achievable space of 2 bits per nucleotide of a completely (theoretical) linear representation of $\mathscr{S}$.
-The remaining overhead comes from the $k-1$ bases overlaps between neighboring /skmers.
-
-Our main goal is to find a representation of $\mathscr{S}$ whose space is < 6 bits per nucleotide.
-
-## Methods {#sec-skmer-methods}
-
-We start this section by introducing theoretical analysis of /skmers and their space requirements.
-Next, we do the same for closed syncmers [@syncmers].
-Syncmers have been shown to "pave" sequences better than other sampling techniques [@syncmers; @shibuya_efficient_2022], with a tendency to cover more bases than, e.g. minimizer-based sampling.
-Despite not being suitable for representing /kmer sets, we think our theoretical results on closed syncmers are useful to put /hkmers into perspective.
+This section establishes the asymptotic space cost of /skmers and closed syncmers, the two reference points that the /hkmer analysis in @sec-hkmers compares against.
+/Skmers are the direct baseline that /hkmers improve on.
+Closed syncmers, while not a stand-alone /kmer-set representation, are included as a comparison point: they pave sequences better than minimizer-based sampling [@syncmers; @shibuya_efficient_2022] and reach 4 bits per nucleotide.
 
 ### /Skmers {#sec-sk-space-analysis}
 
@@ -218,7 +124,7 @@ Since each closed syncmer has length $k$, the expected total number of bases is 
 In particular, for random minimizers, the number of bases in a set of closed syncmers is asymptotically equivalent to $|S| \cdot \frac{2 \cdot k}{k - m + 2} \sim 2 \cdot |S|$, for $k \gg m$.
 As such, closed syncmers require 2 bases per nucleotide in $|S|$, i.e. 4 bits for an alphabet of size 4.
 
-### /Hkmers {#sec-hkmer-space-analysis}
+## /Hkmers {#sec-hkmers}
 
 :::{#fig-schema-hkmer}
 ![](../fig/hkmer/schema-hkmer)
@@ -278,7 +184,7 @@ In particular, /hkmers require $\frac{2}{3}$ of the space used by /skmers for ra
 Comparison of the space usage of /skmers, closed syncmers and /hkmers.
 :::
 
-### Counting /kmers using /hkmers {#sec-kfc}
+## Counting /kmers using /hkmers {#sec-kfc}
 
 This section proposes /kmer counting as an application of /hkmers to a real-life use case.
 /Hkmers are used as a proxy for storing /kmer counts.
