@@ -27,7 +27,7 @@ We also examine the load-balancing problem that arises from skewed bucket size d
 The dictionary is organized as a collection of buckets, one per minimizer: each /kmer is routed to the bucket of its minimizer and stored implicitly inside one of the /skmers held there.
 Since all /skmers in a bucket share the same minimizer, we can avoid storing that minimizer in each /skmer.
 In a maximal /skmer, the position of the minimizer within the sequence is determined by the /skmer's length, so the minimizer can be omitted from the encoding and reconstructed on demand.
-This *lazy encoding* lowers the per-/kmer bit cost: a maximal /skmer of length $2k - m$ bases encodes on average $(k - m + 1)/2$ /kmers, giving a ratio of $\frac{8(k - m)}{k - m + 1}$ bits per /kmer, which for practical values of $k$ and $m$ is close to 8 bits.
+This *lazy encoding* lowers the per-/kmer bit cost: a maximal /skmer of length $2k - m$ bases encodes on average $(w + 1)/2$ /kmers, giving a ratio of $\frac{8(k - m)}{w + 1} = 8 \left(1 - \frac{1}{w+1}\right)$ bits per /kmer, which for practical values of $k$ and $m$ is slightly below 8 bits.
 
 To simplify memory management and allow constant-time access to any /skmer in a list, every /skmer is allocated at its maximum possible length of $2k - m$ bases, with padding where the sequence is shorter.
 This wastes some space compared to variable-length encoding, but avoids the overhead of storing and decoding per-/skmer lengths and makes the list amenable to binary search.
