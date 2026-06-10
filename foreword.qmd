@@ -20,7 +20,7 @@ I hope you'll enjoy reading&nbsp;it.
 :::
 
 :::{.content-visible when-format="pdf"}
-# Acknowledgements / Remerciements {.unnumbered}
+# Acknowledgements • Remerciements {.unnumbered}
 
 I would like to start by thanking all my international friends and colleagues I've had the chance to meet and work with, all these encounters have been an incredibly motivating factor during my PhD!
 Thank you Rob and everyone at UMD for giving me such a warm welcome despite the difficult times, I hope we'll have more opportunities to meet in the future.
