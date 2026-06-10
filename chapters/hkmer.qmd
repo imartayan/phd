@@ -30,11 +30,8 @@ We describe the counting algorithm in @sec-kfc and compare KFC against existing 
 
 ## Space analysis of /skmers and closed syncmers
 
-We reuse the notation introduced in @sec-intro-minimizers: $\Sigma = \{A, C, G, T\}$ is the DNA alphabet of size $\sigma = 4$, $S \in \Sigma^*$ a genomic string, and $S[i..j)$ the substring of length $j - i$ starting at position $i$ (included) and ending at $j$ (excluded).
-/Kmers are substrings of fixed length $k$, and /skmers are maximal sequences of consecutive /kmers sharing the same minimizer of length $m < k$, drawn from a random order (@sec-skmers).
-We let $d$ denote the density of the chosen minimizer scheme (@def-density) and $w = k - m + 1$ the window size.
-In particular, random minimizers have density $d = 2 / (w + 1)$ [@schleimer2003winnowing], so two neighboring /kmers overlapping by $k - 1$ bases often share the same minimizer.
-We also introduce one notion that the /hkmer construction will need, the overlap between consecutive /skmers.
+We use the notation of @sec-intro-minimizers throughout: $S$ is a random genomic string over $\Sigma = \{A, C, G, T\}$ with /kmer size $k$, minimizer size $m < k$, window size $w = k - m + 1$, and minimizer scheme density $d$, with random minimizers satisfying $d = 2 / (w + 1)$.
+We add one new notion, the overlap between consecutive /skmers.
 
 :::{#def-overlap}
 ## Overlap of consecutive /skmers
@@ -99,11 +96,7 @@ Thus, a /skmer scheme requires $3$ bases per nucleotide in $|S|$, i.e. 6 bits pe
 
 ### Closed syncmers {#sec-syncmer-space-analysis}
 
-:::{#def-closed-syncmer}
-## Closed syncmer
-
-A /kmer with a minimizer located at its start or its end.
-:::
+Recall from @sec-minimizer-conservation that a closed syncmer is a /kmer whose minimizer sits at its first or last position.
 
 :::{#thm-syncmer-space}
 ## Closed syncmer space usage
