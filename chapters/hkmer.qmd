@@ -119,13 +119,6 @@ As such, closed syncmers require 2 bases per nucleotide in $|S|$, i.e. 4 bits fo
 
 ## /Hkmers {#sec-hkmers}
 
-:::{#fig-schema-hkmer}
-![](../fig/hkmer/schema-hkmer)
-
-Example of minimizers, /skmers and /hkmers for $m=3$ and $k=11$ using lexicographic order.
-In this example, the original sequence contains 40 bases and /skmers use 70 bases while /hkmers use 50 bases.
-:::
-
 :::{#def-hyperkmer}
 ## /Hkmer
 
@@ -137,6 +130,13 @@ By convention, if $v$ has no predecessor in the sequence, we define its left par
 We can already make a few observations based on this definition: every /hkmer contains exactly $2 (k - 1)$ bases and given two consecutive /hkmers $x$ and $y$, the right part of $x$ and the left part of $y$ are identical.
 This means that we can effectively save $k-1$ bases for each pair of consecutive /hkmers.
 @fig-schema-hkmer gives an example of /hkmers and shows that their overlapping parts can be shared.
+
+:::{#fig-schema-hkmer}
+![](../fig/hkmer/schema-hkmer)
+
+Example of minimizers, /skmers and /hkmers for $m=3$ and $k=11$ using lexicographic order.
+In this example, the original sequence contains 40 bases and /skmers use 70 bases while /hkmers use 50 bases.
+:::
 
 :::{#thm-hkmer-space}
 ## /Hkmer space usage
@@ -164,12 +164,12 @@ Moreover, assuming $m = \Omega(\log_2(d|S|))$, the space overhead of the links b
 Space usage of /skmers and /hkmers for $k \in [30, 200]$, with random minimizers of size 21.
 :::
 
-These results, summarized in @tbl-space-usage, show that representing a set of /kmers using /hkmers is more space-efficient than /skmers and slightly more space-efficient than closed syncmers, regardless of the chosen minimizer scheme.
+These results, summarized in @tbl-space-usage, show that /hkmers are more space-efficient than /skmers regardless of the chosen minimizer scheme, and reach the same 4 bits per nucleotide asymptote as closed syncmers up to the logarithmic link overhead, while remaining a stand-alone /kmer-set representation.
 In particular, /hkmers require $\frac{2}{3}$ of the space used by /skmers for random minimizers, and this ratio gets even lower for minimizer schemes with a lower density.
 
 :::{#tbl-space-usage .large-table}
 | Representation | Expected number of bits / nucleotide | For random minimizers with $k \gg m = \Omega(\log_2(d|S|))$ |
-|:---|:----:|:---:|
+|:---|:---:|:--:|
 | /Skmers (@thm-sk-space) | $2 + 2 \cdot (k-1) \cdot d$ | 6 |
 | Closed syncmers (@thm-syncmer-space) | $2 \cdot k \cdot d$ | 4 |
 | /Hkmers (@thm-hkmer-space) | $2 \cdot (k-1) \cdot d + 2 \log_2(d|S|) \cdot d$ | 4 |
