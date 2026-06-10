@@ -72,10 +72,8 @@ $$
 \begin{aligned}
 \sum_{i=0}^{i<|S_{sk}|} |S_{sk}[i]|
   &= |S_{sk}| \times \sum_{i=0}^{i<|S_{sk}|} \frac{|S_{sk}[i]|}{|S_{sk}|} \\
-  &= (|S| - m + 1) \times d \times \sum_{i=0}^{i<|S_{sk}|} \frac{|S_{sk}[i]|}{|S_{sk}|}
-    && \text{(See @lem-sk-number)} \\
-  &= (|S| - m + 1) \times d \times \left( \frac{|S| - k + 1}{(|S| - m + 1) \times d} + k - 1 \right)
-    && \text{(See @lem-sk-length)} \\
+  &= (|S| - m + 1) \times d \times \sum_{i=0}^{i<|S_{sk}|} \frac{|S_{sk}[i]|}{|S_{sk}|} \\
+  &= (|S| - m + 1) \times d \times \left( \frac{|S| - k + 1}{(|S| - m + 1) \times d} + k - 1 \right) \\
   &\underset{|S| \to +\infty}{\sim} |S| \times d \times \left( \frac{1}{d} + k - 1 \right) \\
   &= |S| \cdot (1 + (k - 1) \cdot d)
 \end{aligned}
