@@ -212,7 +212,7 @@ This /skmer-level threshold is slightly more aggressive than a /kmer-level thres
 The effects of this heuristic are discussed in @sec-kfc-internal.
 
 As our algorithm works in a streaming fashion, at any time, only the index has to be maintained in memory whereas reads are only loaded on-demand.
-This allows our implementation to have a light memory footprint (see @sec-kfc-evaluation), and to be parallelized (see @fig-plot-ont-100x-multithread in Supplementary Materials).
+This allows our implementation to have a light memory footprint (see @sec-kfc-evaluation), and to be parallelized (see @fig-plot-ont-100x-multithread).
 
 KFC's algorithm is given in @alg-kfc.
 For clarity, we omit some details, such as how KFC handles subsequences in /hkmer parts.
@@ -369,14 +369,10 @@ KFC's auxiliary functions.
 In this section, we benchmark our proposed /kmer counter, KFC, based on /hkmers and compare it against other counters: Jellyfish [@jellyfish], KMC [@kmc1; @kmc2; @kmc3], FASTK [@fastk], Kaarme [@kaarme] and Gerbil [@gerbil].
 Our implementation is written in Rust and is publicly available at <https://github.com/lrobidou/KFC> with accompanying test scripts at <https://github.com/imartayan/KFC_experiments>.
 
-### Experimental setup
-
-We report the datasets used in this study and their characteristics in the Supplementary Materials (@tbl-datasets).
+We report the datasets used in this study and their characteristics in @tbl-datasets.
 The experiments were performed on a common laptop computer (Dell Inc. Precision 7780 with 13th Gen Intel® Core™ i9-13950HX × 32 and 64 GB RAM).
 
-### Results {#sec-kfc-results}
-
-#### Long reads whole genome sequencing datasets {#sec-kfc-longreads}
+### Long reads whole genome sequencing datasets {#sec-kfc-longreads}
 
 :::{#fig-combined-benchmark-all}
 
@@ -424,42 +420,21 @@ Each subfigure shows the memory usage and timing plots for different sequencing 
 /kmer counting benchmark on HiFi human gut datasets (SRR15275210, SRR15275211, SRR15275212, SRR15275213) downsampled at 15 gigabases, with unique /kmer filtering.
 :::
 
-In our initial set of experiments, we evaluate all tools using coverage around 100X of the *E. coli* genome with three distinct long-read methods: ONT duplex, ONT simplex, and HiFi.
-We tested a wide range of /kmer sizes, up to 1021, and present the results in @fig-combined-benchmark-all.
-Despite the varying error distributions among the methods, the tools exhibit similar overall behaviors.
-Kaarme maintains an almost constant memory usage but is significantly slower than the other tools.
-Due to timeouts, it is not tested across all /kmer sizes.
-Jellyfish shows a steadily increasing memory usage with $k$, outperforming FastK and KMC at larger /kmer sizes, although it is nearly always the second slowest in terms of runtime.
-KMC3 and FastK demonstrate very similar behaviors, with memory usage quickly approaching the available RAM.
-FastK uses less memory than KMC in low-error experiments, but has comparable memory consumption on the noisier simplex dataset.
-In terms of runtime, both tools behave similarly, with execution time increasing rapidly with $k$.
-Gerbil outperforms both FastK and KMC3 by using less memory and achieving faster runtimes but cannot handle /kmers larger than 512.
-KFC is unique in that it is the only tool to display both decreasing runtime and memory usage with increasing $k$.
-Consequently, for /kmer sizes above 200, KFC exhibits the lowest runtime and memory usage among all the tested tools.
-Experiments for different coverages are reported in the Supplementary material, without significant change in the tools' respective behaviors.
-We ran the same benchmark on two larger-scale metagenomic HiFi experiments, in order to assess the tools' behavior on larger, and more complex datasets.
-As a medium-scale experiment, we chose a HiFi Zymo Biomics community sequencing that comprises at least one order magnitude more distinct /kmers, as it contains 21 strains of 17 species.
-We sampled 5 Gigabases of accession SRR13128014 and report the results in @fig-plot-zymo-hifi.
-As a large-scale experiment, we chose the human gut metagenome HiFi sequencings used as metagenome assembly benchmark [@hifiasm-meta; @metamdbg] accessions SRR15275210, SRR15275211, SRR15275212, and SRR15275213.
-Pooled, assemblers estimate the genome content of these datasets between 700 and 900 megabases [@hifiasm-meta].
-We sampled 15 Gigabases of the four datasets pooled and report the results in @fig-plot-gut-hifi.
-Tests for the full dataset are shown in @fig-plot-gut-full of Supplementary materials.
+We first evaluate all tools at ~100X coverage of the *E. coli* genome across three long-read technologies (ONT duplex, ONT simplex, HiFi) and /kmer sizes up to 1021, reporting memory and runtime in @fig-combined-benchmark-all.
+All competitors degrade as $k$ grows: KMC3 and FastK quickly approach the available RAM with sharply increasing runtime, Gerbil is faster and lighter but capped at $k \le 512$, Jellyfish trades runtime for memory, and Kaarme keeps memory nearly constant at the cost of much slower runs and frequent timeouts.
+KFC is the only tool whose memory and runtime both decrease with $k$, taking the lead in both metrics from around $k = 200$.
 
-One might question how much of the observed improvement is due to the loss of certain /kmers resulting from the /skmer filtering heuristic.
-To confirm the validity of our approach, we conduct the same experiment without unique /kmer filtering, i.e., counting all /kmers and therefore without /skmer filtering.
-The results are shown in Supplementary materials (@fig-combined-benchmark-nofilter).
-We observe that Jellyfish's performance remains unchanged, while FastK and KMC's performance significantly degrades in both time and memory usage.
-While KFC is indeed slower and more memory-intensive without the /skmer filtering heuristic, it remains competitive even when compared to its competitors that filter unique /kmers.
+We confirmed these trends on two larger HiFi metagenomic benchmarks.
+@fig-plot-zymo-hifi reports on a Zymo Biomics community sample of 21 strains across 17 species, with 5 Gb sampled from accession `SRR13128014`.
+@fig-plot-gut-hifi reports on a human gut metagenome used as assembly benchmark in [@hifiasm-meta; @metamdbg] with estimated genome content of 700-900 Mb, where we pooled 15 Gb from accessions `SRR15275210`-`SRR15275213`.
+Tool behavior across coverages and on the full gut dataset is unchanged, with details in @fig-combined-benchmark-coverage and @fig-plot-gut-full.
 
-#### Pangenome /kmer analysis {#sec-kfc-pangenome}
+To check that KFC's advantage doesn't come from the /skmer filtering heuristic alone, we repeated the experiment without filtering (@fig-combined-benchmark-nofilter): Jellyfish is unaffected, FastK and KMC degrade further in time and memory, while KFC remains competitive even against the tools that still filter.
 
-In a distinct experiment reported in @fig-plot-salmo, we run the different tools on one thousand *S. enterica* complete genomes from NCBI to evaluate the cost of counting large /kmers for pangenome analysis.
-We observe that KFC remains the most memory-efficient tool, followed by FastK and then KMC.
-Regarding runtime, KFC becomes the fastest tool for very large /kmer sizes (above 500), despite its currently limited multithreading efficiency compared to KMC when processing low amounts of sequences.
-This suggests the need for further software engineering improvements for KFC, as it is not yet mature.
-Notably, when using a lower number of threads, KFC becomes the fastest tool.
-Additionally, FastK's runtime increases rapidly with k.
-These findings highlight the advantage of KFC in handling genome collections without filtering.
+### Pangenome /kmer analysis {#sec-kfc-pangenome}
+
+On one thousand *S. enterica* complete genomes from NCBI (@fig-plot-salmo), KFC remains the most memory-efficient tool, ahead of FastK and KMC.
+For very large /kmer sizes ($k > 500$) KFC also becomes the fastest, although its multithreading efficiency (analyzed in @sec-kfc-multithread) lags behind KMC on small input sizes, so it leads only when running on fewer threads.
 
 :::{#fig-plot-salmo layout-ncol=2}
 ![Memory usage](../fig/hkmer/plots/salmomem){#fig-sub-mem}
@@ -469,21 +444,13 @@ These findings highlight the advantage of KFC in handling genome collections wit
 /kmer counting benchmark on one thousand *S. enterica* complete genomes.
 :::
 
-#### Internal evaluations {#sec-kfc-internal}
+### /Skmer threshold heuristic {#sec-kfc-internal}
 
-In this section, we present several internal experiments to evaluate key implementation aspects of KFC.
-
-We evaluated the /skmer abundance threshold heuristic by analyzing the number of /kmers lost when applying the unique /skmer removal heuristics (@fig-plot-lost).
-The number of "lost" /kmers decreases exponentially as the abundance threshold increases, with greater loss at low coverage and for larger /kmer sizes.
-This loss is more significant at low coverage levels, particularly for larger /kmer sizes.
-Similar to classical /kmer abundance filtering, higher error rates significantly impact the mean coverage of genomic /kmers, resulting in greater /kmer loss at high error rates compared to low error rates.
-Although the proportion of lost /kmers may seem substantial, we argue that most of these are low-abundance ones and thus likely erroneous.
-To substantiate this claim, we count the number of /kmers from the reference genome that are absent in both KMC and KFC outputs, considering different /kmer sizes and abundance thresholds (@fig-plot-lost-genomic).
-At low /kmer abundance thresholds, KFC filters more /kmers than KMC; however, as the /kmer abundance threshold increases, both methods exhibit similar behaviors, with the number of filtered /kmers remaining relatively low.
-We repeated the experiment using a dataset with a HiFi error rate (0.1%) and observed no differences between the outputs of KMC and KFC.
-This confirms that the /skmer abundance threshold, while slightly more aggressive than the /kmer-level threshold, remains conservative enough to maintain accuracy while delivering substantial performance improvements.
-
-We also report the efficiency of KFC's multithreading in the Supplementary Materials, @sec-kfc-multithread.
+We evaluate the /skmer abundance threshold by measuring how many /kmers are dropped at each threshold (@fig-plot-lost).
+The proportion of lost /kmers decreases exponentially with the threshold, and increases at lower coverage, larger /kmer sizes, and higher error rates, mirroring classical /kmer abundance filtering.
+To check that the lost /kmers are erroneous rather than genomic, we count the genomic /kmers absent from both KMC and KFC outputs across thresholds and /kmer sizes (@fig-plot-lost-genomic).
+KFC drops a few more genomic /kmers than KMC at low thresholds, but both methods converge as the threshold rises; on a dataset with a HiFi error rate (0.1%), KMC and KFC outputs match exactly.
+The /skmer-level threshold is therefore slightly more aggressive than a /kmer-level threshold but conservative enough to preserve accuracy.
 
 :::{#fig-plot-lost layout-ncol=2}
 ![HiFi dataset](../fig/hkmer/plots/losthifi100x.png){#fig-sub-hifi}
