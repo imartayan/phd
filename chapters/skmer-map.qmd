@@ -6,7 +6,7 @@ This chapter is partially adapted from {{< longcite brisk >}}, currently under r
 Yoann Dufresne and Antoine Limasset designed the original prototype.
 Caleb Smith improved and completed the implementation.
 We discussed algorithmic improvements together and I wrote experiments scripts.
-I present additional ideas for deduplication strategies that were not discussed in the original paper.
+The final section presents my ongoing work on deduplication strategies, not part of the original paper.
 :::
 
 - trim the article to focus on interleaved /skmer representation
@@ -24,6 +24,7 @@ The first is lookup: given a /kmer, finding it efficiently inside a bucket of /s
 The second is representation: when a /kmer contains more than one occurrence of its minimizer, the choice of which occurrence to use must be made deterministically, or the same /kmer can end up encoded differently depending on the parsing context.
 The main contributions of this chapter are a solution to both problems: a deterministic minimizer selection procedure that covers all edge cases, and a novel /skmer encoding called the *interleaved transform* that enables binary search within a bucket.
 We also examine the load-balancing problem that arises from skewed bucket size distributions, and place the /skmer-level approach in relation to the /kmer-level approach of the previous chapter.
+These ideas are implemented in Brisk, available at <https://github.com/Malfoy/Brisk>.
 
 ## Interleaved /skmers {#sec-interleaved-skmer-map}
 
@@ -111,22 +112,21 @@ The threshold therefore acts as a tradeoff between insertion and query throughpu
 
 ## Super-/kmer versus /kmer level representation {#sec-comparison-skmer-map}
 
-The /kmer-level approach taken by CBL and the /skmer-level approach described here reflect a fundamental choice in how to organize a dynamic /kmer dictionary.
+The structure presented in @sec-necklaces for CBL and the one described in this chapter represent two distinct approaches to organizing a dynamic /kmer dictionary: one stores each /kmer as an independent record, the other groups them implicitly inside /skmers.
 
-In a /kmer-level structure, each /kmer is an independent record.
-Insertion, lookup, and deletion each act on exactly one entry.
-CBL exploits the necklace equivalence and a prefix/suffix decomposition to approach the information-theoretic lower bound per distinct /kmer, while still supporting in-place set operations.
-The operations are clean: because every /kmer maps to a unique canonical representative, deduplication is structural rather than a separate concern.
+In a /kmer-level structure, each /kmer is an independent record, and insertion, lookup, and deletion each act on exactly one entry.
+This conceptual simplicity also enables straightforward optimizations: as discussed in @sec-set-ops, CBL's sorted-iterator layout supports efficient in-place set operations while remaining memory-efficient.
+Because every /kmer maps to a unique canonical representative, deduplication is structural rather than a separate concern.
 
 In a /skmer-level structure, /kmers are stored implicitly inside longer strings.
 The benefit is that neighboring /kmers sharing a minimizer are encoded together, and the shared minimizer is not repeated.
-This yields a lower bits-per-/kmer footprint, and insertion is streaming-friendly since a new /skmer is placed directly into the appropriate bucket without decomposing it into individual /kmers.
+This gives a lower bits-per-/kmer footprint, and insertion is streaming-friendly since a new /skmer is placed directly into the appropriate bucket without decomposing it into individual /kmers.
 
-The main cost is that the same /kmer can in principle appear in multiple /skmers.
-This happens when the same /kmer arises from overlapping reads or is inserted more than once via different /skmers.
+The main cost is that the same /kmer can in principle appear in multiple /skmers, typically when the same region is covered by overlapping reads.
 In CBL, deduplication is inherent since each /kmer maps to a unique necklace and a unique bucket entry.
 In a /skmer structure, deduplication requires either a membership test before every insertion (which partially erases the throughput advantage) or a post-processing step that is incompatible with streaming use.
 This remains an open problem and the primary structural limitation of the /skmer-level approach.
+We explore several directions for addressing it in @sec-skmer-dedup.
 
 A second consideration is the granularity of per-/kmer operations.
 In a /kmer-level structure, the annotation or count associated with a single /kmer can be updated in isolation.
@@ -136,7 +136,6 @@ For applications that revisit /kmers frequently or require deletion, the /kmer-l
 
 ## Performance in practice {#sec-results-skmer-map}
 
-The structure described above is implemented in Brisk, available at <https://github.com/Malfoy/Brisk>.
 The memory savings from lazy encoding and superbuckets translate into a substantially lower footprint than a plain hash table across dataset sizes, as shown in @fig-brisk-mainplot for $k = 31$.
 The gap widens for larger $k$ since the minimizer then represents a smaller fraction of each /kmer, and the savings from omitting it are proportionally greater.
 Construction throughput in the single-threaded setting is competitive with a standard hash map for $k = 31$ (@fig-brisk-mainplot), confirming that the binary search overhead is not a bottleneck in practice.
