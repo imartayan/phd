@@ -350,8 +350,8 @@ It is advantageous as it implies that its density is not subject to the lower bo
 As showed in upcoming @sec-multimini-density, the multiminimizer scheme does indeed beat this lower bound, and approach density of $1/w$ as $N$ increases.
 This gain in density comes at the price of (bounded) increased query time, as per the discussion above.
 
-Finally, note that the multiminimizer trick is not limited to random minimizer schemes, but could be used with any combination of $N$ distinct local schemes (whether by varying parameters or using concurrent schemes) -- in that sense, multiminimizers are a sort of *meta* scheme.
-To illustrate this point, in upcoming @sec-multimini-results, we investigate two implementations of the multiminimizer trick, one with random minimizers, and the other with open-closed mod-minimizers [@ocmm].
+Finally, note that the multiminimizer construction is not limited to random minimizer schemes, but could be used with any combination of $N$ distinct local schemes (whether by varying parameters or using concurrent schemes) -- in that sense, multiminimizers are a sort of *meta* scheme.
+To illustrate this point, in upcoming @sec-multimini-results, we investigate two implementations of the multiminimizer construction, one with random minimizers, and the other with open-closed mod-minimizers [@ocmm].
 
 ## On deduplicated density {#sec-multimini-dedup-density}
 
@@ -468,7 +468,7 @@ Finally, we provide some results in @sec-multimini-pin on multiminimizers applie
 
 ### Density {#sec-multimini-density}
 
-As discussed in @sec-multimini-method, the multiminimizer trick aims at reducing the density of any local scheme.
+As discussed in @sec-multimini-method, the multiminimizer construction aims at reducing the density of any local scheme.
 We expect to reduce the density when increasing the number of hash functions.
 The intuition is that increasing the number of /skmer candidates increases the chance of finding a /skmer that ends further than the others, thus increasing the distance between consecutive selected positions.
 
@@ -479,7 +479,7 @@ Figures for additional $m$ and $w$ values are available in @sec-multimini-app-mo
 
 Although multiminimizers are not a local scheme, we have observed that the empirical density $\hat{d}$ and the empirical average distance between selected positions $\hat{\mu}$ were indeed related as $\hat{d} \approx 1/\hat{\mu}$, hence showing that @thm-multimini-density-distance might apply beyond the scope of local schemes.
 
-To show that our multiminimizer trick can be applied to other schemes than random minimizers, we applied it to the open-closed mod-minimizer [@ocmm] to obtain a proof-of-concept of a multi open-closed mod-minimizer scheme (MOCMM for short).
+To show that the multiminimizer construction can be applied to other schemes than random minimizers, we applied it to the open-closed mod-minimizer [@ocmm] to obtain a proof-of-concept of a multi open-closed mod-minimizer scheme (MOCMM for short).
 @fig-multimini-density-mocmm shows that this novel scheme achieves a lower density than the multiminimizers on a random sequence.
 At the time of writing, the library we used to compute the minimizer scheme does not support the open-closed mod-minimizer scheme.
 Therefore, we used a non-SIMD implementation, making it much slower.
@@ -503,15 +503,15 @@ This convergence seems intuitive since, when the number of hash functions become
 Since the space usage of a /skmer representation of a sequence is driven by the density of the underlying scheme [@hyperkmers, Thm. 1], we can translate a density reduction to a linear /skmer representation.
 @fig-multimini-superkmer-space shows the space usage of a /skmer representation of multiminimizers, whereas @fig-multimini-sk-mocmm provides the same information for MOCMMs, both for multiple numbers of hash functions and $k$ values.
 
-Ideally, to represent a sequence over an alphabet of size 4 (e.g., a DNA sequence $S$), one could use only 2 bits per nucleotide in $S$.
-However, /skmers use as low as 6 bits per nucleotide in $S$.
-/hkmers [@hyperkmers] were recently introduced and tend toward 4 bits per nucleotide in $S$ when using a random-minimizer-based /hkmer representation.
-This is still higher than the lower bound of 2 bits per nucleotide, due to random minimizers having a density of $\frac{2}{w+1}$.
+Ideally, to represent a sequence over an alphabet of size 4 (e.g., a DNA sequence $S$), one could use only 2 /bpk in $S$.
+However, /skmers use as low as 6 /bpk in $S$.
+/hkmers [@hyperkmers] were recently introduced and tend toward 4 /bpk in $S$ when using a random-minimizer-based /hkmer representation.
+This is still higher than the lower bound of 2 /bpk, due to random minimizers having a density of $\frac{2}{w+1}$.
 
-Since our multiminimizer scheme approaches a density of $\frac{1}{w}$, using a multiminimizer scheme could allow /hkmers to tend toward 2 bits per nucleotide in the input sequence.
+Since our multiminimizer scheme approaches a density of $\frac{1}{w}$, using a multiminimizer scheme could allow /hkmers to tend toward 2 /bpk in the input sequence.
 To test this hypothesis, we replaced the iterator over minimizer of KFC (a /hkmer-based /kmer counter introduced in [@hyperkmers]) by our iterator over multiminimizer and report the result in @fig-multimini-size-hyperkmer.
 Note that KFC is optimized for large $k$ values (e.g. > 60), so we tested our hypothesis in this range.
-Our results show that KFC converges to 2 bits per base in $S$.
+Our results show that KFC converges to 2 /bpk in $S$.
 To the best of our knowledge, this is the first streaming /kmer representation to achieve it.
 
 :::{#fig-multimini-space layout-ncol=2}
@@ -521,8 +521,8 @@ To the best of our knowledge, this is the first streaming /kmer representation t
 
 ![/Hkmer representation + multiminimizers.](../fig/multimini/space_hk_mm){#fig-multimini-size-hyperkmer}
 
-Number of bits per /kmer for different representations of a random read, with $m=21$, depending on $k$ and the number of hash functions used with the multiminimizer trick.
-Increasing the number of hash functions allows the /hkmer representation (c) to converge to 2 bits/kmer, the minimum required to represent a DNA sequence.
+Number of /bpk for different representations of a random read, with $m=21$, depending on $k$ and the number of hash functions used with the multiminimizer construction.
+Increasing the number of hash functions allows the /hkmer representation (c) to converge to 2 /bpk, the minimum required to represent a DNA sequence.
 :::
 
 ### Pin: a multiminimizer approach to Needle-like applications {#sec-multimini-pin}
