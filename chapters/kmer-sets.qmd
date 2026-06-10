@@ -106,12 +106,12 @@ The resulting sequence of character subsets, one entry per /kmer, is the SBWT.
 @fig-sbwt illustrates the construction on a small example.
 
 :::{#fig-sbwt}
-![](../fig/intro/sbwt)
+![](../fig/intro/sbwt){width=80%}
 
-Example of SBWT construction on a small /kmer set, from @survey-kmer-sets.
+Example of SBWT construction on a small /kmer set, courtesy of Camille Marchet.
 The /kmers are sorted colexicographically, as listed on the right.
-Only the first /kmer in each length-$(k-1)$ suffix group carries the outgoing edge subset, while the other edges (dashed in red) are pruned.
-After construction, the SBWT only retains the subsets of outgoing edge labels, listed in orange on the right.
+Only the first /kmer in each length-$(k-1)$ suffix group (highlighted in red) carries the outgoing edge subset, while the other edges (dashed in blue) are pruned.
+After construction, the SBWT only retains the subsets of outgoing edge labels, listed on the right.
 Note that this figure omits the dollar-padded prefix /kmers for clarity.
 :::
 
