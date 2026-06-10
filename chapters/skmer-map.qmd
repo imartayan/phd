@@ -84,28 +84,30 @@ In practice, the minimizer occupies an interior position for the large majority 
 
 The interleaved sort provides sublinear lookup within a bucket, but the benefit is diluted when bucket sizes are highly skewed.
 As established in @sec-kmer-sets, minimizer partition sizes are highly non-uniform in practice: a small fraction of minimizers attract a disproportionately large number of /skmers, and these very large buckets can dominate overall query time even when the average size is moderate.
+The challenge is to flatten this distribution without breaking the bucket abstraction that makes binary search possible.
 
 ### Superbuckets via bijective hashing
 
-Applying a hash function to minimizer values would spread them uniformly across buckets, but a surjective hash introduces collisions between distinct minimizers, which is unacceptable for an exact structure.
-A bijective hash, a reversible permutation over minimizer values, achieves the same uniformity without any loss of information.
+Applying a hash function to minimizer values would spread them uniformly across buckets, but a surjective hash introduces collisions between distinct minimizers, which is incompatible with an exact structure.
+We use a bijective hash instead, a reversible permutation over minimizer values, which achieves the same uniformity while letting us recover the original minimizer from its hashed value.
 
-Building on this, we group the $4^m$ possible minimizer buckets into $4^b$ superbuckets by using the first $b$ bits of each hashed minimizer value as the superbucket index.
-Because the permutation distributes minimizer values uniformly, each superbucket aggregates $4^{m-b}$ original buckets and superbucket sizes are far less skewed than individual bucket sizes.
+We then group the $4^m$ possible minimizer buckets into $4^b$ superbuckets by using the first $b$ bits of each hashed minimizer value as the superbucket index.
+Each superbucket aggregates $4^{m-b}$ original buckets, and because the permutation distributes minimizer values uniformly, superbucket sizes are far less skewed than individual bucket sizes.
 @fig-brisk-superbucketsexamples shows the successive construction steps.
 
 Within a superbucket, /skmers from different minimizer buckets remain distinguishable because the full interleaved form starts with the hashed minimizer, which is distinct across buckets.
 Binary search therefore traverses the minimizer prefix at no extra cost before entering the bucket-specific portion of the sorted list.
-The original minimizer can always be recovered from the hashed value because the permutation is invertible.
 
 ![Construction steps of a superbucket. Minimizers are highlighted in yellow. Plain /skmers (1) are rewritten in interleaved form (2), the minimizer is replaced by its hashed value (3), the common superbucket prefix is made implicit (4), and the list is sorted (5).](../fig/brisk/superbuckets){#fig-brisk-superbucketsexamples}
 
 ### Sorting and buffering
 
-Maintaining a strictly sorted list on every insertion would require an $\mathcal{O}(S)$ shift per operation, which is expensive as buckets grow.
-A practical solution is to keep a small unsorted buffer alongside the sorted list: new /skmers enter the buffer and are scanned linearly until the buffer reaches its capacity, at which point the combined list is sorted and the buffer is cleared.
-This amortizes sorting cost across many insertions without changing asymptotic lookup time.
-A larger buffer improves insertion throughput at the cost of slower scans during the buffer-filling phase, making the buffer size a tunable time-memory tradeoff.
+Maintaining a strictly sorted list on every insertion would require an $\mathcal{O}(S)$ shift per operation, which becomes expensive as buckets grow.
+A practical solution is to keep a small unsorted buffer alongside the sorted list.
+New /skmers enter the buffer and are scanned linearly until 1000 new entries have accumulated, at which point only the new chunk is sorted and merged into the existing sorted portion via `std::inplace_merge`.
+This amortizes sorting cost across many insertions without changing asymptotic lookup time, and avoids ever re-sorting the full list.
+A larger threshold reduces sorting frequency and speeds up insertion, but slows queries because more candidates must be scanned linearly before the sorted portion is searched.
+The threshold therefore acts as a tradeoff between insertion and query throughput.
 
 ## Super-/kmer versus /kmer level representation {#sec-comparison-skmer-map}
 
