@@ -136,6 +136,10 @@ This same array also enables the SBWT to compute *matching statistics* between a
 
 ## Masked superstrings {#sec-kmer-ms}
 
+:::{.callout-note}
+As this approach was published recently, it was not included in our comparisons in the following chapters.
+:::
+
 Masked superstrings [@masked-superstring-kmer] generalize spectrum-preserving string sets by allowing the representation to include /kmers absent from the input, saving space at the cost of introducing spurious /kmers.
 A bitmask is added to resolve the resulting ambiguity: a *masked superstring* is a pair $(S, M)$ where $S$ is a single string containing all /kmers of the indexed set $K$ as substrings, and $M$ is a binary mask indicating which /kmer occurrences in $S$ are *active*, i.e. belong to $K$.
 Conceptually, this replaces the de Bruijn graph with an overlap graph admitting edges of any length, providing better compression power when the /kmer set does not follow the spectrum-like property, as in subsampled or high-diversity metagenomic data.

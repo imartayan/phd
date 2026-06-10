@@ -136,6 +136,10 @@ Plot of the density of multiple minimizer schemes, along with the lower bound fo
 
 ## Other variants
 
+:::{.callout-note}
+As these approaches were published recently, they were not included in the following chapters.
+:::
+
 ### Finimizers
 
 Finimizers [@finimizers] are variable-length minimizers that ensure that the frequency of each selected /kmer stays below a given threshold.
