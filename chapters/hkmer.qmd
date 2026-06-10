@@ -6,15 +6,6 @@ This chapter is adapted from {{< longcite hyperkmers >}}, accepted to RECOMB 202
 Lucas Robidou and I contributed equally to this work.
 :::
 
-TBA
-
-- trim introduction
-- highlight pros and cons compared to /skmers (more compact but split, more bookkeeping)
-- emphasize differences with unitigs-based approaches (esp. the need to deduplicate)
-- discuss the contexts in which large *k* values are (not) relevant
-
----
-
 The previous chapters built /kmer dictionaries on top of contiguous /skmers, one bucket per minimizer.
 At the /kmer sizes most prior work is calibrated for, around $k = 31$, the per-/kmer cost of this layout is moderate.
 It degrades as $k$ grows: each /skmer carries $k - 1$ bases of overlap with each of its two neighbors, so a /skmer representation asymptotes to 6 bits per nucleotide as discussed in @sec-skmers, three times the 2-bit lower bound.
@@ -468,22 +459,24 @@ Right: simulated ONT dataset with 100× coverage and 1% error rate.
 Amount of filtered genomic /kmers by KFC and KMC according to the abundance threshold and /kmer size, on a simulated 100× ONT *E. coli* dataset with 1% error rate.
 :::
 
-## Conclusions and future work {#sec-kfc-conclusion}
+## Conclusions and perspectives {#sec-kfc-conclusion}
 
-In this work, we studied the problem of memory-efficient /kmer set representations and proposed a novel solution, */hkmers*, which aims to reduce space redundancy caused by /kmer overlaps.
-Theoretical analysis and practical experiments demonstrate that /hkmers are more succinct than their direct competitor, */skmers*, achieving space usage closer to sampling techniques such as syncmers, while still providing a direct /kmer representation.
-/Hkmers represent sequences as collections of minimizers and the sequences between them.
-This approach reduces /kmer overlaps and, consequently, theoretically allows /hkmers to achieve a space usage of 4 bits per (DNA) base.
-We implemented a novel /kmer counter, KFC, based on /hkmers, which shows excellent performance.
-For large $k$ values (e.g. $k \geq 200$), KFC outperforms all competitors in both speed and memory usage, and uniquely becomes more efficient for increasing /kmer sizes.
-Since longer /kmers are expected to become more relevant in the coming years---thanks to steadily improving sequencing technologies leading to longer and less error-prone reads---we believe that /hkmers and KFC are future-proof solutions.
+This chapter introduced /hkmers as a streaming, partitioned alternative to /skmers for large /kmer sizes.
+By sharing each $k - 1$ base overlap between consecutive /skmers rather than duplicating it, /hkmers asymptotically reach 4 bits per nucleotide, two thirds of the /skmer cost.
+This matches the closed-syncmer asymptote while /hkmers remain a stand-alone /kmer-set representation.
+We translated this representation to a practical /kmer counter, KFC, which becomes both the fastest and the most memory-efficient tool past $k \approx 200$.
 
-Several improvements are possible.
-First, although our theoretical analysis shows that /hkmers are a direct improvement over /skmers, they are still more space-consuming than the theoretical lower bound of 2 bits per nucleotide.
-Finding an optimal representation that achieves this lower bound remains an open question.
-Second, our current implementation of /hkmers does not scale well to short $k$ values.
-Smaller $k$'s are harder to optimize due to the large number of collisions between minimizers and contexts.
-While very small $k$'s ($k < 16$) are manageable with a simple hash table storing /kmers individually, /kmer lengths in the range 17 to 63 could still benefit from dynamic linear set representations like /hkmers.
-Developing such a solution remains an open question.
-Finally, as mentioned in @sec-kfc, the current version of KFC is based on a two-pass algorithm that discards /kmers belonging to non-solid /skmers if no minimizer is shared with any solid /skmer.
-While this heuristic is extremely efficient, handling this corner case is another direction for future improvements.
+This compactness comes at two structural costs relative to /skmers.
+Each /hkmer is now a pair of pointers into a shared pool of left and right parts rather than a contiguous string, so access carries one extra indirection per side along with the corresponding bookkeeping.
+The representation is also no longer self-contained at the /kmer level: a given /kmer can be covered by multiple /hkmers when the sequence is revisited, so applications that require a unique representation must deduplicate explicitly.
+This last point parallels the limitation that the /skmer-level dictionary of @sec-skmer-maps faces, and resolving it cleanly for either representation remains open work.
+
+Compared to the static unitig-based representations of @sec-intro-kmers, which approach the 2-bit lower bound but require a separate counting pass and dissolve the per-minimizer partitioning, /hkmers preserve both the streaming construction and the bucket structure that downstream indexes rely on for cache-friendly access and load balancing.
+The cost is the explicit deduplication step, and /hkmers therefore sit structurally between /skmers and static SPSS representations.
+
+Several directions remain open.
+The asymptotic 4 bits per nucleotide of /hkmers is still twice the lower bound of 2 bits, and finding a representation that achieves this lower bound while keeping streaming construction is an open question.
+At the other end of the /kmer size spectrum, /hkmers do not scale well to small $k$, where the smaller minimizer size leaves many distinct /hkmer contexts under each minimizer bucket and bucket scans dominate the cost.
+Lengths below 16 can be handled by a plain hash table on /kmers themselves, but the range 17 to 63 is not well served by either approach and is a natural target for future work on dynamic linear representations.
+Finally, the current KFC algorithm discards /kmers belonging to non-solid /skmers that share no minimizer with a solid /skmer, as discussed in @sec-kfc.
+This heuristic is highly efficient in practice, but handling the corner case without losing performance would close the small accuracy gap with /kmer-level filtering.
