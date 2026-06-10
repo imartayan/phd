@@ -1,3 +1,3 @@
 # A forward scheme for canonical minimizers {#sec-appendix-forward-canonical}
 
-TBA
+This appendix will be completed later.
