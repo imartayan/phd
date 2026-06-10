@@ -395,22 +395,6 @@ Comparison of /kmer counting benchmarks on different *E. coli* datasets, with un
 Each subfigure shows the memory usage and timing plots for different sequencing technologies.
 :::
 
-:::{#fig-plot-zymo-hifi layout-ncol=2}
-![Memory usage](../fig/hkmer/plots/zymohifi100xmem){#fig-sub-mem}
-
-![Running time](../fig/hkmer/plots/zymohifi100xtime){#fig-sub-time}
-
-/kmer counting benchmark on HiFi Zymo community dataset (SRR13128014) downsampled at 5 gigabases, with unique /kmer filtering.
-:::
-
-:::{#fig-plot-gut-hifi layout-ncol=2}
-![Memory usage](../fig/hkmer/plots/guthifimem){#fig-sub-mem}
-
-![Running time](../fig/hkmer/plots/guthifitime){#fig-sub-time}
-
-/kmer counting benchmark on HiFi human gut datasets (SRR15275210, SRR15275211, SRR15275212, SRR15275213) downsampled at 15 gigabases, with unique /kmer filtering.
-:::
-
 We first evaluate all tools at ~100X coverage of the *E. coli* genome across three long-read technologies (ONT duplex, ONT simplex, HiFi) and /kmer sizes up to 1021, reporting memory and runtime in @fig-combined-benchmark-all.
 All competitors degrade as $k$ grows: KMC3 and FastK quickly approach the available RAM with sharply increasing runtime, Gerbil is faster and lighter but capped at $k \le 512$, Jellyfish trades runtime for memory, and Kaarme keeps memory nearly constant at the cost of much slower runs and frequent timeouts.
 KFC is the only tool whose memory and runtime both decrease with $k$, taking the lead in both metrics from around $k = 200$.
@@ -421,19 +405,7 @@ We confirmed these trends on two larger HiFi metagenomic benchmarks.
 Tool behavior across coverages and on the full gut dataset is unchanged, with details in @fig-combined-benchmark-coverage and @fig-plot-gut-full.
 
 To check that KFC's advantage doesn't come from the /skmer filtering heuristic alone, we repeated the experiment without filtering (@fig-combined-benchmark-nofilter): Jellyfish is unaffected, FastK and KMC degrade further in time and memory, while KFC remains competitive even against the tools that still filter.
-
-### Pangenome /kmer analysis {#sec-kfc-pangenome}
-
-On one thousand *S. enterica* complete genomes from NCBI (@fig-plot-salmo), KFC remains the most memory-efficient tool, ahead of FastK and KMC.
-For very large /kmer sizes ($k > 500$) KFC also becomes the fastest, although its multithreading efficiency (analyzed in @sec-kfc-multithread) lags behind KMC on small input sizes, so it leads only when running on fewer threads.
-
-:::{#fig-plot-salmo layout-ncol=2}
-![Memory usage](../fig/hkmer/plots/salmomem){#fig-sub-mem}
-
-![Running time](../fig/hkmer/plots/salmotime){#fig-sub-time}
-
-/kmer counting benchmark on one thousand *S. enterica* complete genomes.
-:::
+The same picture extends to a pangenome regime: on one thousand *S. enterica* complete genomes (@sec-kfc-pangenome), KFC keeps the lead in memory across all /kmer sizes and becomes the fastest tool past $k = 500$.
 
 ### /Skmer threshold heuristic {#sec-kfc-internal}
 

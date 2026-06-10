@@ -26,6 +26,26 @@ Our results demonstrate that KFC effectively utilizes multi-core architectures, 
 Multi-core usage efficiency of KFC on the 100× HiFi E. coli dataset.
 :::
 
+## Metagenomic benchmarks {#sec-kfc-metagenomic}
+
+@fig-plot-zymo-hifi and @fig-plot-gut-hifi confirm the trends of @sec-kfc-longreads on two larger HiFi metagenomic datasets.
+
+:::{#fig-plot-zymo-hifi layout-ncol=2}
+![Memory usage](../fig/hkmer/plots/zymohifi100xmem){#fig-sub-mem}
+
+![Running time](../fig/hkmer/plots/zymohifi100xtime){#fig-sub-time}
+
+/kmer counting benchmark on HiFi Zymo community dataset (SRR13128014) downsampled at 5 gigabases, with unique /kmer filtering.
+:::
+
+:::{#fig-plot-gut-hifi layout-ncol=2}
+![Memory usage](../fig/hkmer/plots/guthifimem){#fig-sub-mem}
+
+![Running time](../fig/hkmer/plots/guthifitime){#fig-sub-time}
+
+/kmer counting benchmark on HiFi human gut datasets (SRR15275210, SRR15275211, SRR15275212, SRR15275213) downsampled at 15 gigabases, with unique /kmer filtering.
+:::
+
 ## Effect of coverage {#sec-kfc-coverage}
 
 @fig-combined-benchmark-coverage shows benchmarks similar to @fig-combined-benchmark-all but at various coverage levels, without significant change in the relative behaviors of the tools.
@@ -75,4 +95,17 @@ They are similar to @fig-combined-benchmark-all, but without filtering unique /k
 
 Comparison of /kmer benchmarks on different E. coli datasets without any filtering.
 Each subfigure shows the memory usage and timing plots for different sequencing technologies.
+:::
+
+## Pangenome benchmark {#sec-kfc-pangenome}
+
+We evaluate the tools on one thousand *S. enterica* complete genomes from NCBI to assess the cost of counting large /kmers across a pangenome (@fig-plot-salmo).
+KFC remains the most memory-efficient tool ahead of FastK and KMC, and for very large /kmer sizes ($k > 500$) it also becomes the fastest, although its multithreading efficiency (analyzed in @sec-kfc-multithread) lags behind KMC on small input sizes, so it leads only when running on fewer threads.
+
+:::{#fig-plot-salmo layout-ncol=2}
+![Memory usage](../fig/hkmer/plots/salmomem){#fig-sub-mem}
+
+![Running time](../fig/hkmer/plots/salmotime){#fig-sub-time}
+
+/kmer counting benchmark on one thousand *S. enterica* complete genomes.
 :::
