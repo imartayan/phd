@@ -68,7 +68,7 @@ Each non-N base in the query /kmer narrows the search space by a factor of up to
 
 Because N must match any character, a step involving an N does not reduce the search space, and all four sub-searches must be pursued in parallel from that point.
 This is harmless when N characters appear only at the end of the query, after the search space has already been reduced to a small number of candidates.
-It is costly when the minimizer sits at the very start or end of the /kmer, which places N characters at the beginning of the interleaved form and prevents any early reduction of the search space, as in /kmer 2 or 3 of @fig-brisk-supersort.
+It is costly when the minimizer sits at the very start or end of the /kmer, which places N characters at the beginning of the interleaved form and prevents any early reduction of the search space, as in /kmer 2 and 3 of @fig-brisk-supersort.
 Such /kmers degrade to near-linear probing.
 In practice, the minimizer occupies an interior position for the large majority of /kmers, so this worst case is rare, arising mainly at sequence boundaries or with very small window sizes.
 
@@ -192,12 +192,12 @@ The covered ranges from all candidates are combined into a single coverage of $Q
 If every /kmer is covered, the insertion is skipped entirely.
 Otherwise, for each uncovered range, the insertion either extends an existing /skmer (using the side-stitching operations above) to incorporate the missing /kmers, or stores a truncated copy of $Q$ spanning only that range.
 
-The key property of this scheme is that the detection cost is bundled with the standard lookup: the bucket is already scanned to find the matching minimizer, and the coverage computation adds only a few bit operations per candidate.
+Since the bucket is already scanned to find the matching minimizer, computing the coverage adds only a few bit operations per candidate.
 Insertion-time deduplication therefore preserves the streaming property of the original /skmer-level approach, with no separate post-processing pass.
 
 ### Open extensions
 
-The current prototype implements insertion-time deduplication, which already addresses the main structural limitation discussed above.
+My ongoing prototype implements insertion-time deduplication, which already addresses the main structural limitation discussed above.
 Several extensions remain open work.
 Deletion has no streaming equivalent of the coverage mechanism, since removing /kmers from the middle of a /skmer requires splitting it.
 Set operations beyond insertion, in particular union and intersection over two indexes, can be expressed in principle as bucket-by-bucket coverage computations, but the interleaved representation does not yet expose the necessary primitives to enumerate shared /kmers across two sorted /skmer lists efficiently.
