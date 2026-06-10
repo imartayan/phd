@@ -124,7 +124,7 @@ $$
 $$
 :::
 
-Since, there are $k$ such rotation offsets, it requires $\lceil \lg k \rceil$ bits to encode $\rho(x)$.
+Since there are $k$ such rotation offsets, it requires $\lceil \lg k \rceil$ bits to encode $\rho(x)$.
 Thus, when combined with the rank encoding of the necklace, this yields a fully reversible transformation whose total size matches the original /kmer up to a extra rounding bit.
 
 ### Encoding canonical /kmers
@@ -134,7 +134,7 @@ The idea is that, when using the encoding presented in @sec-dna-rep, the complem
 Therefore, when $k$ is odd, the parity of the number of 1s (efficiently computed with a `popcount`) changes between a /kmer and its reverse-complement.
 We can thus define a /kmer as canonical if its number of 1s is odd, and safely erase its last bit: if the remaining $2k - 1$ bits have an odd number of 1s we know that the last bit must be 0, otherwise it must be 1.
 From this $(2k - 1)$-bit encoding, we then apply the reversible necklace transformation, this time using a binary alphabet.
-An example of this canonical encoding is shown in fig
+An example of this canonical encoding is shown in @fig-necklace-canonical.
 
 :::{#fig-necklace-canonical}
 
@@ -168,7 +168,7 @@ Length of the common prefix between necklaces of consecutive /kmers with respect
 
 ### Computing necklaces with minimizers
 
-While computing a necklace individually require $\mathcal{O}(k)$ operations since we have to consider every rotation, we can accelerate this process down to $\mathcal{O}(\log k)$ operations in the context of consecutive /kmers.
+While computing a necklace individually requires $\mathcal{O}(k)$ operations since we have to consider every rotation, we can accelerate this process down to $\mathcal{O}(\log k)$ operations in the context of consecutive /kmers.
 The main property that we rely on is that the prefix of size $m$ of a given necklace is always the smallest /mmer in the circular word.
 In particular, this /mmer is either fully included in the original /kmer or overlaps the /kmer's start and end, in that case we refer to it as a *boundary substring*.
 Boundary substrings change for each new /kmer, so we have to recompute them every time.

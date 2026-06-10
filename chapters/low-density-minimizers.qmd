@@ -1,7 +1,7 @@
 # Background on low-density minimizers {#sec-low-density-minimizers}
 
-As discussed in @sec-intro-minimizers, the *density* of a minimizer schemes drives its space efficiency: lowering the density leads longer runs of the same minimizer and longer /skmers, which results in a direct improvement in applications such as /kmer counting [@kmc3; @hyperkmers], DBG compaction [@bcalm2; @cuttlefish2; @ggcat] or large-scale indexes [@blight; @sshash].
-However, we've also seen that the widely used *random minimizers* achieve a density of $2 / (w+1)$, way above the $1 / w$ lower bound implied by the window guarantee.
+As discussed in @sec-intro-minimizers, the *density* of a minimizer schemes drives its space efficiency: lowering the density leads to longer runs of the same minimizer and longer /skmers, which results in a direct improvement in applications such as /kmer counting [@kmc3; @hyperkmers], DBG compaction [@bcalm2; @cuttlefish2; @ggcat] or large-scale indexes [@blight; @sshash].
+However, we've also seen that the widely used *random minimizers* achieve a density of $2 / (w+1)$, well above the $1 / w$ lower bound implied by the window guarantee.
 This observation raises two main questions:
 how can we design new schemes with a lower density?
 And what is the lowest density we can hope to reach?
@@ -33,7 +33,7 @@ $$
 where $\omega_k$ is a primitive $k$-th root of unity.
 We then select the /kmers whose embedding $z$ corresponds to the first clockwise rotation with positive imaginary part, i.e. $\pi - 2\pi/k \le \arg(z) < \pi$.
 
-DOCKS [@orenstein2016compact;@orenstein2017designing] first suggested to greedily extends this MDS into a UHS for a specific window size $w$ by repeatedly adding the /kmer contained in the largest number of uncovered windows, until all windows are hit.
+DOCKS [@orenstein2016compact;@orenstein2017designing] first suggested to greedily extend this MDS into a UHS for a specific window size $w$ by repeatedly adding the /kmer contained in the largest number of uncovered windows, until all windows are hit.
 However, the exponential search space limited this approach to $k \le 14$ in practice.
 
 @pellow2023efficient proposed a simpler and more scalable approach by building a minimizer scheme directly from this MDS: within any window, prefer /kmers in the MDS and break ties randomly.

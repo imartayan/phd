@@ -345,7 +345,7 @@ While minimizers are local schemes, multiminimizers are not, as they differ dras
 - At construction, we need to know when the previous /skmer ends, and where the candidate /skmers end, information that a /kmer alone cannot provide. In this regard, the multiminimizer scheme has both to "remember the past" to determine when to select a new minimizer, and "delve into the future" to choose which minimizer candidate to keep.
 - At query, for a given /kmer, we have to compute and lookup the $N$ minimizer candidates to determine whether it has already been seen, since the broader context(s) in which it might have been seen are not known.
 
-In the end, neither at construction nor query does the multiminimizer scheme behave like a local scheme.
+Ultimately, the multiminimizer scheme does not behave like a local scheme, either at construction or at query time.
 It is advantageous as it implies that its density is not subject to the lower bound of local schemes by @density-lower-bound -- although the $1/w$ bound obviously remains.
 As showed in upcoming @sec-multimini-density, the multiminimizer scheme does indeed beat this lower bound, and approach density of $1/w$ as $N$ increases.
 This gain in density comes at the price of (bounded) increased query time, as per the discussion above.
@@ -559,7 +559,6 @@ Finally, on the practical side, two areas can be explored.
 Firstly, combining multiminimizers with other existing low-density schemes to form multi-seeded variants could further reduce density in practice while retaining fast iteration.
 The proof of concept "multiminimizers on open-closed mod-minimizer" could be vastly improved by, e.g., using SIMD instructions to speed up computation.
 Secondly, replacing traditional minimizer iterators with our Rust library could improve a vast number of existing tools, beyond our work here on improving a /hkmer-based /kmer counter.
-Thus, we set the stage for the next generation of theoretically grounded, robust, and efficient sampling schemes.
 
 Different sequence-mapping tools have highlighted the need for heuristics to fill in the deserts where sampled alignment landmarks are missing, as well as to better handle low complexity regions.
 We believe that the formalization of choice and selection-based schemes, such as those introduced in this work, will support improved alignment strategies in future developments.
