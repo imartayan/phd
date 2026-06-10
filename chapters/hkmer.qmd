@@ -363,6 +363,18 @@ The experiments were performed on a common laptop computer (Dell Inc. Precision 
 
 ### Long reads whole genome sequencing datasets {#sec-kfc-longreads}
 
+We first evaluate all tools at ~100X coverage of the *E. coli* genome across three long-read technologies (ONT duplex, ONT simplex, HiFi) and /kmer sizes up to 1021, reporting memory and runtime in @fig-combined-benchmark-all.
+All competitors degrade as $k$ grows: KMC3 and FastK quickly approach the available RAM with sharply increasing runtime, Gerbil is faster and lighter but capped at $k \le 512$, Jellyfish trades runtime for memory, and Kaarme keeps memory nearly constant at the cost of much slower runs and frequent timeouts.
+KFC is the only tool whose memory and runtime both decrease with $k$, taking the lead in both metrics from around $k = 200$.
+
+We confirmed these trends on two larger HiFi metagenomic benchmarks.
+@fig-plot-zymo-hifi reports on a Zymo Biomics community sample of 21 strains across 17 species, with 5 Gb sampled from accession `SRR13128014`.
+@fig-plot-gut-hifi reports on a human gut metagenome used as assembly benchmark in [@hifiasm-meta; @metamdbg] with estimated genome content of 700-900 Mb, where we pooled 15 Gb from accessions `SRR15275210`-`SRR15275213`.
+Tool behavior across coverages and on the full gut dataset is unchanged, with details in @fig-combined-benchmark-coverage and @fig-plot-gut-full.
+
+To check that KFC's advantage doesn't come from the /skmer filtering heuristic alone, we repeated the experiment without filtering (@fig-combined-benchmark-nofilter): Jellyfish is unaffected, FastK and KMC degrade further in time and memory, while KFC remains competitive even against the tools that still filter.
+The same picture extends to a pangenome regime: on one thousand *S. enterica* complete genomes (@sec-kfc-pangenome), KFC keeps the lead in memory across all /kmer sizes and becomes the fastest tool past $k = 500$.
+
 :::{#fig-combined-benchmark-all}
 
 :::{#fig-plot-duplex layout-ncol=2}
@@ -392,18 +404,6 @@ ONT Simplex *E. coli* dataset (`SRR28370668`) downsampled at 100X coverage
 Comparison of /kmer counting benchmarks on different *E. coli* datasets, with unique /kmer filtering.
 Each subfigure shows the memory usage and timing plots for different sequencing technologies.
 :::
-
-We first evaluate all tools at ~100X coverage of the *E. coli* genome across three long-read technologies (ONT duplex, ONT simplex, HiFi) and /kmer sizes up to 1021, reporting memory and runtime in @fig-combined-benchmark-all.
-All competitors degrade as $k$ grows: KMC3 and FastK quickly approach the available RAM with sharply increasing runtime, Gerbil is faster and lighter but capped at $k \le 512$, Jellyfish trades runtime for memory, and Kaarme keeps memory nearly constant at the cost of much slower runs and frequent timeouts.
-KFC is the only tool whose memory and runtime both decrease with $k$, taking the lead in both metrics from around $k = 200$.
-
-We confirmed these trends on two larger HiFi metagenomic benchmarks.
-@fig-plot-zymo-hifi reports on a Zymo Biomics community sample of 21 strains across 17 species, with 5 Gb sampled from accession `SRR13128014`.
-@fig-plot-gut-hifi reports on a human gut metagenome used as assembly benchmark in [@hifiasm-meta; @metamdbg] with estimated genome content of 700-900 Mb, where we pooled 15 Gb from accessions `SRR15275210`-`SRR15275213`.
-Tool behavior across coverages and on the full gut dataset is unchanged, with details in @fig-combined-benchmark-coverage and @fig-plot-gut-full.
-
-To check that KFC's advantage doesn't come from the /skmer filtering heuristic alone, we repeated the experiment without filtering (@fig-combined-benchmark-nofilter): Jellyfish is unaffected, FastK and KMC degrade further in time and memory, while KFC remains competitive even against the tools that still filter.
-The same picture extends to a pangenome regime: on one thousand *S. enterica* complete genomes (@sec-kfc-pangenome), KFC keeps the lead in memory across all /kmer sizes and becomes the fastest tool past $k = 500$.
 
 ### /Skmer threshold heuristic {#sec-kfc-internal}
 
