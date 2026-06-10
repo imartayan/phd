@@ -1,7 +1,7 @@
 # Necklaces and minimizers {#sec-necklaces}
 
 :::{.callout-note}
-This chapter is partially adapted from {{< longcite cbl >}}.
+This chapter is partially adapted from {{< longcite cbl >}}, accepted to ISMB 2024 and published in Bioinformatics.
 :::
 
 While we have seen in @sec-intro-minimizers that minimizers can be used as a way to partition /kmers while preserving locality, we present in this chapter a new approach based on smallest cyclic rotations, or *necklaces*.

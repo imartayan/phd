@@ -1,7 +1,7 @@
 # Multiminimizers
 
 :::{.callout-note}
-This chapter is adapted from {{< longcite multiminimizers >}}.
+This chapter is adapted from {{< longcite multiminimizers >}}, accepted to RECOMB 2026 and to be published.
 
 Antoine Limasset and I came up with the original idea.
 Florian Ingels proposed the formalization, and we did the proofs together.

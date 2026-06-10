@@ -1,7 +1,7 @@
 # Set operations on *k*-mer collections {#sec-set-ops}
 
 :::{.callout-note}
-This chapter is partially adapted from {{< longcite cbl >}}.
+This chapter is partially adapted from {{< longcite cbl >}}, accepted to ISMB 2024 and published in Bioinformatics.
 :::
 
 The previous chapter introduced CBL as a compressed, dynamic structure for exact /kmer set representation and established its competitive performance for membership queries, insertions, and deletions.

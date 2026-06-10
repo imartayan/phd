@@ -1,7 +1,7 @@
 # Rolling hashes on sequences {#sec-rolling-hash}
 
 :::{.callout-note}
-This chapter is partially adapted from {{< longcite simd-minimizers >}}.
+This chapter is partially adapted from {{< longcite simd-minimizers >}}, accepted to SEA 2025 and published in LIPIcs.
 
 Ragnar Groot Koerkamp designed the initial AVX2 implementation, which we then improved and turned into the `packed-seq` and `seq-hash` libraries together.
 The paper itself has equal contributions from both of us.

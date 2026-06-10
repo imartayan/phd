@@ -1,7 +1,7 @@
 # Application to sequence filtering {#sec-filtering}
 
 :::{.callout-note}
-This chapter is adapted from {{< longcite k2rmini >}}.
+This chapter is adapted from {{< longcite k2rmini >}}, currently under review.
 :::
 
 The previous chapters of this part developed efficient algorithms for parsing sequences (@sec-simd-parsing), hashing /kmers (@sec-rolling-hash), and computing minimizers at high throughput (@sec-simd-minimizers).

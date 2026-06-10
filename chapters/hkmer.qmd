@@ -1,7 +1,7 @@
 # From super‑*k*‑mers to hyper-*k*-mers {#sec-hkmer}
 
 :::{.callout-note}
-This chapter is adapted from {{< longcite hyperkmers >}}.
+This chapter is adapted from {{< longcite hyperkmers >}}, accepted to RECOMB 2025 and to be published.
 :::
 
 TBA

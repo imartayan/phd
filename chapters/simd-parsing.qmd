@@ -1,7 +1,7 @@
 # Vectorized sequence parsing {#sec-simd-parsing}
 
 :::{.callout-note}
-This chapter is adapted from {{< longcite helicase >}}.
+This chapter is adapted from {{< longcite helicase >}}, accepted to RECOMB-Arch 2026 and to be published.
 :::
 
 Sequence bioinformatics has always been closely tied to stringology and compression theory, but connections to algebraic automata have remained comparatively rare.

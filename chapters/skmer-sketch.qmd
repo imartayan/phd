@@ -1,7 +1,7 @@
 # Sketching super‑*k*‑mers
 
 :::{.callout-note}
-This chapter is adapted from {{< longcite fhs >}} and {{< longcite fhs-multiset >}}.
+This chapter is adapted from {{< longcite fhs >}} and {{< longcite fhs-multiset >}}, accepted to WABI 2023 and published in LIPIcs and Algorithms for Molecular Biology.
 
 Antoine Limasset and Camille Marchet came up with the original idea.
 Timothé Rouzé wrote most of the code and ran all the experiments.
