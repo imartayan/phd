@@ -104,17 +104,18 @@ replace_abbr = {
     local zzz = pandoc.Inlines("")
     for i, v in ipairs(ilist) do
        if v.t == "Str" then
-          zzz = replace_abbr_in_str(v.text)
-       elseif v.t == "Link" then
-          -- gets already processed as Str :-) v.content = replace_abbr_in_str(pandoc.utils.stringify(v.content))
-          v.target = pandoc.utils.stringify(replace_abbr_in_str(pandoc.utils.stringify(v.target)))
-          zzz = pandoc.Inlines(v)
+          if string.match(v.text, "^https?://") then
+            zzz = pandoc.Inlines(v)
+          else
+            zzz = replace_abbr_in_str(v.text)
+          end
        else  zzz = pandoc.Inlines(v)
        end
       newtable = append(newtable, zzz)
     end
    return(newtable)
-  end
+  end,
+  Link = function(l) return l end
 }
 
 
