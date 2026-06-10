@@ -1,7 +1,12 @@
 # Dynamic super‑*k*‑mer maps {#sec-skmer-maps}
 
 :::{.callout-note}
-This chapter is partially adapted from {{< longcite brisk >}}.
+This chapter is partially adapted from {{< longcite brisk >}}, currently under review.
+
+Yoann Dufresne and Antoine Limasset designed the original prototype.
+Caleb Smith improved and completed the implementation.
+We discussed algorithmic improvements together and I wrote experiments scripts.
+I present additional ideas for deduplication strategies that were not discussed in the original paper.
 :::
 
 - trim the article to focus on interleaved /skmer representation
@@ -29,8 +34,10 @@ Since all /skmers in a bucket share the same minimizer, we can avoid storing tha
 In a maximal /skmer, the position of the minimizer within the sequence is determined by the /skmer's length, so the minimizer can be omitted from the encoding and reconstructed on demand.
 This *lazy encoding* lowers the per-/kmer bit cost: a maximal /skmer of length $2k - m$ bases encodes on average $(w + 1)/2$ /kmers, giving a ratio of $\frac{8(k - m)}{w + 1} = 8 \left(1 - \frac{1}{w+1}\right)$ bits per /kmer, which for practical values of $k$ and $m$ is slightly below 8 bits.
 
-To simplify memory management and allow constant-time access to any /skmer in a list, every /skmer is allocated at its maximum possible length of $2k - m$ bases, with padding where the sequence is shorter.
-This wastes some space compared to variable-length encoding, but avoids the overhead of storing and decoding per-/skmer lengths and makes the list amenable to binary search.
+To simplify memory management and allow constant-time access to any /skmer in a list, every /skmer is allocated at its maximum possible length of $2k - m$ bases, with bases packed at 2 bits each.
+The actual extent of each /skmer is recorded in two small fields, its number of /kmers and the position of its minimizer within it.
+The first determines the /skmer's total length, and together with the second they fix the number of bases on each side of the minimizer, so positions beyond either side are known and can be treated as a sentinel N when needed.
+This wastes some space compared to a tightly packed variable-length encoding, but avoids storing per-/skmer offsets and makes the list amenable to binary search.
 
 ### The bucket lookup problem
 
@@ -124,6 +131,7 @@ For applications that revisit /kmers frequently or require deletion, the /kmer-l
 
 ## Performance in practice {#sec-results-skmer-map}
 
+The structure described above is implemented in Brisk, available at <https://github.com/Malfoy/Brisk>.
 The memory savings from lazy encoding and superbuckets translate into a substantially lower footprint than a plain hash table across dataset sizes, as shown in @fig-brisk-mainplot for $k = 31$.
 The gap widens for larger $k$ since the minimizer then represents a smaller fraction of each /kmer, and the savings from omitting it are proportionally greater.
 Construction throughput in the single-threaded setting is competitive with a standard hash map for $k = 31$ (@fig-brisk-mainplot), confirming that the binary search overhead is not a bottleneck in practice.
