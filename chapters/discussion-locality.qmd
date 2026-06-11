@@ -15,7 +15,7 @@ Looking at these three together, my impression is that current /kmer indexes are
 Dynamic updates and set operations are the two that I find the most compelling.
 Pangenomes and large public databases keep growing, and most workflows would benefit from being able to incrementally add new genomes to an existing index, or to combine indexes through union, intersection and difference without rebuilding from scratch.
 These operations also act as compact filters: intersection isolates the shared core of a collection, while difference removes contaminants or extracts what is specific to a sample.
-CBL takes a small step in this direction, but I am convinced there is more to do, especially on the /skmer side where deduplication during streaming insertion is still an open problem, as discussed in the end of [Chapter 13](skmer-map.qmd).
+CBL takes a small step in this direction, but I am convinced there is more to do, especially on the /skmer side where deduplication during streaming insertion is still an open problem, as discussed at the end of [Chapter 13](skmer-map.qmd).
 A clean solution there would close the gap between the streaming-friendly insertion of /skmer dictionaries and the structural cleanliness of /kmer-level structures.
 
 A direction I find promising is a closer convergence with full-text indexes.
@@ -23,7 +23,7 @@ I chose not to cover them in this thesis, but they face closely related concerns
 The SBWT stands out in that landscape: it bridges full-text approaches and /kmer methods, and recent work by @sbwt-set-ops even implements set operations directly on top of it.
 There seems to be a lot to learn between the two communities, and I expect more exchanges in the coming years.
 
-Closer to the application side, I see a real opportunity in importing ideas from database query engines, as I discussed in the end [Chapter 12](set-ops.qmd).
+Closer to the application side, I see a real opportunity in importing ideas from database query engines, as I outlined at the end of [Chapter 12](set-ops.qmd).
 Sort-merge joins, hash joins, partition pruning, exponential search on skewed inputs, SIMD-accelerated intersection of sorted lists, all of these have direct counterparts in /kmer set operations and have been refined for decades in the database literature.
 Vizitig [@vizitig] is one concrete example of what becomes possible once a /kmer index is treated as a queryable database rather than a fixed pipeline component, and I expect this line of work to grow.
 
