@@ -173,3 +173,9 @@ Recent results by @subsetsketch focus on estimating the edit distance between tw
 Their approach, named SubseqSketch, relies on (non-contiguous) *subsequences* rather than /kmers, and keeps track of their longest prefix match with respect to multiple random references.
 The match lengths are then used to compute a cosine similarity that strongly correlates edit similarity.
 However, while this approach results in an improved sensitivity, it remains more expensive to compute than simple scans such as FracMinHash.
+
+## Toward locality-aware sampling
+
+The sketching methods presented in this chapter share the property that each /kmer is selected or not independently of its neighbors in the sequence.
+This context-free property makes them well suited for global similarity estimation, where all that matters is the overall composition of the /kmer set.
+For tasks that instead demand a guarantee that two sequences sharing a long local match will also share a selected /kmer, such as read mapping, the next chapter turns to a different family of sampling strategies.
