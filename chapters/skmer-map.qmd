@@ -166,8 +166,8 @@ Single-threaded construction time of Brisk, Jellyfish, CBL, and Rust `HashMap`, 
 ## Toward streaming deduplication {#sec-skmer-dedup}
 
 The structural limitation of /skmer dictionaries identified above stems from a single underlying cause: testing which /kmers of a query are already present requires locating them one by one inside the containing /skmers.
-A natural way to bypass this is to recast every such operation as a check on the prefixes and suffixes of /skmers themselves, without materializing individual /kmers.
-I am exploring this direction in ongoing work, prototyping a dynamic /skmer dictionary that supports on-the-fly deduplication and compaction.
+A natural way to bypass this is to express every such operation as a check on the prefixes and suffixes of /skmers themselves, without materializing individual /kmers.
+I am exploring this direction in an ongoing work, prototyping a dynamic /skmer dictionary that supports on-the-fly deduplication and compaction.
 
 ### A compact /skmer representation
 
