@@ -31,7 +31,7 @@ We made sure throughout this part that every contribution targets both x86 and A
 Maintaining several architecture-specific implementations remains a sizeable burden though, and I see it as a real obstacle to the broader adoption of SIMD outside specialized libraries.
 Portable abstractions such as WebAssembly may eventually offer a unified target, but their vector support is still well behind native SIMD as of today.
 Closer to our needs, new languages such as Mojo^[<https://mojolang.org/>] and domain-specific projects such as Shannon x Cray^[<https://sxc.inria.fr/index.html>] tackle this challenge at the level of the compiler, by letting authors describe algorithms in a higher-level way that the compiler can then specialize to each target.
-Whether any of these efforts will scale to the kind of code we wrote here remains an open question, but the direction is one I find genuinely exciting.
+Whether any of these efforts will scale to the kind of code we wrote here remains an open question, but this direction is one I find genuinely exciting.
 
 The most obvious omission in this part is the GPU.
 Modern GPUs offer an order of magnitude more parallelism than CPUs, and many bioinformatics workloads should in principle benefit from them.
