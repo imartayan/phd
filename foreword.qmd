@@ -8,7 +8,7 @@ The three parts can be read independently, but together they build toward a comm
 The first part asks how fast a genomic pipeline can run when the CPU is fully put to use, and builds vectorized methods for parsing, hashing, and minimizer extraction that approach the hardware limit.
 The second asks how the internal representation of /kmer sets influences what is actually fast in practice, and shows that structures exploiting the locality of consecutive /kmers can improve upon generic solutions while supporting richer operations.
 The third asks how much information can be discarded while still answering similarity queries reliably, and shows that a carefully chosen subset of /kmers is often sufficient to preserve the answers we care about.
-Each part assumes only the introduction as a prerequisite and begins with additional background before focusing on new contributions.
+Each part assumes only the introduction as a prerequisite, begins with additional background before focusing on new contributions, and closes with my perspectives on this work and what could come next.
 
 :::{.content-visible when-format="html"}
 I hope you'll enjoy reading it.
