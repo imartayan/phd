@@ -1,6 +1,37 @@
-# Discussion {.unnumbered}
+# Third discussion {.unnumbered}
 
-TBA
+This last part started from a simple premise: at the scale of data we now have to deal with, we cannot afford to keep every /kmer.
+Estimating similarity does not require exhaustive indexing, and the previous parts already pushed exact representations close to their limit, both in terms of throughput and space.
+Sparsifying the input is therefore a natural next step, and one that becomes more and more important as collections grow.
+The two chapters of this part covered complementary angles on this question.
+[Chapter 16](multimini.qmd) tackled it from the minimizer side, asking how far we can push the density of a window-based scheme by allowing several candidates per window.
+[Chapter 17](skmer-sketch.qmd) approached it from the sketching side, introducing fractional hitting sets to relax universal coverage while exploiting the /skmer structure of the selected /kmers.
+Both share the same broader goal of selecting fewer /kmers while preserving the information that matters for downstream comparisons.
 
-- merge @sec-phrases ?
-- lexicographic-informed sampling
+A first observation I want to start with is that recent work on minimizers, my own included, has been very focused on density.
+There is a good reason for this, since lower density translates almost directly into smaller indexes, but density is not the only thing that matters.
+Metrics like conservation, the fraction of selected /kmers that survive mutations, are just as important when it comes to comparing the similarity of sequences.
+If density captures the "more with less" side of sampling, conservation captures the "well" side.
+
+Another angle I find under-explored is the spectrum between context-free schemes such as FracMinHash and context-based ones such as minimizers or syncmers.
+Most work sits at one of the two ends, but there is no reason they cannot be combined.
+[Chapter 17](skmer-sketch.qmd) was a first step in that direction, layering a hash-based subsampling on top of minimizer selection, in the same spirit as MashMap [@mashmap] which combines MinHash sketches with minimizers for long-read mapping.
+I am convinced this middleground is promising and has more to offer than density alone.
+
+A direction I am currently exploring along similar lines is what I tentatively call lexicographic-informed sketching.
+All the sketching methods presented in [Chapter 3](intro-sketching.qmd) treat /kmers as opaque hashes, completely losing their string structure.
+Drawing inspiration from LexicHash [@lexichash] and LexicMap [@lexicmap], we are exploring sketches that rely on the actual /kmer strings to drive the sampling, replacing the binary "match or not" comparison of hashes with a more granular notion of string match.
+My intuition is that this should improve the precision of sketches compared to MinHash and unlock new optimization opportunities for sketch storage and comparison.
+
+A related line of recent work, briefly discussed in [Chapter 3](intro-sketching.qmd) and [Chapter 4](intro-minimizers.qmd), is the design of data structures in *sketch space*, working directly on the sequence of selected /kmers rather than on the original sequence.
+Minimizer-space de Bruijn graphs [@mdbg;@mapquik] and the U-index [@uindex] are recent examples that illustrate how much can be saved by indexing shorter sequences over a larger alphabet.
+This is the angle of another ongoing collaboration with Rob Patro on scalable indexing through locally consistent phrases.
+The central idea is to index the content *between* the selected anchors rather than the anchors themselves.
+Here the choice of anchors directly shapes the distribution of distances between them: context-free criteria such as prefix-free parsing give a roughly geometric distribution with no upper bound, while minimizers let us pick the upper bound through the window size but offer no lower bound beyond 1.
+The middleground we are looking for would combine moderate context dependence with a reasonably balanced distribution, and an interesting problem is whether we can enforce both a lower and an upper bound on the distance between anchors.
+
+One question that came out of this phrase-indexing approach, and that I find genuinely interesting, is whether we can build good compact sketches to compare small sets, on the order of a hundred /kmers per phrase.
+This regime does not seem to have been studied much, as most sketching work has focused on whole genomes or large metagenomes, but small-set sketches would be ideal to compare individual phrases at low cost.
+I expect that the right answer will not be a scaled-down MinHash but something closer in spirit to DotHash, where the comparison naturally produces a numerical similarity rather than an exact set operation.
+
+Looking across all these directions, my overarching belief is that we should explore more algorithms and data structures in sketch space.
