@@ -97,11 +97,14 @@ Note that in practice, when a /kmer and its reverse-complement are treated as eq
 
 ### Identifying small variations
 
-An important property of DBGs is that they make small edits between similar sequences easy to spot.
+An important property of DBGs is that they make small edits between similar sequences easy to spot [@cortex].
 For instance, in @fig-dbg-bubble, substituting the last `A` with a `C` creates a *bubble* around the *k* /kmers affected by the substitution.
 When combined with the abundance of each /kmer, this allows erroneous /kmers in raw reads to be corrected, or different haplotypes to be distinguished within a genome.
 DBGs therefore prove particularly useful for genome assembly [@spades;@flye;@mdbg].
 @fig-dbg-ssna1 shows a more complex DBG for *k = 31* built from mRNA transcripts of SSNA1 gene, highlighting different exons identified in the graph.
+
+Historically, this is also where de Bruijn graphs first entered bioinformatics: reconstructing a sequence from its reads raised scalability issues that motivated collapsing read depth into distinct /kmers and exploiting the compressibility of non-branching paths.
+Both ideas later found applications well beyond assembly.
 
 :::{#fig-dbg-bubble}
 
@@ -166,7 +169,9 @@ All these solutions have since been implemented as part of GGCAT [@ggcat].
 
 ## Using /kmers for petabase-scale data structures
 
-Driven by projects like Tara Oceans [@tara], the unprecedented growth of sequencing data [@big-data-genomical] has motivated a parallel effort to make these massive collections efficiently searchable.
+The compact representations above address how to store a /kmer set efficiently.
+A complementary question is how to search across very large collections of such sets.
+Driven by projects like Tara Oceans [@tara] and Pebblescout [@pebblescout], the unprecedented growth of sequencing data [@big-data-genomical] has motivated a parallel effort to make these massive collections efficiently searchable.
 The central problem here is *sequence retrieval*: given a query sequence, find all samples in the collection that contain it.
 In this context, /kmers provide a natural intermediate representation, as each sample can be summarized by its /kmer set and collections of such sets indexed jointly.
 
