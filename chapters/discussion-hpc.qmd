@@ -1,3 +1,41 @@
-# Discussion {.unnumbered}
+# First discussion {.unnumbered}
 
-TBA
+Ragnar Groot Koerkamp concluded his thesis [@ragnar-thesis] with the following observation:
+
+> Provably optimal software consists of two parts: a provably optimal algorithm, and a provably optimal implementation of this algorithm, given the hardware constraints. This can only be achieved through algorithm/implementation co-design, where hardware capabilities influence design choices in the algorithm.
+
+This view captures rather well what I tried to do throughout this part.
+Implementation is too often treated as a detail that comes after the algorithm is fixed, yet the chapters of this part show that the distinction is artificial: parsing, hashing, and minimizer selection all benefited from being redesigned with the hardware in mind.
+Doing so allowed us to reach the memory bandwidth for FASTA/Q parsing in [Chapter 6](simd-parsing.qmd), to compute ntHash at more than 2.5 Gbp/s in [Chapter 7](rolling-hash.qmd), and to extract minimizers at less than 2 ns/bp in [Chapter 8](simd-minimizers.qmd).
+Stacking these building blocks together made it possible to filter sequences at 2 Gbp/s on a consumer laptop in [Chapter 9](filtering.qmd), a regime that would have been out of reach by treating each layer in isolation.
+
+A recurring observation across these contributions is that simplicity tends to win.
+Branchless code and regular access patterns turned out to be much easier to push close to the hardware limit than elaborate constructions with better asymptotic guarantees.
+This is not a universal rule, but it does sit somewhat at odds with the quest for lower complexity that drives parts of theoretical computer science.
+I would not argue against asymptotic improvements, of course, since they remain essential at very large scales, but the constants hidden behind complexity bounds deserve at least as much attention when the building blocks they describe run trillions of times in real pipelines.
+
+While these results show the gains we can extract on current hardware, there are still many directions worth exploring.
+A natural one concerns the way we handle sequential dependencies.
+Both rolling hashes and minimizer selection are inherently sequential, and we worked around this by processing independent chunks of the input in parallel SIMD lanes.
+This strategy is effective, but it forces the input to be reloaded into multiple lanes, which can be expensive to fetch from memory for long sequences that no longer fit in cache.
+Designing a true single-stream variant that hides the dependency chain without splitting the input would reduce memory traffic and could matter especially in pipelines where the sequence has just been read from disk.
+
+Another important direction concerns the theoretical foundations of the building blocks we use.
+As I noted in [Chapter 7](rolling-hash.qmd), the most efficient rolling hashes in the bioinformatics ecosystem have surprisingly few formal guarantees, and the biases I observed on ntHash are a concrete illustration of this gap.
+The community would benefit from rolling hashes that are both fast and provably well-behaved in terms of collisions and distribution, rather than choosing between the two.
+Ongoing work by @reversible-hash-kmer on reversible hash functions tailored to DNA is a promising step in this direction, aiming at both "speed of encoding and decoding" and "dispersion of the hashed values across the integer space".
+
+The hardware landscape has also shifted quite a bit during my PhD.
+The most visible change is the democratization of ARM in personal and server-grade machines, which made it essential to provide implementations that work well outside the x86 world.
+We made sure throughout this part that every contribution targets both x86 and ARM, which should keep the code relevant as the diversity of CPUs continues to grow.
+Maintaining several architecture-specific implementations remains a sizeable burden though, and I see it as a real obstacle to the broader adoption of SIMD outside specialized libraries.
+Portable abstractions such as WebAssembly may eventually offer a unified target, but their vector support is still well behind native SIMD as of today.
+Closer to our needs, new languages such as Mojo^[<https://mojolang.org/>] and domain-specific projects such as Shannon x Cray^[<https://sxc.inria.fr/index.html>] tackle this challenge at the level of the compiler, by letting authors describe algorithms in a higher-level way that the compiler can then specialize to each target.
+Whether any of these efforts will scale to the kind of code we wrote here remains an open question, but the direction is one I find genuinely exciting.
+
+The most obvious omission in this part is the GPU.
+Modern GPUs offer an order of magnitude more parallelism than CPUs, and many bioinformatics workloads should in principle benefit from them.
+In practice, the main limitation we face is data movement: transferring sequences from main memory to GPU memory is often more expensive than the SIMD processing we would gain on the GPU itself.
+Processing-in-memory technologies promise to remove this bottleneck by performing computation close to where the data lives, but they remain quite niche and not particularly affordable.
+A more accessible avenue is the unified memory model adopted by recent architectures such as Apple Silicon, where the CPU and GPU share the same physical memory and can exchange data with near-zero cost.
+If this model becomes more widespread, I think it could finally make GPU acceleration practical for sequence processing pipelines, and provide a natural continuation of the work presented in this part.
