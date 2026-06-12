@@ -1,3 +1,12 @@
 # Locality-preserving representations of k‑mer sets
 
 {{< epigraph "*Keep your friends close, and your k‑mers closer.*" source="not Sun Tzu" >}}
+
+[Part I](hpc.qmd) established that careful implementation can push sequence processing close to the hardware limit.
+Now we ask a different question: can the representation of a /kmer set itself be a source of performance gains?
+The central observation is that consecutive /kmers extracted from a genomic sequence are not independent.
+A representation that ignores this locality pays for it in both memory and query time.
+[Chapter 10](kmer-sets.qmd) surveys existing approaches and establishes the metrics used throughout.
+Chapters [11](necklaces.qmd) and [12](set-ops.qmd) introduce CBL, a dynamic structure built on minimizer-partitioned sorted buckets that supports efficient set operations.
+[Chapter 13](skmer-map.qmd) presents Brisk, which stores /kmers implicitly inside /skmers for a lower per-/kmer footprint.
+[Chapter 14](hkmer.qmd) pushes this idea further with /hkmers, reducing the space overhead asymptotically to 4 /bpk.

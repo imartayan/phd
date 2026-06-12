@@ -1,3 +1,10 @@
 # High-performance sequence processing
 
 {{< epigraph "*All we have to decide is what to do with the cycles that are given us.*" source="not J. R. R. Tolkien" >}}
+
+In the introduction we established that some genomic pipelines routinely process hundreds of terabases of data.
+At that scale, even a constant-factor improvement in throughput translates directly into wall-clock time.
+This part asks how close to the hardware limit a genomic pipeline can actually run and what it takes to get there.
+[Chapter 5](intro-simd.qmd) introduces the vectorization model and the SIMD instruction sets available on common hardware.
+Chapters [6](simd-parsing.qmd), [7](rolling-hash.qmd) and [8](simd-minimizers.qmd) develop vectorized algorithms for the three core primitives of any genomic pipeline: parsing FASTA/FASTQ input, computing rolling hashes over /kmers, and extracting minimizers from a sequence.
+[Chapter 9](filtering.qmd) applies these primitives to sequence filtering.
