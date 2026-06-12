@@ -1,3 +1,52 @@
 # Conclusion & perspectives {.unnumbered}
 
-TBA
+One of the first questions I got asked when presenting my work at the start of my PhD was
+
+> Why do we keep studying /kmers nowadays?
+
+I remember being quite confused at the time, unsure how to defend a research object that had been around for so long.
+Three years later, I think this thesis offers part of an answer.
+
+The three parts of the manuscript each take a different angle on the same broader problem.
+The first asked how far we could push the throughput of a genomic pipeline when the algorithm and the implementation are designed together, and showed that careful vectorization across parsing, hashing and minimizer selection brought us close to the hardware limit.
+The second asked how the representation of a /kmer set could itself become a source of performance, and showed that structures exploiting the locality between consecutive /kmers improve both space and streaming access while widening the range of operations a dictionary can natively support.
+The third asked how much we could afford to drop from the input, and how to choose what to keep so that similarity queries still hold on much sparser representations.
+
+The three parts share the same underlying argument, that sequence and representation should be treated as a single design problem rather than two separate ones, and this holds whether we look at the raw stream of nucleotides, at /kmer-based dictionaries, or at the sparser sketches that summarize them.
+The third part pushes this idea one step further by suggesting that the sampled view of a sequence deserves its own data structures, its own indexes and its own primitives, rather than being seen as a lossy preprocessing step before going back to /kmer-level analysis.
+
+Stepping back from the technical content, our field has evolved a lot between the start of my PhD and today.
+So has academia at large, and computer science more broadly.
+The most visible shift is of course the rapid adoption of large language models.
+They have changed the everyday work of software developers in ways that would have felt surprising three years ago, and are now part of the toolbox of many.
+I do not believe transformers are the answer to every single problem, and they remain quite challenging to apply at the scale of sequencing data we work with.
+They have however driven a broader interest in embeddings and vector representations, and I think this opens avenues worth exploring for our community.
+
+There is for instance a loose connection between the way text embeddings work and the way we compute sequence fingerprints.
+Both turn a long stream into a compact representation that captures something about its content, and both lend themselves to nearest-neighbor search.
+Whether vector search techniques can be adapted to minimizer or sketch embeddings is, to me, an interesting question, and I would not be surprised if useful crossover ideas appeared in the coming years.
+
+These changes also reflect on the way we teach and learn computer science.
+As a teaching assistant during my PhD, I had to rethink how to evaluate students, and how to help them build the intuition they need before reaching for a language model on every problem.
+The same applies to software development more broadly.
+Lowering the barrier to entry has made many projects easier to start, but it has also made codebases harder to keep maintainable.
+I worry that the open-source ecosystem may end up flooded by short-lived libraries that nobody really maintains, and I see a real need to foster a few well-crafted community tools instead of reinventing them under slightly different names.
+
+What I find most interesting in the shift of the last few years is actually not the software side, but the hardware side.
+Training and running these models at the scale of trillions of parameters has pushed the design of new accelerators, memory hierarchies and interconnects much further than what we would have seen otherwise.
+A good example is the unified memory model now found on Apple Silicon and on several recent server-grade machines, where the CPU and GPU share the same physical memory and can exchange data with virtually no cost.
+This design was largely motivated by the needs of model inference, but the underlying improvements are a real opportunity for sequence processing too.
+If these hardware advances reach consumer machines, they could finally make GPU acceleration practical for the kind of pipelines I worked on during this thesis.
+
+Paradoxically, I think this same trend makes frugal algorithmic solutions more important than ever, not less.
+Energy and compute are scarce wherever the demand keeps growing, and most of the new sequencing data will not be analyzed in a centralized cluster but on whatever workstation happens to be available.
+The compromise I see emerging is a mix of frugal local computing on lightweight summaries and a few very optimized centralized indexes that everyone can query.
+Logan is a nice early example of what the second half can look like.
+Pushing on the first half is where I see the most room left, and I am convinced the future is sparse, with more and more computation happening directly on sketches rather than on the full /kmer content.
+Mapping and assembly already have early proofs of concept in that direction, and I think there is a lot more to push in that direction.
+
+The last observation I want to end on is that this thesis stayed firmly on the DNA side of the problem.
+Tremendous progress has happened on protein analysis in parallel, with large language models reshaping what we can extract from amino acid sequences, and recent work on hybrid methods combining the two has been quite promising.
+I find this convergence very exciting.
+Sparse, anchor-based structures for large collections are starting to appear across both communities, whether we look at de Bruijn graphs of minimizers, syncmers or amino acids, and I think there is a lot to learn from putting these two worlds in the same conversation.
+This is the direction I would like to explore after this PhD.
