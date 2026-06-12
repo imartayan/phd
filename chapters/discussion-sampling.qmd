@@ -1,6 +1,6 @@
 # Third discussion {.unnumbered}
 
-This last part started from a simple premise: at the scale of data we now have to deal with, we cannot afford to keep every /kmer.
+The starting point of this last part is that, at the scale of data we now have to deal with, we cannot afford to keep every /kmer.
 Estimating similarity does not require exhaustive indexing, and the previous parts already pushed exact representations close to their limit, both in terms of throughput and space.
 Sparsifying the input is therefore a natural next step, and one that becomes more and more important as collections grow.
 The two chapters of this part covered complementary angles on this question.
@@ -27,11 +27,12 @@ A related line of recent work, briefly discussed in [Chapter 3](intro-sketching.
 Minimizer-space de Bruijn graphs [@mdbg;@mapquik] and the U-index [@uindex] are recent examples that illustrate how much can be saved by indexing shorter sequences over a larger alphabet.
 This is the angle of another ongoing collaboration with Rob Patro on scalable indexing through locally consistent phrases.
 The central idea is to index the content *between* the selected anchors rather than the anchors themselves.
-Here the choice of anchors directly shapes the distribution of distances between them: context-free criteria such as prefix-free parsing give a roughly geometric distribution with no upper bound, while minimizers let us pick the upper bound through the window size but offer no lower bound beyond 1.
+Here the choice of anchors directly shapes the distribution of distances between them.
+Context-free criteria such as prefix-free parsing give a roughly geometric distribution with no upper bound, while minimizers let us pick the upper bound through the window size but offer no lower bound beyond 1.
 The middleground we are looking for would combine moderate context dependence with a reasonably balanced distribution, and an interesting problem is whether we can enforce both a lower and an upper bound on the distance between anchors.
 
 One question that came out of this phrase-indexing approach, and that I find genuinely interesting, is whether we can build good compact sketches to compare small sets, on the order of a hundred /kmers per phrase.
 This regime does not seem to have been studied much, as most sketching work has focused on whole genomes or large metagenomes, but small-set sketches would be ideal to compare individual phrases at low cost.
-I expect that the right answer will not be a scaled-down MinHash but something closer in spirit to DotHash, where the comparison naturally produces a numerical similarity rather than an exact set operation.
+I expect that the right answer will not be a scaled-down MinHash but something closer in spirit to DotHash [@dothash], where the comparison naturally produces a numerical similarity rather than an exact set operation.
 
 Looking across all these directions, my overarching belief is that we should explore more algorithms and data structures in sketch space.

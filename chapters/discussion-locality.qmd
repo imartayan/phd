@@ -2,25 +2,28 @@
 
 This part started with a simple question: can the representation of a /kmer set itself be a source of performance gains?
 The answer that emerged is yes, and a fairly broad one.
-Choosing a good unit of representation (a /kmer, a /skmer, a /hkmer, or a necklace) shapes nearly everything downstream: how compactly the set can be stored, how well streaming queries behave on a real CPU, whether dynamic updates are possible at all, and how easily two indexes can be combined.
+Choosing a good unit of representation (a /kmer, a /skmer, a /hkmer, or a necklace) shapes nearly everything downstream, from how compactly the set can be stored to how well streaming queries behave on a real CPU, whether dynamic updates are possible at all, and how easily two indexes can be combined.
 This is in some ways a continuation of the first part, where I argued that algorithm and implementation should be designed together.
-Here the same idea moves up one level: the data structure that holds the /kmer set is part of the algorithm, and choosing it well makes the rest of the pipeline simpler.
+Here the same idea moves up one level.
+The data structure that holds the /kmer set is part of the algorithm, and choosing it well makes the rest of the pipeline simpler.
 
-CBL, presented in [Chapter 11](necklaces.qmd), came out of this perspective at the /kmer level: by representing each /kmer through its necklace, consecutive /kmers naturally share long prefixes, and a quotiented layout turns this redundancy into both compression and fast streaming access.
+CBL, presented in [Chapter 11](necklaces.qmd), came out of this perspective at the /kmer level.
+By representing each /kmer through its necklace, consecutive /kmers naturally share long prefixes, and a quotiented layout turns this redundancy into both compression and fast streaming access.
 This layout also made it easy to support exact set operations in [Chapter 12](set-ops.qmd), something that very few /kmer indexes offer at all.
-Brisk, in [Chapter 13](skmer-map.qmd), moves the unit one step wider by indexing /skmers directly, with the interleaved transform making binary search inside a bucket viable.
-KFC, in [Chapter 14](hkmer.qmd), goes one step further still, sharing the $k - 1$ overlap between consecutive /skmers and reaching 4 /bpk while keeping streaming construction.
+Brisk, in [Chapter 13](skmer-map.qmd), changes the indexing unit to whole /skmers, with the interleaved transform making binary search inside a bucket viable.
+KFC, in [Chapter 14](hkmer.qmd), goes further by sharing the $k - 1$ overlap between consecutive /skmers, reaching 4 /bpk while keeping streaming construction.
 Looking at these three together, my impression is that current /kmer indexes are already well established when it comes to space usage and single-query speed, as the comparison in [Chapter 10](kmer-sets.qmd) makes clear, and that the next frontier lies in widening the range of operations they support natively.
 
 Dynamic updates and set operations are the two that I find the most compelling.
 Pangenomes and large public databases keep growing, and most workflows would benefit from being able to incrementally add new genomes to an existing index, or to combine indexes through union, intersection and difference without rebuilding from scratch.
-These operations also act as compact filters: intersection isolates the shared core of a collection, while difference removes contaminants or extracts what is specific to a sample.
+These operations also act as compact filters.
+Intersection isolates the shared core of a collection, while difference removes contaminants or extracts what is specific to a sample.
 CBL takes a small step in this direction, but I am convinced there is more to do, especially on the /skmer side where deduplication during streaming insertion is still an open problem, as discussed at the end of [Chapter 13](skmer-map.qmd).
-A clean solution there would close the gap between the streaming-friendly insertion of /skmer dictionaries and the structural cleanliness of /kmer-level structures.
+A clean solution there would let /skmer dictionaries keep their streaming insertion without losing the inherent deduplication that /kmer-level structures get for free.
 
 A direction I find promising is a closer convergence with full-text indexes.
 I chose not to cover them in this thesis, but they face closely related concerns and have made significant practical progress recently, with structures such as Movi [@movi;@movi2] pushing the performance of matching queries.
-The SBWT stands out in that landscape: it bridges full-text approaches and /kmer methods, and recent work by @sbwt-set-ops even implements set operations directly on top of it.
+The SBWT stands out in that landscape by bridging full-text approaches and /kmer methods, and recent work by @sbwt-set-ops even implements set operations directly on top of it.
 There seems to be a lot to learn between the two communities, and I expect more exchanges in the coming years.
 
 Closer to the application side, I see a real opportunity in importing ideas from database query engines, as I outlined at the end of [Chapter 12](set-ops.qmd).
