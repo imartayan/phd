@@ -1,6 +1,11 @@
 # Conclusion & perspectives {.unnumbered}
 
-One of the first questions I got asked when presenting my work at the start of my PhD was
+Understanding living organisms at the molecular level has always required reading their genomes, and reading genomes has meant more and more dealing with massive amounts of sequence data.
+Over the past two decades, high-throughput sequencing has turned into a computational problem where public archives now hold more than fifty petabases of raw reads, and the bottleneck has long since shifted from producing data to analyzing it.
+
+At the heart of most analysis pipelines sits a simple object, the /kmer, a substring of fixed length *k*.
+Counting these /kmers, indexing them, comparing sets of them have been operations that underlie genome assembly, read mapping, metagenomics, and large-scale similarity search.
+After two decades of research and thousands of tools built around them, what remained to be done was a legitimate question, and one of the first I got asked when presenting my work at the start of my PhD was:
 
 > Why do we keep studying /kmers nowadays?
 
@@ -41,7 +46,7 @@ If these hardware advances reach consumer machines, they could finally make GPU 
 Paradoxically, I think this same trend makes frugal algorithmic solutions more important than ever, not less.
 Energy and compute are scarce wherever the demand keeps growing, and most of the new sequencing data will not be analyzed in a centralized cluster but on whatever workstation happens to be available.
 The compromise I see emerging is a mix of frugal local computing on lightweight summaries and a few very optimized centralized indexes that everyone can query.
-Logan is a nice early example of what the second half can look like.
+The Logan project, which compacts most of the Sequence Read Archive into a searchable index of unitigs, is a nice early example of what the second half can look like.
 Pushing on the first half is where I see the most room left, and I am convinced the future is sparse, with more and more computation happening directly on sketches rather than on the full /kmer content.
 Mapping and assembly already have early proofs of concept in that direction, and I think there is a lot more to push in that direction.
 
