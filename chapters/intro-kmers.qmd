@@ -25,7 +25,7 @@ From this property stems the notion of *de Bruijn graph* (DBG), where each node 
 This definition is referred to as *node-centric*, but we can define an *edge-centric* version that's equivalent by representing /kmers as edges and $k - 1$ overlaps as nodes.
 @fig-dbg-node-centric shows the node-centric DBG induced by the sequence `CTAAGAAGGT`, while @fig-dbg-edge-centric shows its edge-centric counterpart.
 In this setting, any sequence of length $\ge k$ corresponds to a *walk* in the DBG.
-This representation can however lead to ambiguities in the presence of repeats: for instance, `CTAAGAAGGT`, `CTAAGAAGAAGGT` and `CTAAGAAGAAGAAGGT` all correspond to the same graphs for *k = 3*.
+This representation can however lead to ambiguities in the presence of repeats: for instance, `CTAAGAAGGT`, `CTAAGAAGAAGGT` and `CTAAGAAGAAGAAGGT` all correspond to the same graph for *k = 3*.
 
 :::{#fig-dbg-node-centric}
 
@@ -156,7 +156,7 @@ De Bruijn graph for *k = 31* of [SSNA1](http://sg-nex-data.s3.amazonaws.com/data
 The set of /kmers associated to a sequence is often referred to as its /kmer spectrum^[Depending on the context, the notion of /kmer spectrum also includes the number of occurrences of each /kmer.] and denoted $\operatorname{Sp}_k(T)$ for a string $T$.
 This notion can naturally be extended to sets of strings by merging their spectra.
 Since having access to the /kmer spectrum is sufficient to construct the corresponding DBG, one may want to find a compact way to represent it.
-@spss and @simplitigs formulated this problem as find a minimum *spectrum-preserving string set* (SPSS) / *simplitigs*: given an input set of sequences $\mathcal{I}$, find a new set of sequences $\mathcal{S}$ such that $\operatorname{Sp}_k(\mathcal{I}) = \operatorname{Sp}_k(\mathcal{S})$, each /kmer appears exactly once in $\mathcal{S}$ and $\sum_{T \in \mathcal{S}} |T|$ is minimal.
+@spss and @simplitigs formulated this problem as finding a minimum *spectrum-preserving string set* (SPSS) / *simplitigs*: given an input set of sequences $\mathcal{I}$, find a new set of sequences $\mathcal{S}$ such that $\operatorname{Sp}_k(\mathcal{I}) = \operatorname{Sp}_k(\mathcal{S})$, each /kmer appears exactly once in $\mathcal{S}$ and $\sum_{T \in \mathcal{S}} |T|$ is minimal.
 
 A simple way to build a (non-minimal) SPSS is to decompose the edge-centric DBG into maximal paths with non-branching inner nodes, known as *unitigs* [@bcalm1].
 For instance, the DBG in @fig-dbg-edge-centric is decomposed as $\{\textsf{CTAA}, \textsf{AAG}, \textsf{AGAA}, \textsf{AGGT}\}$.

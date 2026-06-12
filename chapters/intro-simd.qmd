@@ -2,7 +2,7 @@
 
 CPU performance scaled remarkably through the late 20^th^ century, driven by increasing transistor counts (roughly following the famous *Moore's law*) and rising clock frequencies.
 However, as the clock frequencies started facing physical limits, CPU manufacturers invested in new solutions to keep improving the computation throughput.
-The main trend over the last decades has been to focus on handling more operations in parallel, either by adding more CPU cores (*task-level* parallelism), or by increasing the amount of operations done by each core (*instruction-level* and *data-level* parallelism).
+The main trend over the last decades has been to focus on handling more operations in parallel, either by adding more CPU cores (*task-level* parallelism), or by increasing the number of operations done by each core (*instruction-level* and *data-level* parallelism).
 In particular, many applications such as scientific computing, signal processing or regex engines benefit especially from data-level parallelism, where the same operation is applied *independently on multiple data* [@computer-architecture].
 In this chapter, we will present how vectorized instructions can speed up these use cases.
 

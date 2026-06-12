@@ -42,7 +42,7 @@ As noted in [@lphash, theorem 3], the proportion of maximal /skmers approaches $
 :::{#fig-superkmer}
 ![](../fig/fhs/1_superkmer){width=70%}
 
-/Skmers extracted from a sequence for $k=6, m=3$. Minimizers are shown in pink, here we use the lexicographic order instead of hashing minimizers for the sake of simplicity. /Skmers 1 and 4 are maximal (they contain respectively /kmers {`CTGAAA`, `TGAAAT`, `GAAATG`, `AAATGC`} and {`TGCACA`, `GCACAT`, `CACATT`, `ACATTT`}, while 2 and 3 are not (and contain respectively /kmers {`AATGCA`} and {`ATGCAC`}.
+/Skmers extracted from a sequence for $k=6, m=3$. Minimizers are shown in pink, here we use the lexicographic order instead of hashing minimizers for the sake of simplicity. /Skmers 1 and 4 are maximal (they contain respectively /kmers {`CTGAAA`, `TGAAAT`, `GAAATG`, `AAATGC`} and {`TGCACA`, `GCACAT`, `CACATT`, `ACATTT`}), while 2 and 3 are not (and contain respectively /kmers {`AATGCA`} and {`ATGCAC`}).
 :::
 
 As recalled in @sec-minimizer-orderings, random minimizers achieve a density of $2/(w+1)$, and we define the *density factor* as the density multiplied by $w+1$ (so random minimizers have a factor of 2).
@@ -84,7 +84,7 @@ because the hashes of distinct /mmers are independent, so
 $$f = \Pr\left(\min_{i \in \llbracket 1, w \rrbracket} h(x_i) \le t\right) = 1 - (1 - p)^w$$
 :::
 
-Note that this property is valid for /kmers with distinct /mmers; /kmers with duplicated /mmers (i.e. /kmers containing repetitions) have a lower coverage since they have less candidates for small minimizers.
+Note that this property is valid for /kmers with distinct /mmers; /kmers with duplicated /mmers (i.e. /kmers containing repetitions) have a lower coverage since they have fewer candidates for small minimizers.
 Fortunately, as shown in [@miniception] (see lemma 9), the proportion of /kmers with duplicated /mmers is negligible for a sufficiently large $m$ ($> (3 + \varepsilon) \log_\sigma w$).
 Thus, our selection method is uniform for /kmers with distinct /mmers, and almost uniform in the entire /kmer space.
 
@@ -300,7 +300,7 @@ All-vs-all comparisons were timed and profiled with Snakemake, and exact Jaccard
 
 #### RAM, time, and sketch size
 
-@fig-resRefseqk31 and @fig-ressalmok31 demonstrate that, for $k=31$, /spsp generally consumes 5 times less RAM and requires 16 times less space than sourmash. Additionally, /spsp performs computations 50 times faster than sourmash when comparing highly dissimilar genomes. However, when genomes are very similar, such as with Salmonella, comparison times are comparable since /spsp's time optimization does not apply on very similar documents.
+@fig-resRefseqk31 and @fig-ressalmok31 demonstrate that, for $k=31$, /spsp generally consumes 5 times less RAM and requires 16 times less space than sourmash. Additionally, /spsp performs computations 50 times faster than sourmash when comparing highly dissimilar genomes. However, when genomes are very similar, such as with Salmonella, comparison times are comparable since /spsp's time optimization does not apply to very similar documents.
 We also note that minimizer size has little to no impact on these metrics.
 
 @fig-resRefseqk63 and @fig-ressalmok63 reveal that the improvement in sketch disk size is even more significant with larger values of $k$. /spsp uses in general 50 times less disk space than sourmash with $k=63$, while maintaining similar differences in RAM and computation time.

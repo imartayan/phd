@@ -6,7 +6,7 @@
 This part finally asks how much of the data can be discarded without losing the answers we care about during analysis.
 The observation driving this part is that many bioinformatics queries, such as similarity estimation, read mapping or large-scale search, do not require every /kmer.
 A carefully chosen subset, small enough to fit in memory and fast enough to compare, is often sufficient.
-The central challenge is therefore to characterise how small that subset can be, control its composition, and build the data structures that exploit it.
+The central challenge is therefore to characterize how small that subset can be, control its composition, and build the data structures that exploit it.
 [Chapter 15](low-density-minimizers.qmd) surveys the landscape of low-density minimizer schemes and shows the theoretical lower bound on how few /kmers any window-based sampling strategy must select.
 [Chapter 16](multimini.qmd) combines multiple independent hash functions to push this boundary further.
 [Chapter 17](skmer-sketch.qmd) applies these ideas at a larger granularity, sketching entire /skmers rather than individual /kmers to enable similarity queries at reduced memory and sublinear complexity.

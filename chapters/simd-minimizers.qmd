@@ -13,14 +13,14 @@ One major such application is computing *random minimizers* (introduced in @sec-
 for each window of *w* consecutive /kmers, we select the smallest /kmer given a pseudo-random order defined by hash values.
 
 In this chapter, we focus on computing random minimizers as efficiently as possible.
-More precisely, we are interested finding the *starting positions* of random minimizers in a sequence, from which we can extract the minimizers themselves.
+More precisely, we are interested in finding the *starting positions* of random minimizers in a sequence, from which we can extract the minimizers themselves.
 We will first focus on computing *forward* minimizers (without taking reverse-complement into account) for simplicity, and later describe a solution for *canonical* minimizers in @sec-canonical-minimizers.
 Our implementation of the vectorized algorithm discussed in @sec-vectorized-impl-minimizers is available in the [simd-minimizers](https://github.com/rust-seq/simd-minimizers) Rust library.
 
 The computation of random minimizers is divided in three main steps, illustrated in @fig-simd-mini-overview.
 First each /kmer of the input string (corresponding to horizontal lines in the figure) is hashed to a 32-bit integer (value above each line) using a rolling hash as presented in @sec-rolling-hash.
 Then, for each window of *w* consecutive /kmers, we find the absolute position of its smallest hash: for instance the fourth window in the figure, highlighted in yellow, has a smallest hash equal to 12 starting at position 5 (zero-based).
-Finally, the resulting minimizers positions are deduplicated.
+Finally, the resulting minimizer positions are deduplicated.
 
 :::{#fig-simd-mini-overview}
 ![](../fig/simd-mini/overview)
@@ -190,7 +190,7 @@ When the window exactly coincides with a block (as shown on the right), the suff
 ![](../fig/simd-mini/sliding-window-min)
 
 An example showing how sliding-window minima can be computed for windows of size $w=4$.
-The first window highlighted in yellow overlap two blocks and has 5 as suffix minimum and 1 as prefix minimum.
+The first window highlighted in yellow overlaps two blocks and has 5 as suffix minimum and 1 as prefix minimum.
 The second highlighted window coincides with a block and has 3 as suffix and prefix minimum.
 :::
 
@@ -249,7 +249,7 @@ Two-stacks algorithm for sliding window minimum.
 
 Since we want to return the leftmost position of the minimum and not the minimum itself, we need to keep track of the positions alongside values.
 While we could simply store value-position tuples in the buffer, what we do in practice is that we only use the upper 16 bits of each hash value and store the position in the lower 16 bits.
-This way, taking the minimum still prioritize the smallest values and breaks ties in favor of the leftmost occurrence as expected.
+This way, taking the minimum still prioritizes the smallest values and breaks ties in favor of the leftmost occurrence as expected.
 Since the position is stored using 16 bits, strings longer than 2^16^ characters are processed in chunks of 2^16^.
 We note here that while using a 16-bit hash is usually not sufficient for /kmer indexing purposes, this *is* sufficiently good for selecting the minimum of a window when $w \ll 2^{16}$, which is typically the case in bioinformatics applications.
 We intentionally do not expose this hash to the user, and recommend instead to compute a second larger hash for indexing purposes if needed.
@@ -319,7 +319,7 @@ One small drawback of this scheme is that it is not *forward*, i.e. the selected
 Suppose for instance that a long window has many occurrences of the smallest minimizer, and that shifting the window one position changes its canonical strand.
 In that case, the position of the sampled minimizer could jump backwards: from sampling the rightmost minimizer to sampling the leftmost minimizer.
 In practice, this does not seem to be a major limitation, both because it is rare and because downstream methods usually work fine on non-forward schemes anyway.
-Another (slower) scheme for canonical minimizers preserving the forward property is described @sec-appendix-forward-canonical.
+Another (slower) scheme for canonical minimizers preserving the forward property is described in @sec-appendix-forward-canonical.
 
 ## Vectorized implementation {#sec-vectorized-impl-minimizers}
 
@@ -408,7 +408,7 @@ We end by concatenating all the per-lane buffers into a single vector of minimiz
 Overview of the reordering and deduplication of minimizer positions.
 Each row on the left corresponds to the minimizer positions outputted by the SIMD sliding window minimum algorithm for $L$ chunks at a time.
 We first transpose this matrix, so that the resulting SIMD vectors each correspond to a single chunk, with values corresponding to the first chunk highlighted in yellow.
-These are then compared with their preceding element (including the previous minimizer position, as shown in grey), and distinct elements are shuffled to the front.
+These are then compared with their preceding element (including the previous minimizer position, as shown in gray), and distinct elements are shuffled to the front.
 These positions are accumulated in a separate buffer for each chunk, and these buffers are finally concatenated into a single flat vector.
 Note that while the figure shows $L=4$ lanes, we use $L=8$ lanes in practice for 256-bit registers.
 :::
@@ -419,16 +419,16 @@ While the method we presented so far is designed to compute minimizer positions,
 
 ### Computing /skmers
 
-One of the most common use case of minimizers is to partition a sequence into /skmers (presented in @sec-intro-minimizers).
+One of the most common use cases of minimizers is to partition a sequence into /skmers (presented in @sec-intro-minimizers).
 In that case, in addition to the minimizer positions, we also want to keep track of which windows are associated to which minimizers.
 A simple way to encode this information is to record the starting position of the first window with a given minimizer position.
 
-The starting position of /skmers can extracted by amending the deduplication step.
+The starting position of /skmers can be extracted by amending the deduplication step.
 After comparing adjacent minimizer positions, we obtain a mask that determines the shuffle instruction to apply.
 Normally we shuffle the 32-bit minimizer positions directly.
 Instead, we can mask out the upper 16 bits (previously used to store hashes) and store there the index of its window.
 If we then shuffle those values, we obtain for each minimizer its position in the input text, and the position of the first window where this /kmer became a minimizer.
-This information is sufficient to recover all /skmers, and sequences longer than 2^16^ bp can simply be split-up.
+This information is sufficient to recover all /skmers, and sequences longer than 2^16^ bp can simply be split up.
 
 ### Computing syncmers
 
@@ -678,7 +678,7 @@ Performance on 100 MB of the Pizza&Chili corpus English^[<https://pizzachili.dcc
 #### Human genome
 
 We also run `simd-minimizers` on the chromosomes of the T2T-CHM13v2.0 human genome^[Available at <https://github.com/marbl/CHM13>.] [@t2t], of total size 3.2 Gbp.
-Here, computing forward minimizers takes 5.19 seconds, and canonical minimizers takes 6.71 seconds for $(w, k) = (11, 21)$, which corresponds 1.67 and 2.15 ns/bp, which is within a few percent of @tbl-minimizer-impl-comparison.
+Here, computing forward minimizers takes 5.19 seconds, and canonical minimizers takes 6.71 seconds for $(w, k) = (11, 21)$, which corresponds to 1.67 and 2.15 ns/bp, which is within a few percent of @tbl-minimizer-impl-comparison.
 
 #### Density
 

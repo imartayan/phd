@@ -14,7 +14,7 @@ In this chapter, we will focus on rolling hashes, which are especially well-suit
 
 ## Rolling hashes and their properties
 
-The concept of *rolling hash* (or *recursive hash*) was first introduced @karp-rabin for pattern matching.
+The concept of *rolling hash* (or *recursive hash*) was first introduced by @karp-rabin for pattern matching.
 Its purpose is to efficiently compute a hash over a sliding window of integers, without having to rehash the content of the entire window as it shifts.
 
 @karp-rabin defined their rolling hash as follows: given a large prime number $p$ and $r \in [2, p)$,
@@ -155,7 +155,7 @@ Note that any symmetric operation could work here, but something like a $\min$ w
 ## Vectorized implementation of ntHash {#sec-vectorized-nthash}
 
 Because it only relies on bitwise operations and has no branches, @alg-nthash is a good candidate for vectorization.
-In order to make full use the 256-bit registers available on most x86 CPUs, our goal in this section will be to compute 8 32-bit hashes at the same time.
+In order to make full use of the 256-bit registers available on most x86 CPUs, our goal in this section will be to compute 8 32-bit hashes at the same time.
 The main limitation here is that rolling hashes are inherently sequential: each hash value is updated from the hash of the previous window.
 Therefore, instead of computing 8 consecutive hashes, we focus on computing 8 *independent* hashes together.
 
@@ -189,8 +189,8 @@ Our vectorized implementation of ntHash and MulHash, built on top of [packed-seq
 To evaluate the performance gain brought by vectorization, we measured the throughput of different hashing methods on x86 and ARM.
 We benchmarked 5 hashing methods in Rust (script available at <https://github.com/imartayan/nthash-bias/blob/main/src/bin/throughput.rs>):
 
-- iterating over ASCII-encoded /kmers (slice of 31 bytes) and hashing them with `rapidhash`^[<https://docs.rs/rapidhash/latest/rapidhash/>] v4.4.1 (which is one of the fastest hash for slices of bytes)
-- iterating over bitpacked /kmers (stored in a `u64`) with `packed-seq` and hashing them `fxhash`^[<https://docs.rs/rustc-hash/latest/rustc_hash/>] v2.1.2 (which is one of the fastest hash for native integers)
+- iterating over ASCII-encoded /kmers (slice of 31 bytes) and hashing them with `rapidhash`^[<https://docs.rs/rapidhash/latest/rapidhash/>] v4.4.1 (which is one of the fastest hashes for slices of bytes)
+- iterating over bitpacked /kmers (stored in a `u64`) with `packed-seq` and hashing them with `fxhash`^[<https://docs.rs/rustc-hash/latest/rustc_hash/>] v2.1.2 (which is one of the fastest hashes for native integers)
 - ntHash implementation from the `nthash`^[<https://docs.rs/nthash/latest/nthash/>, not to be confused with `nthash-rs` which is much slower] crate v0.5.1
 - our implementation of ntHash (`seq-hash` v0.1.2)
 - our implementation of mulHash (`seq-hash` v0.1.2)
@@ -211,7 +211,7 @@ Throughput of different hashing methods on x86 and ARM using a single thread, be
 :::
 
 Overall, our vectorized implementation is 2.3--2.6× faster than the existing ntHash implementation, and is the fastest option among evaluated methods.
-We can also notice that using a packed input also benefits non-rolling hashes since the input 4× smaller.
+We can also notice that using a packed input also benefits non-rolling hashes since the input is 4× smaller.
 
 ## Breaking ntHash
 
@@ -252,7 +252,7 @@ Under these assumptions, every /kmer has a probability $2^{-n}$ that its hash st
 So if we define "small" as starting with $n$ zeros, the distance between "small" /kmers roughly follows a geometric distribution (this is not exactly true because of repeated /kmers, though this is negligible for a large *k*).
 
 Unfortunately, I noticed that the empirical distribution I had in my experiments^[documented at <https://github.com/imartayan/pfp-distribution>] was not quite geometric, and that the repartition of "small" /kmers was skewed.
-I observed in particular that the number leading zeros for a given /kmer was very correlated with the number of leading zeros of the neighboring /kmers, thus invalidating both independence and uniformity assumptions.
+I observed in particular that the number of leading zeros for a given /kmer was very correlated with the number of leading zeros of the neighboring /kmers, thus invalidating both independence and uniformity assumptions.
 
 To document this behavior, I computed the number of leading zeros for every /kmer hash in a large random sequence (4 billion bases), and measured the probability that two consecutive /kmers transition from $i$ leading zeros to $j$ leading zeros.
 These experiment scripts are available at <https://github.com/imartayan/nthash-bias>.
@@ -279,9 +279,9 @@ While the first rows and columns mostly match the expectations, the missing tran
 Notably, after observing a hash with at least 9 leading zeros, the probability of having exactly 7 leading zeros next to it is 16× higher.
 This creates an interesting dynamic where small hashes with at least 9 leading zeros are likely followed by 7 leading zeros, which are then followed by at most 6 leading zeros.
 
-Even though this phenomenon is difficult to explain, the offset of one between the missing rows and columns made me conjecture that it is related the 1-bit rotations performed at each step.
+Even though this phenomenon is difficult to explain, the offset of one between the missing rows and columns made me conjecture that it is related to the 1-bit rotations performed at each step.
 To verify this hypothesis, I introduced variations of ntHash where the 1-bit rotations are replaced by *R*-bit rotations.
-This does not cause any problem as long as *R* is odd (since *R* and 32 need to be coprime) and does not affect the performances, but simply shuffles the rotation offsets at each step.
+This does not cause any problem as long as *R* is odd (since *R* and 32 need to be coprime) and does not affect performance, but simply shuffles the rotation offsets at each step.
 @fig-bias-R7 shows the results obtained for *R* = 7 while @fig-bias-R13 shows the results for *R* = 13.
 
 :::{#fig-bias-R7 layout-ncol=2}

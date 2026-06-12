@@ -20,7 +20,7 @@ $$
 
 It's pretty clear that the necklace transformation is not injective, for instance `CAT`, `ATC` and `TCA` all have `ATC` as a necklace.
 Intuitively, each necklace of size $k$ acts as a representative of its $k$ cyclic rotations, as depicted in @fig-necklace-example.
-The following property confirms this intuition and shows that necklaces of size $k$ roughly amount for a fraction $\frac{1}{k}$ of all /kmers:
+The following property confirms this intuition and shows that necklaces of size $k$ roughly account for a fraction $\frac{1}{k}$ of all /kmers:
 
 :::{#prp-number-necklaces}
 ## Number of necklaces [@lothaire1997combinatorics]
@@ -125,7 +125,7 @@ $$
 :::
 
 Since there are $k$ such rotation offsets, it requires $\lceil \lg k \rceil$ bits to encode $\rho(x)$.
-Thus, when combined with the rank encoding of the necklace, this yields a fully reversible transformation whose total size matches the original /kmer up to a extra rounding bit.
+Thus, when combined with the rank encoding of the necklace, this yields a fully reversible transformation whose total size matches the original /kmer up to an extra rounding bit.
 
 ### Encoding canonical /kmers
 
@@ -175,7 +175,7 @@ Boundary substrings change for each new /kmer, so we have to recompute them ever
 Non-boundary substrings, however, are preserved for consecutive /kmers.
 Because of this, we can use classical algorithms for minimizers (such as those discussed in @sec-simd-minimizers) to compute the smallest non-boundary /mmer in $\mathcal{O}(1)$ amortized time.
 Moreover, we know that if *m* is large enough ($\Omega(\log k)$) the smallest /mmer is unique with high probability [@miniception, lemma 9].
-Therefore, by choosing $m = \Theta(\log k)$, we only have one non-boundary /mmer to consider w.h.p. and $m-1$ boundary /mmer to compute, leading to $\mathcal{O}(\log k)$ time overall.
+Therefore, by choosing $m = \Theta(\log k)$, we only have one non-boundary /mmer to consider w.h.p. and $m-1$ boundary /mmers to compute, leading to $\mathcal{O}(\log k)$ time overall.
 In practice, we found that using substrings of $m = 9$ bits gave the best results for *k* ranging from 31 to 63.
 Our implementation of this algorithm can compute 100M necklaces per second on a laptop with a M1 processor.
 
@@ -305,7 +305,7 @@ BufBOSS is the slowest and most memory-intensive tool.
 
 The fact that CBL matches the throughput of a high-performance hash table while being equally memory-efficient is particularly noteworthy.
 Importantly, Bifrost, HashSet, and CBL are the only tools that accept any FASTA input directly.
-The other tools require a /kmer counting preprocessing step (e.g. KMC3 for SBWT and BufBOSS, unitig assembly for SSHash), which externalises part of their construction cost and may impose heavy disk usage.
+The other tools require a /kmer counting preprocessing step (e.g. KMC3 for SBWT and BufBOSS, unitig assembly for SSHash), which externalizes part of their construction cost and may impose heavy disk usage.
 
 :::{#fig-necklace-build layout-ncol=2}
 

@@ -1,6 +1,6 @@
 # Background on low-density minimizers {#sec-low-density-minimizers}
 
-As discussed in @sec-intro-minimizers, the *density* of a minimizer schemes drives its space efficiency: lowering the density leads to longer runs of the same minimizer and longer /skmers, which results in a direct improvement in applications such as /kmer counting [@kmc3; @hyperkmers], DBG compaction [@bcalm2; @cuttlefish2; @ggcat] or large-scale indexes [@blight; @sshash].
+As discussed in @sec-intro-minimizers, the *density* of a minimizer scheme drives its space efficiency: lowering the density leads to longer runs of the same minimizer and longer /skmers, which results in a direct improvement in applications such as /kmer counting [@kmc3; @hyperkmers], DBG compaction [@bcalm2; @cuttlefish2; @ggcat] or large-scale indexes [@blight; @sshash].
 However, we've also seen that the widely used *random minimizers* achieve a density of $2 / (w+1)$, well above the $1 / w$ lower bound implied by the window guarantee.
 This observation raises two main questions:
 how can we design new schemes with a lower density?
@@ -17,13 +17,13 @@ From a DBG perspective (see @sec-intro-kmers for some reminders), designing a UH
 
 Unlike minimizers, UHS are *context-free* in the sense that a selected /kmer does not depend on its surrounding context.
 We can however derive a minimizer scheme compatible with a UHS $U$ by using an order that ranks all /kmers in $U$ before all others.
-Since every window contains an element from $U$ and the order favor these, we know that every selected minimizer would belong to $U$.
+Since every window contains an element from $U$ and the order favors these, we know that every selected minimizer would belong to $U$.
 The density of such a scheme is upper-bounded by $|U| / \sigma^k$ [@marcais2018asymptotically], thus designing a smaller UHS directly translates to a lower density.
 Unfortunately, @orenstein2016compact proved that finding a minimum UHS is NP-hard by reducing it from the Hitting Set problem [@karp2009], so we have to rely on heuristics to find small UHS instead.
 
 ### Decycling sets
 
-A popular heuristics to approximate a good UHS is to start from a *minimum decycling set* (MDS).
+A popular heuristic to approximate a good UHS is to start from a *minimum decycling set* (MDS).
 The idea behind a decycling set is that, instead of covering every path of length *w*, we cover every cycle of the DBG.
 Luckily, building a minimum decycling set is much easier than a minimum UHS:
 @mykkeltveit1972 constructed it by embedding each /kmer $x$ into the complex plane as
@@ -38,7 +38,7 @@ However, the exponential search space limited this approach to $k \le 14$ in pra
 
 @pellow2023efficient proposed a simpler and more scalable approach by building a minimizer scheme directly from this MDS: within any window, prefer /kmers in the MDS and break ties randomly.
 Checking MDS membership can be done by simply computing the corresponding embedding or with a precomputed lookup table, and the scheme extends to arbitrary $k$.
-@pellow2023efficient also introduced *double decycling sets* as a variant that prioritizes a symmetric MDS by selecting /kmers with $-2\pi/k \le \arg(z) < 0$, and falls back to Mykkelveit's MDS otherwise.
+@pellow2023efficient also introduced *double decycling sets* as a variant that prioritizes a symmetric MDS by selecting /kmers with $-2\pi/k \le \arg(z) < 0$, and falls back to Mykkeltveit's MDS otherwise.
 This approach further reduced density, especially for $k < w$ where it significantly outperforms DOCKS and similar UHS-based constructions.
 A plot of the density of double decycling sets, along with other schemes, is available in @fig-density-overview.
 
@@ -92,7 +92,7 @@ $$
 which converges to $1/w$ as $k \to \infty$ with $w$ fixed, leading to an asymptotically optimal scheme.
 A plot of the resulting density is available in @fig-density-overview.
 
-The scheme has the benefit of being very simple and efficient: it only requires computing sliding minimum (which we discussed in @sec-simd-minimizers) over short $t$-mers and a single modulo afterwards, making it a near drop-in replacement for random minimizers.
+The scheme has the benefit of being very simple and efficient: it only requires computing a sliding minimum (which we discussed in @sec-simd-minimizers) over short $t$-mers and a single modulo afterwards, making it a near drop-in replacement for random minimizers.
 Moreover, the modulo operation, which is usually quite expensive, can be accelerated using a "fast mod" [@fast-mod] since $w$ is fixed.
 It should be noted, however, that this optimization does not apply as well on SIMD lanes of fixed size which cannot be widened.
 Practical experiments with SSHash [@sshash] showed that replacing random minimizers by mod-minimizers resulted in a 15% space gain for $w = 11$ and $k = 21$, without degrading the speed [@mod-mini].
@@ -110,10 +110,10 @@ This merges the density gains of both approaches and achieves low density across
 
 ## Lower bounds for forward local schemes
 
-While the density of any scheme with a window guarantee can be trivially lower bounded by $1/w$, all of the improved schemes discussed previously remained quite far from it small values of *k*, suggesting that a density of $1/w$ could simply be unreachable in this region.
+While the density of any scheme with a window guarantee can be trivially lower bounded by $1/w$, all of the improved schemes discussed previously remained quite far from it for small values of *k*, suggesting that a density of $1/w$ could simply be unreachable in this region.
 
 @marcais2018asymptotically established a first non-trivial lower bound for *forward local schemes*, that is, schemes that select a /kmer only based on the content of the current window (*local*) and have an increasing sequence of selected positions (*forward*).
-This bound was then tightened  by @mod-mini, and later refined as a near-tight lower bound by @density-lower-bound:
+This bound was then tightened by @mod-mini, and later refined as a near-tight lower bound by @density-lower-bound:
 any forward local scheme must satisfy
 $$
 d \ge \frac{\left\lceil\frac{w + k}{w}\right\rceil}{w + k}

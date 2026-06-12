@@ -351,7 +351,7 @@ At query, for a given /kmer, we have to compute and look up the $N$ minimizer ca
 
 Ultimately, the multiminimizer scheme does not behave like a local scheme, either at construction or at query time.
 It is advantageous as it implies that its density is not subject to the lower bound of local schemes by @density-lower-bound, although the $1/w$ bound still applies.
-As showed in upcoming @sec-multimini-density, the multiminimizer scheme does indeed beat this lower bound, and approach density of $1/w$ as $N$ increases.
+As showed in upcoming @sec-multimini-density, the multiminimizer scheme does indeed beat this lower bound, and approach a density of $1/w$ as $N$ increases.
 This gain in density comes at the price of (bounded) increased query time, as discussed above.
 
 Finally, note that the multiminimizer construction is not limited to random minimizer schemes, but could be used with any combination of $N$ distinct local schemes, whether by varying parameters or using concurrent schemes; in that sense, multiminimizers are a sort of *meta* scheme.
@@ -513,7 +513,7 @@ However, /skmers use as low as 6 /bpk in $S$.
 This is still higher than the lower bound of 2 /bpk, due to random minimizers having a density of $\frac{2}{w+1}$.
 
 Since our multiminimizer scheme approaches a density of $\frac{1}{w}$, using a multiminimizer scheme could allow /hkmers to tend toward 2 /bpk in the input sequence.
-To test this hypothesis, we replaced the iterator over minimizer of KFC (a /hkmer-based /kmer counter introduced in [@hyperkmers]) by our iterator over multiminimizer and report the result in @fig-multimini-size-hyperkmer.
+To test this hypothesis, we replaced the iterator over minimizers of KFC (a /hkmer-based /kmer counter introduced in [@hyperkmers]) by our iterator over multiminimizers and report the result in @fig-multimini-size-hyperkmer.
 Note that KFC is optimized for large $k$ values (e.g. > 60), so we tested our hypothesis in this range.
 Our results show that KFC converges to 2 /bpk in $S$, which we believe to be the first streaming /kmer representation to do so.
 
@@ -535,7 +535,7 @@ Such an index stores a set of minimizers that collectively cover all /kmers of i
 Our prototype relies on exact hash tables and handles a single uncolored set; the same idea can be readily adapted to colored or approximate index structures.
 During construction, we test the presence of /kmers and then greedily select minimizers to cover any uncovered sequences.
 We evaluate the approach on the Human HiFi accession `SRR11292123` (~24 Gb) in @fig-multimini-pin, and observe a smaller index at a moderate cost in build and query time.
-Merely switching from a single to two hash functions yields an index about 20% smaller, with roughly a 20% increase in construction time and about 85% in query time.
+Merely switching from one to two hash functions yields an index about 20% smaller, with roughly a 20% increase in construction time and about 85% in query time.
 
 :::{#fig-multimini-pin}
 ![](../fig/multimini/pin_results){width=80%}

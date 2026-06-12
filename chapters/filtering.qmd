@@ -9,9 +9,9 @@ This chapter presents an application of these building blocks to *sequence filte
 
 Large-scale /kmer indexes can efficiently identify a small, relevant subset of documents (e.g., read sets, unitigs, contigs).
 However, this initial filtering is not final.
-Due to false positives from  probabilistic indexes, or sparse/non-collinear matches, queried /kmers may not be truly present or usable for mapping.
+Due to false positives from probabilistic indexes, or sparse/non-collinear matches, queried /kmers may not be truly present or usable for mapping.
 Therefore, recovering specific sequences within identified documents that genuinely share /kmers with the query is crucial.
-This refinement, moving from relevant documents to relevant sequences suitable for alignment, mitigates downstream scalability issues and can reduce data volume by orders of magnitude, such as identifying a few relevant sequences from  billions.
+This refinement, moving from relevant documents to relevant sequences suitable for alignment, mitigates downstream scalability issues and can reduce data volume by orders of magnitude, such as identifying a few relevant sequences from billions.
 
 The problem of /kmer-based *sequence filtering* can be formalized as follows:
 given a set of /kmers of interest $\mathcal{Q} = \left\lbrace q_1, \dots, q_m \right\rbrace$ (the "queries"), a set of sequences $\mathcal{S} = \left\lbrace S_1, \dots, S_n \right\rbrace$ and a threshold $T$, output for each $S_i \in \mathcal{S}$ whether $\sum_{q \in \mathcal{Q}} \#\text{occ}(q, S_i) \ge T$, i.e. whether $S_i$ contains at least $T$ occurrences of /kmers of interest.
@@ -20,7 +20,7 @@ In practice, the threshold can either be set as an absolute value $T \in \mathbb
 #### Related work {.unnumbered}
 
 Although sequence-level indexes have been proposed [@karasikov2022lossless;@k2r], indexing and storing entire dataset collection at this resolution remains expensive and challenging at scale, thus favoring lightweight filtering methods directly from unindexed data.
-Efficient multi-pattern matching is a highly studied topic from both the theoretical [@crochemore1999fastmulti] and practical point of view [@faro2013exact].
+Efficient multi-pattern matching is a highly studied topic from both the theoretical [@crochemore1999fastmulti] and practical points of view [@faro2013exact].
 Practical implementation can be found in classical data processing with grep-like efficient tools such as Ripgrep [@ripgrep] or Hyperscan [@hyperscan].
 Some tools perform pattern matching adapted to genomic data, such as Seqkit [@seqkit1;@seqkit2], fqgrep [@fqgrep] or grepq [@grepq].
 However, these solutions tend to scale poorly as the number of query /kmers increases and fail to leverage the fixed length of the search patterns.
@@ -34,7 +34,7 @@ Finally, while to our knowledge it has not been used for sequence filtering, the
 
 <!-- à quoi va servir l'application. Un exemple qui pourrait l'illustrer ? -->
 This work presents three main contributions.
-First, we introduce a new algorithm that uses random minimizers to quickly filter out sequences that contains too few /kmers of interest, effectively reducing the cost of negative matches by a factor $w / 2$.
+First, we introduce a new algorithm that uses random minimizers to quickly filter out sequences that contain too few /kmers of interest, effectively reducing the cost of negative matches by a factor $w / 2$.
 Second, we propose an optimized implementation named *K2Rmini*, that takes advantage of vectorized instructions to parse sequences, hash /kmers and compute minimizers efficiently.
 Third, we compare our approach to many different tools and evaluate their scalability for a large number of patterns, highlighting the benefits of different methods.
 Our tool, K2Rmini, is able to filter 2 Gbp/s on a consumer laptop and is available online at <https://github.com/Malfoy/K2Rmini>.
@@ -196,7 +196,7 @@ Deacon only indexes minimizers and does not perform an exact second pass on the 
 Its excellent scalability therefore comes from solving a relaxed version of the problem, which may introduce false positives.
 By contrast, K2Rmini uses minimizers as a lossless prefilter and performs exact /kmer counting whenever necessary.
 
-A  practical observation is that at some point, pattern indexing itself is a visible part of the total running time and filtering is no longer the only bottleneck.
+A practical observation is that at some point, pattern indexing itself is a visible part of the total running time and filtering is no longer the only bottleneck.
 
 Memory usage reveals a similar separation between approaches.
 General-purpose tools such as ripgrep already have a large baseline memory footprint and can reach several gigabytes for the largest query sets.

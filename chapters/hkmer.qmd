@@ -390,7 +390,7 @@ ONT Duplex *E. coli* datasets (`SRX23975767` and `SRX23975758`) at approximately
 
 ![Running time](../fig/hkmer/plots/ecolihifi100xtime){#fig-sub-time}
 
-HiFi *E. coli* dataset (`SRR11434954`) downsampled at  100X depth
+HiFi *E. coli* dataset (`SRR11434954`) downsampled at 100X depth
 :::
 
 :::{#fig-plot-ont layout-ncol=2}

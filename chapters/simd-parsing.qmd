@@ -8,7 +8,7 @@ Sequence bioinformatics has always been closely tied to stringology and compress
 Recent progress has opened new paths toward high-performance parsers that are both formally grounded and practically competitive.
 This chapter explores one such connection, applying these techniques to the FASTA and FASTQ formats.
 
-The central contribution of this chapter consists of new vectorized algorithms for high-throughput FASTA/Q parsing, which support on-the-fly detection and handling non-ACTG characters, and provide bitpacked representations of the sequence.
+The central contribution of this chapter consists of new vectorized algorithms for high-throughput FASTA/Q parsing, which support on-the-fly detection and handling of non-ACTG characters, and provide bitpacked representations of the sequence.
 Formally, given an input FASTA/Q file, we produce a structured iterator over the (possibly bitpacked) content of each record.
 This approach is implemented in *Helicase*, a Rust library providing a configurable interface to expose caller-requested fields for each record, avoiding unnecessary computation.
 We evaluate our approach on both x86 and ARM architectures. Across all tested scenarios, Helicase matches or exceeds the throughput of existing single-threaded parsers while maintaining feature parity. In addition, it provides extended functionality, such as bitpacked sequence output, without compromising performance. For data already loaded in RAM, Helicase is able to parse uncompressed short reads at 27 GB/s and long reads at 49 GB/s on an Apple M3 Pro using a single thread, reaching the core memory bandwidth. Our library is available at <https://github.com/imartayan/helicase> under a permissive open-source license.
@@ -44,7 +44,7 @@ Moreover, since parsing FASTA/Q requires searching for *multiple* markers simult
 ### Existing work
 
 Most state-of-the-art parsers share a pretty similar design.
-The input file is first split into sequence of lines using `memchr` to locate line feeds (`\n`).
+The input file is first split into a sequence of lines using `memchr` to locate line feeds (`\n`).
 For FASTQ files, counting the lines is sufficient for the parsing logic since each field spans over a single line.
 For FASTA files, however, we also need to check the first character of the line to determine if it starts a header (`>`).
 This usually incurs a second check after each `memchr` match to detect a new record.
@@ -117,7 +117,7 @@ When a record overlaps the boundary between two buffer fills, the partial record
 
 Unlike traditional lexing/parsing situations, we need to carefully design the structure of the
 lexing phase to be fully compatible with vectorized processing.
-Instead of consuming the input and producing lexemes to be consume later by the parser,
+Instead of consuming the input and producing lexemes to be consumed later by the parser,
 the lexing phase will annotate the stream by producing bitmasks that encompass some information
 about the input. For instance, we will produce a bitmask that distinguishes parts of the input
 that are within the header of a FASTA record or within the sequence.
@@ -128,7 +128,7 @@ In rsonpath [@rsonpath], the small programs generating relevant bitmasks are den
 
 Concretely, a bitmask gives a boolean information for each byte of the input.
 Those bytes are provided in streaming by blocks of 64 at a time.
-The goal of a highly performant lexer is to produce the desired bitmasks as efficiently as possible, and with the minimal amount of branches.
+The goal of a highly performant lexer is to produce the desired bitmasks as efficiently as possible, and with the minimal number of branches.
 To illustrate this methodology, let us focus on the `header` bitmask, critical for the FASTA parsing in Helicase.
 This bitmask is true for a byte if and only if it belongs to a header of the document.
 Formally, it is delimited by the byte `>` and a line feed without any line feed in between, as described in @eq-regex-fasta.
@@ -155,7 +155,7 @@ Those circuits can be thought of as formulas on bitmasks that can be evaluated o
 The results of the bitmask are the lexing annotations we need.
 Given a word $u$ that we want to parse, we denote by
 $\mathbf{1}_\texttt{>}$ and $\mathbf{1}_\texttt{↵}$
-the bitmask of position where respectively the symbols `>` and `↵` occur.
+the bitmask of positions where respectively the symbols `>` and `↵` occur.
 The formula to compute the `header` bitmask is then expressed as follows,
 using $+$ to denote an addition propagating the carry from left to right, $\lnot$ to denote bitwise `not` and $\oplus$ to denote bitwise `xor`:
 $$
@@ -238,7 +238,7 @@ Pseudocode to detect newlines and non-ACTG characters.
 :::
 
 Depending on the type of desired output, we also use the lexing phase to produce a stream of columnar or packed sequences, both described in @alg-columnar-packed.
-For the columnar representation, we simply shift each bytes by 5 (resp. 6) positions to move the high (resp. low) bit to the beginning of the byte, which we can then extract using `movemask` as before.
+For the columnar representation, we simply shift each byte by 5 (resp. 6) positions to move the high (resp. low) bit to the beginning of the byte, which we can then extract using `movemask` as before.
 The packed representation, however, requires different strategies depending on the architecture.
 On x86, since `movemask` can only extract one bit at a time, we essentially reuse the high and low bits from the columnar format and interleave them.
 A simple way to interleave the bits is to use the `PDEP` instruction available with BMI2.

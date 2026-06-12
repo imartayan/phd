@@ -28,7 +28,7 @@ We examine the performance consequences of this difference in @sec-set-benchmark
 
 CBL's set operations are implemented on top of `iter-set-ops` (available at <https://github.com/imartayan/iter-set-ops>), a Rust crate that performs intersection, union, and difference over an arbitrary number of sorted deduplicated iterators.
 Generalizing to $s > 2$ sets costs $O(n \log s)$ rather than the $O(n s)$ of repeated hash lookups, with no change to the algorithm structure.
-All operations are lazy: they return iterators that advance their inputs on demand, so the result can be streamed without materialising it in memory.
+All operations are lazy: they return iterators that advance their inputs on demand, so the result can be streamed without materializing it in memory.
 
 ### Union
 
