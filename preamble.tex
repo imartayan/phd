@@ -65,9 +65,20 @@
 }
 \makeatother
 
-\AddToHook{cmd/epigraph/after}{%
+\makeatletter
+\newcommand{\@new@epigraph}[2]{%
   \if@afterpart
-    \vfill\clearpage
+    \enlargethispage{-10\baselineskip}%
+    \vspace{10\baselineskip}%
+  \fi
+  \@orig@epigraph{#1}{#2}%
+  \if@afterpart
+    \vfill%
     \global\@afterpartfalse
   \fi
 }
+\AtBeginDocument{%
+  \let\@orig@epigraph\epigraph
+  \let\epigraph\@new@epigraph
+}
+\makeatother
