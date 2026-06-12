@@ -163,3 +163,8 @@ This translates into an expected density approximately $2/(w+2)$, slightly lower
 SUS-anchors [@antilex-sus-anchors] are a scheme designed for $k = 1$, or *selection* scheme, that samples the start position of the smallest unique substring (SUS) in the window, i.e. the shortest substring that occurs only once within the window and is smallest according to a given order.
 This scheme can be combined with an *anti-lexicographic* order, which compares the first character normally but reverses the order of all subsequent ones, to avoid over-sampling positions in long runs of the same character and push anchors further apart.
 Empirically, anti-lexicographic sus-anchors achieve density within 1% of the lower bound for selection schemes on the DNA alphabet.
+
+## Toward multi-hash schemes
+
+All schemes surveyed in this chapter share a common design: they improve density by choosing which ordering to impose on /kmers, so that the minimum of each window falls as infrequently as possible.
+In the next chapter we explore a different strategy: we ask whether using multiple independent hash functions simultaneously can push density below what a single scheme can achieve.

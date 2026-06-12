@@ -174,6 +174,7 @@ A complementary question is how to search across very large collections of such 
 Driven by projects like Tara Oceans [@tara] and Pebblescout [@pebblescout], the unprecedented growth of sequencing data [@big-data-genomical] has motivated a parallel effort to make these massive collections efficiently searchable.
 The central problem here is *sequence retrieval*: given a query sequence, find all samples in the collection that contain it.
 In this context, /kmers provide a natural intermediate representation, as each sample can be summarized by its /kmer set and collections of such sets indexed jointly.
+We survey recent methods for indexing individual /kmer sets in @sec-kmer-sets, and focus on collection-level methods in the rest of this section.
 
 A first generation of approaches relied on approximate membership data structures.
 Sequence Bloom Trees [@sbt] organized per-sample Bloom filters in a hierarchy to prune the search space.
