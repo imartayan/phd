@@ -429,7 +429,7 @@ Right: simulated ONT dataset with 100× coverage and 1% error rate.
 Amount of filtered genomic /kmers by KFC and KMC according to the abundance threshold and /kmer size, on a simulated 100× ONT *E. coli* dataset with 1% error rate.
 :::
 
-## Conclusions and perspectives {#sec-kfc-conclusion}
+## Conclusion {#sec-kfc-conclusion}
 
 This chapter introduced /hkmers as a streaming, partitioned alternative to /skmers for large /kmer sizes.
 By sharing each $k - 1$ base overlap between consecutive /skmers rather than duplicating it, /hkmers asymptotically reach 4 bits per nucleotide, two thirds of the /skmer cost.
