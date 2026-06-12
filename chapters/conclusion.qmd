@@ -51,7 +51,7 @@ Pushing on the first half is where I see the most room left, and I am convinced 
 Mapping and assembly already have early proofs of concept in that direction, and I think there is a lot more to push in that direction.
 
 The last observation I want to end on is that this thesis stayed firmly on the DNA side of the problem.
-Tremendous progress has happened on protein analysis in parallel, with large language models reshaping what we can extract from amino acid sequences, and recent work on hybrid methods combining the two has been quite promising.
+Tremendous progress has happened on protein analysis in parallel, with deep learning reshaping what we can extract from amino acid sequences, and recent work on hybrid methods combining the two has been quite promising.
 I find this convergence very exciting.
 Sparse, anchor-based structures for large collections are starting to appear across both communities, whether we look at de Bruijn graphs of minimizers, syncmers or amino acids, and I think there is a lot to learn from putting these two worlds in the same conversation.
-This is the direction I would like to explore after this PhD.
+This is a direction I would like to explore after this PhD.
