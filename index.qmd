@@ -6,8 +6,10 @@ Jury: [Sven Rahmann](https://www.rahmannlab.de/people/rahmann), [Alexandru Tomes
 </small>
 :::
 
+:::{.content-visible when-format="html"}
 :::{.callout-note}
-This is still a work in progress.
+You are looking at the online version of my PhD thesis, a PDF version is available on [my website](https://igor.martayan.org/).
+:::
 :::
 
 # Abstract {.unnumbered}
