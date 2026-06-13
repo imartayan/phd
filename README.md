@@ -10,8 +10,8 @@ It can generate both an HTML and a PDF version thanks to [Quarto](https://quarto
 - Python dependencies: `python -m pip install -r requirements.txt`
 - TeX Live dependencies: `tlmgr install dvisvgm pgf standalone`
 
-For the PDF version only:
-- A working XeLaTeX environment
+For the PDF version:
+- A working LuaLaTeX environment
 - [IBM Plex Sans](https://www.fontsquirrel.com/fonts/ibm-plex) and [DejaVu Sans Mono](https://www.fontsquirrel.com/fonts/dejavu-sans-mono) fonts
 
 ## Compilation

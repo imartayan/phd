@@ -79,7 +79,7 @@ format:
     lightbox: true
   pdf:
     keep-tex: true
-    pdf-engine: xelatex
+    pdf-engine: lualatex
     cite-method: biblatex
     documentclass: scrreprt
     include-in-header:
@@ -88,6 +88,8 @@ format:
     template-partials:
       - _partials/before-body.tex
       - _partials/toc.tex
+    hyperrefoptions:
+      - pdfa
     default-image-extension: pdf
     syntax-highlighting: github
     fontsize: 11pt
@@ -96,7 +98,6 @@ format:
     papersize: a4
     geometry:
       - margin=1in
-    mathspec: true
     indent: true
 
 execute:
