@@ -57,7 +57,7 @@ where $\varphi$ denotes Euler's totient function.
     \node[node] (4) at (P.corner 4) {ATACG};
     \node[node] (5) at (P.corner 5) {TACGA};
 
-    \draw[->, good, bend right=20] (1) edge (2) (2) edge (3) (3) edge (4) (4) edge (5) (5) edge (1);
+    \draw[->, color=good, bend right=20] (1) edge (2) (2) edge (3) (3) edge (4) (4) edge (5) (5) edge (1);
 \end{tikzpicture}
 ```
 

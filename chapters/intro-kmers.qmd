@@ -51,8 +51,8 @@ This representation can however lead to ambiguities in the presence of repeats: 
     \node (GAA) [above left=of AAG] {GAA};
     \node (AGG) [below right=of AAG] {AGG};
     \node (GGT) [right=of AGG] {GGT};
-    \draw[->, good] (CTA) edge (TAA) (TAA) edge (AAG) (AAG) edge (AGG) (AGG) edge (GGT);
-    \draw[->, good, bend right, looseness=.7] (AAG) edge (AGA) (AGA) edge (GAA) (GAA) edge (AAG);
+    \draw[->, color=good] (CTA) edge (TAA) (TAA) edge (AAG) (AAG) edge (AGG) (AGG) edge (GGT);
+    \draw[->, color=good, bend right, looseness=.7] (AAG) edge (AGA) (AGA) edge (GAA) (GAA) edge (AAG);
 \end{tikzpicture}
 ```
 
@@ -134,10 +134,10 @@ Both ideas later found applications well beyond assembly.
     \node (CGG) [right=of ACG] {CGG};
     \node (GGT) [below right=of AGG] {GGT};
     \node (GTT) [right=of GGT] {GTT};
-    \draw[->, good] (CTA) edge (TAA) (TAA) edge (AAG) (AAG) edge (AGG) (AGG) edge (GGT);
-    \draw[->, bad] (CTA) edge (TAC) (TAC) edge (ACG) (ACG) edge (CGG) (CGG) edge (GGT);
-    \draw[->, good, >={Latex[left]}, transform canvas={yshift=0.8pt}] (TCT) edge (CTA) (GGT) edge (GTT);
-    \draw[->, bad, >={Latex[right]}, transform canvas={yshift=-0.8pt}] (TCT) edge (CTA) (GGT) edge (GTT);
+    \draw[->, color=good] (CTA) edge (TAA) (TAA) edge (AAG) (AAG) edge (AGG) (AGG) edge (GGT);
+    \draw[->, color=bad] (CTA) edge (TAC) (TAC) edge (ACG) (ACG) edge (CGG) (CGG) edge (GGT);
+    \draw[->, color=good, >={Latex[left]}, transform canvas={yshift=0.8pt}] (TCT) edge (CTA) (GGT) edge (GTT);
+    \draw[->, color=bad, >={Latex[right]}, transform canvas={yshift=-0.8pt}] (TCT) edge (CTA) (GGT) edge (GTT);
 
 \end{tikzpicture}
 ```
