@@ -1,0 +1,32 @@
+%!
+% PDF/A-2b definition file for the thesis.
+% Customised from the Ghostscript template. The /ICCProfile path is
+% substituted by the pdfa.sh wrapper script before being passed to gs.
+
+% Document Info dictionary
+[ /Title (Algorithm design and implementation for the scale of sequencing data)
+  /Author (Igor Martayan)
+  /Subject (PhD thesis)
+  /Creator (Quarto + LuaLaTeX)
+  /DOCINFO pdfmark
+
+% ICC profile path is rewritten in place by pdfa.sh
+/ICCProfile (@@ICC_PROFILE@@)
+def
+
+[/_objdef {icc_PDFA} /type /stream /OBJ pdfmark
+
+% The profile is sRGB (3 components).
+[{icc_PDFA} << /N 3 >> /PUT pdfmark
+
+[{icc_PDFA} ICCProfile (r) file /PUT pdfmark
+
+% Output Intent dictionary
+[/_objdef {OutputIntent_PDFA} /type /dict /OBJ pdfmark
+[{OutputIntent_PDFA} <<
+  /Type /OutputIntent
+  /S /GTS_PDFA1
+  /DestOutputProfile {icc_PDFA}
+  /OutputConditionIdentifier (sRGB)
+>> /PUT pdfmark
+[{Catalog} <</OutputIntents [ {OutputIntent_PDFA} ]>> /PUT pdfmark
