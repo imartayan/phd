@@ -7,6 +7,13 @@
 
 \usetikzlibrary{arrows.meta,calc,chains,decorations.pathreplacing,matrix,patterns,patterns.meta,positioning,shapes,shapes.geometric,shapes.misc,shapes.multipart}
 
+\ifPDFTeX\else
+  \AtBeginDocument{%
+    \DeclareMathAlphabet{\mathcal}{OMS}{cmsy}{m}{n}
+    \SetMathAlphabet{\mathcal}{bold}{OMS}{cmsy}{b}{n}
+  }
+\fi
+
 \pagestyle{scrheadings}
 \clearpairofpagestyles
 \setkomafont{pageheadfoot}{\sffamily\slshape\small}
