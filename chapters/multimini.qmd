@@ -1,4 +1,4 @@
-# Multiminimizers
+# Multiminimizers {#sec-multimini}
 
 :::{.callout-note}
 This chapter is adapted from {{< longcite multiminimizers >}}, accepted to RECOMB 2026 and to be published.

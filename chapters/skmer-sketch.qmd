@@ -1,4 +1,4 @@
-# Sketching super‑*k*‑mers
+# Sketching super‑*k*‑mers {#sec-skmer-sketch}
 
 :::{.callout-note}
 This chapter is adapted from {{< longcite fhs >}} and {{< longcite fhs-multiset >}}, accepted to WABI 2023 and published in LIPIcs and Algorithms for Molecular Biology.
