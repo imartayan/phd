@@ -8,7 +8,7 @@ Jury: [Sven Rahmann](https://www.rahmannlab.de/people/rahmann), [Alexandru Tomes
 
 :::{.content-visible when-format="html"}
 :::{.callout-note}
-You are looking at the online version of my PhD thesis, a PDF version is available on [my website](https://igor.martayan.org/).
+You are looking at the online version of my PhD thesis, a PDF version is available on [my website](https://igor.martayan.org/phd.pdf).
 :::
 :::
 
