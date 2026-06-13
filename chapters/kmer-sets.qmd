@@ -177,7 +177,7 @@ Among the three, only FMSI extends natively to dynamic updates and set operation
 
 :::{#tbl-kmer-sets-comparison .large-table}
 | Approach | Input | Static / dynamic | Space<br> (bits//kmer) | Streaming lookup<br> (ns//kmer) |
-|:----:|:--:|:--:|--:|---:|
+|:-----:|:-:|:-:|--:|----:|
 | SSHash [@sshash2] | SPSS | static | 10.01 | 74 |
 | SBWT [@sbwt] | SPSS | static | 10.50^[The 4--5 /bpk reported earlier in the chapter doubles here because both strands of each /kmer are indexed to support canonical queries.] | 266 |
 | FMSI [@masked-superstring-bwt] | Masked superstring | static or dynamic^[Dynamic updates via *f-masked superstrings*.] | 3.31 | 1176 |

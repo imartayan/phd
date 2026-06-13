@@ -140,5 +140,5 @@ search-replace:
   /Skmer: "Super‑*k*‑mer"
   /hkmer: "hyper‑*k*‑mer"
   /Hkmer: "Hyper‑*k*‑mer"
-  /bpk: "bits / *k*‑mer"
+  /bpk: "bits&nbsp;/&nbsp;*k*‑mer"
   /spsp: "SuperSampler"
