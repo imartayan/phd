@@ -145,8 +145,8 @@ Theoretical bounds on the density factor and the proportion of maximal /skmers d
 This effect is more pronounced for smaller values of $f$. This observation raises a natural question: what is the lowest achievable density for a given $f$? Since universal hitting sets (UHS) with a density lower than 2 have been proposed for $f=1$, it is possible that they may also improve the density for smaller $f$ values by considering only the /mmers selected by the UHS as potential minimizers.
 
 :::{#thm-density-uhs}
-Given a UHS $\mathcal{U}$ with density $d_\mathcal{U}$, $f \le 1$ and $t = \left[1 - (1 - f)^{1/w}\right] \cdot \sigma^m$, assuming $m > (3 + \varepsilon) \log_\sigma w$, the expected density of small minimizers selected from $\mathcal{U}$ (that is, $\mathcal{S} \cap \mathcal{U}$) in a random sequence is upper bounded by
-$$f \cdot d_\mathcal{U} + o(1/w)$$
+Given a UHS $\mathcal{U}$ with density $d_{\mathcal{U}}$, $f \le 1$ and $t = \left[1 - (1 - f)^{1/w}\right] \cdot \sigma^m$, assuming $m > (3 + \varepsilon) \log_\sigma w$, the expected density of small minimizers selected from $\mathcal{U}$ (that is, $\mathcal{S} \cap \mathcal{U}$) in a random sequence is upper bounded by
+$$f \cdot d_{\mathcal{U}} + o(1/w)$$
 :::
 
 The proof is given in @sec-proof-thm-density-uhs.

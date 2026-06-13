@@ -241,7 +241,7 @@ $$P_{lr} = \left[\left(1 - \frac{1}{w}\right) \frac{f}{1 + f}\right]^2 + \frac{1
 
 ## Proof of @thm-density-uhs {#sec-proof-thm-density-uhs}
 
-This proof generalizes the proof of @thm-density when the minimizers are selected from a UHS $\mathcal{U}$ with density $d_\mathcal{U}$.
+This proof generalizes the proof of @thm-density when the minimizers are selected from a UHS $\mathcal{U}$ with density $d_{\mathcal{U}}$.
 
 First, because of independence, we have
 $\Pr(x_0 \in \mathcal{S} \cap \mathcal{U}) = \Pr(x_0 \in \mathcal{S}) \cdot \Pr(x_0 \in \mathcal{U})$
@@ -265,7 +265,7 @@ $$\begin{aligned}
 d_{\mathcal{S} \cap \mathcal{U}} & \le 2 \cdot \Pr(x_0 \in \mathcal{S} \cap \mathcal{U}) \cdot \mathbb{E}\left[\frac{1}{|\mathcal{S} \cap \mathcal{U} \cap c|}\ |\ x_0 \in \mathcal{S} \cap \mathcal{U}\right] + o(1/w) \\
 & \le 2 \cdot \Pr(x_0 \in \mathcal{U}) \cdot \Pr(x_0 \in \mathcal{S}) \sum_{n=0}^w \Pr(|\mathcal{U} \cap c| = n+1\ |\ x_0 \in \mathcal{U}) \cdot \frac{f}{(n+1) p} + o(1/w) \\
 & = f \cdot 2 \cdot \Pr(x_0 \in \mathcal{U}) \sum_{n=0}^w \frac{1}{n+1} \Pr(|\mathcal{U} \cap c| = n+1\ |\ x_0 \in \mathcal{U}) + o(1/w) \\
-& = f \cdot d_\mathcal{U} + o(1/w)
+& = f \cdot d_{\mathcal{U}} + o(1/w)
 \end{aligned}$$
 
 ## Additional figures

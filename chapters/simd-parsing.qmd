@@ -154,12 +154,12 @@ We can produce a compact representation of the lexing phase through so called *v
 Those circuits can be thought of as formulas on bitmasks that can be evaluated on a given word.
 The results of the bitmask are the lexing annotations we need.
 Given a word $u$ that we want to parse, we denote by
-$\mathbf{1}_\texttt{>}$ and $\mathbf{1}_\texttt{↵}$
+$\mathbf{1}_{\texttt{>}}$ and $\mathbf{1}_{\texttt{↵}}$
 the bitmask of positions where respectively the symbols `>` and `↵` occur.
 The formula to compute the `header` bitmask is then expressed as follows,
 using $+$ to denote an addition propagating the carry from left to right, $\lnot$ to denote bitwise `not` and $\oplus$ to denote bitwise `xor`:
 $$
-    \texttt{header} := ((\mathbf{1}_\texttt{>} + \lnot \mathbf{1}_\texttt{↵}) \oplus \lnot \mathbf{1}_\texttt{↵}) \vee \mathbf{1}_\texttt{>}
+    \texttt{header} := ((\mathbf{1}_{\texttt{>}} + \lnot \mathbf{1}_{\texttt{↵}}) \oplus \lnot \mathbf{1}_{\texttt{↵}}) \vee \mathbf{1}_{\texttt{>}}
 $$
 The usage of carry propagation to encode part of the branching originates from @myers1999fast.
 Applying this formula to the previous example, we get the following:
@@ -167,12 +167,12 @@ Applying this formula to the previous example, we get the following:
 :::{.large-table}
 | `input` | `>` | `c` | `h` | `r` | `1` | `↵` | `C` | `G` | `G` | `A` | `C` | `↵` | `A` | `C` | `G` | `T` | `↵` | `>` | `c` | `>` | `h` | `↵` | `C` |
 |-------:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| $\mathbf{1}_\texttt{↵}$ | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 1 | 0 |
-| $\mathbf{1}_\texttt{>}$ | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 0 |
-| $\lnot\mathbf{1}_\texttt{↵}$ | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 0 | 1 |
-| $\mathbf{1}_\texttt{>} + \lnot\mathbf{1}_\texttt{↵}$ | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 1 | 0 | 1 | 1 |
-| $\oplus\,\lnot \mathbf{1}_\texttt{↵}$ | 1 | 1 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 1 | 1 | 0 |
-| $\lor~\mathbf{1}_\texttt{>}$ | **1** | **1** | **1** | **1** | **1** | **1** | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | **1** | **1** | **1** | **1** | **1** | 0 |
+| $\mathbf{1}_{\texttt{↵}}$ | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 1 | 0 |
+| $\mathbf{1}_{\texttt{>}}$ | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 1 | 0 | 0 | 0 |
+| $\lnot\mathbf{1}_{\texttt{↵}}$ | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 0 | 1 |
+| $\mathbf{1}_{\texttt{>}} + \lnot\mathbf{1}_{\texttt{↵}}$ | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 1 | 0 | 1 | 1 |
+| $\oplus\,\lnot \mathbf{1}_{\texttt{↵}}$ | 1 | 1 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 1 | 1 | 0 |
+| $\lor~\mathbf{1}_{\texttt{>}}$ | **1** | **1** | **1** | **1** | **1** | **1** | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | **1** | **1** | **1** | **1** | **1** | 0 |
 :::
 
 ## Implementation of the lexing phase
@@ -212,7 +212,7 @@ One benefit of having a manual implementation is that we can easily adapt it to 
 
 \begin{algorithmic}
 \Function{IsNewline}{$v_\text{data}$}
-    \State $v_\text{eq} \gets \texttt{cmp\_eq}(v_\text{data}, v_\texttt{↵})$
+    \State $v_\text{eq} \gets \texttt{cmp\_eq}(v_\text{data}, v_{\texttt{↵}})$
     \Comment{test equality between each byte and \texttt{↵}}
     \State \textbf{return} \texttt{movemask}($v_\text{eq}$)
     \Comment{return the corresponding bitmask (1 if equal, 0 otherwise)}
