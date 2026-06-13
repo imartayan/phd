@@ -127,9 +127,9 @@ Note that, using the same process, the SBWT can actually query any /mmer for $m 
 A further benefit is that de Bruijn graph navigation comes for free: successors and predecessors of any /kmer can be read off from the index with a single step of the same algorithm, without auxiliary structures.
 
 Several data structures can be used to support subset rank queries, offering different time-space tradeoffs.
-The most commonly used in practice is the *bit-matrix SBWT*, which stores one bitvector of length $n$ per character $c \in \Sigma$, where bit $i$ is set if $c \in X_i$.
+The most commonly used in practice is the *bit-matrix* SBWT, which stores one bitvector of length $n$ per character $c \in \Sigma$, where bit $i$ is set if $c \in X_i$.
 $\text{SubsetRank}_c(i)$ then reduces to a standard rank query on the $c$-th bitvector, and occupies around 4--5 /bpk^[The bit-matrix itself uses exactly 4 /bpk; the overhead above this comes from rank support and the dollar-padded prefix /kmers added for source nodes.] [@sbwt].
-More space-efficient variants exist, the most compact being the *subset wavelet tree SBWT*, which compresses the subset sequence to its zeroth-order entropy, achieving 2.6--2.8 /bpk in practice at the cost of slower queries.
+More space-efficient variants exist, the most compact being the *subset wavelet tree* SBWT, which compresses the subset sequence to its zeroth-order entropy, achieving 2.6--2.8 /bpk in practice at the cost of slower queries.
 
 The SBWT can be further augmented with a *longest common suffix* array to accelerate streaming queries [@sbwt-lcp], by allowing consecutive /kmer lookups to reuse intervals computed at the previous position.
 This same array also enables the SBWT to compute *matching statistics* between a query sequence and the indexed /kmer set [@sbwt-matching-statistics], extending its use to pseudo-alignment and sequence similarity tasks.
