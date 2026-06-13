@@ -221,7 +221,7 @@ Then, we use these $N$ hash functions to generate $N$ distinct random minimizer 
 Each of these minimizer schemes yields a set of /skmers on the sequence $S$, each covering all /kmers of $S$.
 When iterating over the minimizers of a sequence, among the /skmers that cover the first /kmer, we select the one that ends the farthest in the sequence.
 Then, we repeat this selection at the end of each selected /skmer: among all the /skmers covering the first uncovered /kmer, we select the one that ends the farthest in the sequence (see @fig-multimini-selection).
-We detail our method in @alg-multimini, running in $O(N \cdot |S|)$ time and using $O(N \cdot w)$ memory.
+We detail our method in @alg-multimini, running in $\mathcal{O}(N \cdot |S|)$ time and using $\mathcal{O}(N \cdot w)$ memory.
 
 :::{#fig-multimini-selection}
 

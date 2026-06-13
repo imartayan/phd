@@ -13,7 +13,7 @@ This modality is prevalent enough that several structures are explicitly designe
 
 This chapter focuses on three approaches representative of the state of the art for exact /kmer set indexing, and a broader survey of the landscape can be found in [@survey-kmer-sets].
 SSHash [@sshash;@sshash2] uses compact hashing over the /skmer structure of the input to achieve very fast queries at moderate space.
-The SBWT [@sbwt] exploits the colexicographic ordering of /kmers in the de Bruijn graph to compress the index close to the navigational lower bound, at the cost of slower $O(k)$-time queries.
+The SBWT [@sbwt] exploits the colexicographic ordering of /kmers in the de Bruijn graph to compress the index close to the navigational lower bound, at the cost of slower $\mathcal{O}(k)$-time queries.
 FMSI [@masked-superstring-kmer;@masked-superstring-set-ops;@masked-superstring-bwt] indexes a masked superstring with an FM-index, offering a different point on the space-time tradeoff.
 
 ## Path locality and hashing {#sec-kmer-hash}
@@ -121,7 +121,7 @@ To query /kmer $x = x_1 \dots x_k$, backward search starts from the full interva
 $$\ell' = 1 + C[c] + \text{SubsetRank}_c(\ell - 1) + 1, \quad r' = 1 + C[c] + \text{SubsetRank}_c(r)$$
 where $C[c]$ counts /kmers whose last character is smaller than $c$.
 After $k$ steps, a non-empty interval indicates that $x$ is present, and the resulting $\ell$ is the colexicographic rank of $x$, serving directly as its integer identifier.
-The total cost is $O(k)$ subset rank operations.
+The total cost is $\mathcal{O}(k)$ subset rank operations.
 Note that, using the same process, the SBWT can actually query any /mmer for $m \le k$.
 
 A further benefit is that de Bruijn graph navigation comes for free: successors and predecessors of any /kmer can be read off from the index with a single step of the same algorithm, without auxiliary structures.
@@ -153,7 +153,7 @@ While computing the shortest masked superstring is NP-hard, approximately shorte
 
 FMSI [@masked-superstring-bwt] indexes the masked superstring via the *Masked Burrows-Wheeler Transform* (MBWT), an extension of the classical BWT that incorporates the mask.
 The MBWT is computed by pairing each superstring symbol with its mask bit, sorting pairs lexicographically on the superstring symbol alone, then unzipping the result into a transformed string $S'$ and transformed mask $M'$.
-Membership of a query /kmer $x$ is answered by backward search in $S'$ to find a position range $[i, j]$, then checking $M'$ for any active /kmer in that range; the total cost is $O(k)$ rank operations.
+Membership of a query /kmer $x$ is answered by backward search in $S'$ to find a position range $[i, j]$, then checking $M'$ for any active /kmer in that range; the total cost is $\mathcal{O}(k)$ rank operations.
 In practice, FMSI achieves around 3--4 /bpk [@masked-superstring-bwt], at the cost of slower queries compared to SSHash or SBWT.
 Unlike SPSS-based approaches, it does not rely on the spectrum-like property, so its space cost is less sensitive to subsampled or high-diversity /kmer sets.
 
