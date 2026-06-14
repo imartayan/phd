@@ -30,7 +30,7 @@ Both are typically stored in text-based formats: FASTA, which records a sequence
 A large share of these datasets, both raw reads and assembled genomes, are saved in public archives.
 The most prominent ones include the Sequence Read Archive (SRA) and GenBank operated by NCBI in the US, and their European counterpart European Nucleotide Archive (ENA) operated by EMBL-EBI in the UK.
 Their size is growing at a staggering pace: SRA alone has surpassed 100 petabytes of data.
-In our book metric, this would correspond to more than 6km of books, enough to cover the distance from Earth to the Moon... 16 times!
+In our book metric, this would correspond to more than 6 million km of books, enough to cover the distance from Earth to the Moon... 16 times!
 This exponential growth lies at the heart of the challenge we try to address: sequencing data is accumulating faster than our storage and computational capacity can keep up with.
 New approaches are therefore needed, ones that can scale to this ocean of data while remaining tractable on modest resources.
 
