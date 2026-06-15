@@ -16,7 +16,7 @@ You can find all the sources of this thesis alongside the extensions I tweaked a
 
 ## Bibliography management and formatting
 
-The main solution I use to manage my collection of articles is [Zotero](https://www.zotero.org/), I find it easy to use and its built-in [PDF annotation tool](https://www.zotero.org/support/pdf_reader) is very convenient.
+The main solution I use to manage my collection of articles is [Zotero](https://www.zotero.org/). I find it easy to use, and its built-in [PDF annotation tool](https://www.zotero.org/support/pdf_reader) is very convenient.
 If you feel limited by its storage sync limit of 300 MB, note that you can actually use [any WebDAV server](https://www.zotero.org/support/sync) to sync your files instead.
 For instance, if your institution has a Nextcloud server, you can use it to sync larger collections.
 They also recently made an iOS/Android app to access your collection, which can be useful if you prefer using a tablet.
@@ -28,13 +28,13 @@ It's a CLI tool that takes DOIs or preprint links as input, fetches up-to-date m
 
 ## CLI tools I use everyday
 
-I spend most of time working from a terminal, and there are a few tools that I couldn't live without:
+I spend most of my time working from a terminal, and there are a few tools that I couldn't live without:
 
 - First for the terminal itself, [Ghostty](https://ghostty.org/) is a very nice piece of software, fast and very polished.
 - When working on a remote server, [bottom](https://github.com/ClementTsang/bottom) is a great replacement for `top` to monitor processes and resource usage.
 - If you need to monitor disk usage, [dust](https://github.com/bootandy/dust) is a great replacement for `du`.
 - When searching for a pattern inside text files, [ripgrep](https://github.com/BurntSushi/ripgrep) is usually much faster than `grep`.
-- Ripgrep can actually be extended with [ripgrep-all](https://github.com/phiresky/ripgrep-all) to search many other formats such as PDF. This allows me to search for a keyword in my entire collection of articles in a couple seconds.
+- Ripgrep can actually be extended with [ripgrep-all](https://github.com/phiresky/ripgrep-all) to search many other formats such as PDF. This allows me to search for a keyword in my entire collection of articles in a couple of seconds.
 
 ## Rust toolchain
 
@@ -45,7 +45,7 @@ These days, I write most of my code in Rust and in addition to the built-in tool
 - Similarly, [cargo-machete](https://github.com/bnjbvr/cargo-machete) lets you remove unused dependencies.
 - Flame graphs are a great way to visualize the trace of your program to identify which functions dominate the running time, you can easily generate them with [cargo-flamegraph](https://github.com/flamegraph-rs/flamegraph).
 - Sometimes flame graphs are not enough and you want to look at the assembly generated for a specific function, this can be done with [cargo-show-asm](https://github.com/pacak/cargo-show-asm). This is especially useful to understand what the compiler is doing behind your back.
-- Finally, if you end publishing crates, [cargo-release](https://github.com/crate-ci/cargo-release) provides many sanity checks before actually doing the release.
+- Finally, if you end up publishing crates, [cargo-release](https://github.com/crate-ci/cargo-release) provides many sanity checks before actually doing the release.
 
 You can install all these tools using the following commands:
 ```sh

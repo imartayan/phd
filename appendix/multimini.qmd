@@ -272,7 +272,7 @@ The *frequency* of an element $u \in \mathcal{U}$ is defined as the number of su
 We define $N = \max_{u \in \mathcal{U}} \text{freq}(u)$ as the maximum frequency of any element of $\mathcal{U}$.
 Note that $N \leq |\mathcal{S}|$.
 
-To illustrate the proof, we propose to follow an example.
+To illustrate the proof, we work through an example.
 Let $\mathcal{U}=\{1,\ldots,5\}$ and $\mathcal{S}=\{\{1,2,3\},\{4,5\},\{2,4\},\{3,4\}\}$.
 The optimal solution for this instance of set cover is $\{1,2,3\},\{4,5\}$ of cardinality $2$.
 The maximal frequency is $N=3$ (since $4$ appears in $3$ subsets).
