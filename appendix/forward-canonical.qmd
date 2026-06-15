@@ -1,6 +1,6 @@
 # A forward scheme for canonical minimizers {#sec-appendix-forward-canonical}
 
-As discussed in @sec-canonical-minimizers, the canonical minimizer scheme described there picks the leftmost tied minimizer on the canonical strand and the rightmost on the reverse one, so a strand flip between adjacent windows can make the selected position jump backward.
+As discussed in @sec-canonical-minimizers, the canonical minimizer scheme presented there picks the leftmost minimizer on the canonical strand and the rightmost on the reverse one, so a strand flip between adjacent windows can make the selected position jump backward.
 The natural fix is to break ties at the *innermost* position instead, which is invariant under reverse complement and therefore avoids the strand-dependent jump.
 The downside is that finding the innermost minimum is slightly more involved than the leftmost or rightmost one, and it requires $w$ to be odd so that the window has a well-defined center.
 This scheme is currently implemented in the [minimizer-iter](https://github.com/rust-seq/minimizer-iter) crate, though not especially optimized at the moment.
@@ -13,10 +13,12 @@ The challenge is when multiple positions share the minimum hash.
 
 The main idea is to always select the *innermost* minimizer, i.e., the position closest to the center $c = (w-1)/2$ of the window.
 When two or more positions achieve the minimum hash, we pick the one minimizing $|p - c|$.
-In the case where exactly two positions $p$ and $w-1-p$ are equidistant from $c$ (a symmetric tie), we break the tie using the canonical strand of the window, determined as in @sec-canonical-minimizers (e.g. via the GT count): if the window is canonical we select the leftmost position $p$, otherwise we select the rightmost $w-1-p$.
+When exactly two positions $p$ and $w-1-p$ are equidistant from $c$ (a symmetric tie), we break the tie using the canonical strand of the window, determined as in @sec-canonical-minimizers (e.g. via the GT count): if the window is canonical we select the leftmost position $p$, otherwise we select the rightmost $w-1-p$.
 
-This rule is canonical by construction: the symmetry $\widehat{H}(x) = \widehat{H}(\operatorname{rc}(x))$ ensures that the minimum positions of $\overline{W}$ are the mirrors $\{w-1-p\}$ of those of $W$, the innermost position mirrors to innermost, and for a symmetric tie the canonical strand of $\overline{W}$ is by definition the reverse of that of $W$, swapping the leftmost/rightmost tie-break and selecting the mirror position.
-We prove that the rule also yields a forward scheme in @sec-forward-canonical-proof.
+This rule is canonical by construction.
+The symmetry $\widehat{H}(x) = \widehat{H}(\operatorname{rc}(x))$ ensures that the minimum positions of $\overline{W}$ are the mirrors $\{w-1-p\}$ of those of $W$, and mirroring preserves which position is innermost.
+For a symmetric tie, the canonical strand of $\overline{W}$ is by definition the reverse of that of $W$, swapping the leftmost/rightmost tie-break so that the mirror position is selected.
+We prove in @sec-forward-canonical-proof that the rule also yields a forward scheme.
 
 :::{#tbl-forward-canonical .large-table}
 
@@ -36,13 +38,13 @@ Minimizers are in bold and the selected minimizer is highlighted.
 The absolute positions selected are non-decreasing.
 :::
 
-We now detail the example given in @tbl-forward-canonical, with the different cases occurring in each window.
+We walk through the example in @tbl-forward-canonical window by window.
 $W_0$ has a unique minimum at position 3, the center of the window.
-$W_1$ has an asymmetric tie between positions 2 and 6 (distances 1 and 3 from center) and position 2 wins outright.
+$W_1$ has an asymmetric tie between positions 2 and 6 (distances 1 and 3 from center), and position 2 wins outright.
 $W_2$ has a symmetric tie between positions 1 and 5, both at distance 2 from center, and the canonical strand of the window determines which is selected.
 Regardless of this choice, when the window shifts the right candidate moves from position 5 to position 4 in $W_3$.
 There, hash 15 appears at three positions (0, 4, 6), but position 4 is the unique innermost at distance $|4-3|=1$, so it is selected without a tie-break (absolute 7).
-$W_5$ introduces a second symmetric tie at positions 2 and 4, again resolved by the canonical strand.
+$W_5$ has a second symmetric tie at positions 2 and 4, again resolved by the canonical strand.
 In $W_6$ and $W_7$, the minimum hash appears twice but one occurrence is strictly closer to center and wins without a strand-based tie-break.
 
 ## Proof of forward property {#sec-forward-canonical-proof}
