@@ -55,6 +55,7 @@
 % which fire around the actual entry rendering (after \normalfont resets)
 \makeatletter
 \BeforeStartingTOC[toc]{%
+  \pdfbookmark[0]{\contentsname}{toc}%
   \let\toc@@save@@normalfont\normalfont
   \renewcommand{\normalfont}{\toc@@save@@normalfont\sffamily\fontsize{12}{15}\selectfont}%
   \sffamily\fontsize{12}{15}\selectfont
