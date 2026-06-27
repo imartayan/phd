@@ -28,7 +28,7 @@ Thank you Ragnar, I'm so glad we got to know each other.
 Working with you has taught me so much, and our discussions have sparked countless ideas across my projects.
 I can't wait to meet again under the Mediterranean sun!
 
-I also wish to express my gratitude to the committee members for kindly agreeing to review this work.
+I also wish to express my gratitude to Sven Rahmann, Alexandru Tomescu, Giulio Ermanno Pibiri, Éric Rivals and Sylvain Salvati for kindly agreeing to review this work.
 The rest of these acknowledgements will be in French, because it would be a shame not to properly thank those who accompanied me along the way.
 
 Avant tout, merci Camille de m'avoir guidé tout au long de ce voyage, depuis Rennes il y a 5 ans jusqu'à aujourd'hui.
@@ -50,6 +50,8 @@ Merci à Pierre de m'avoir fait découvrir la merveilleuse ville de Besancon !
 Merci à Jules, qui aura sans le savoir été l'un des tous premiers lecteurs de cette thèse !
 Et merci à Bastien, Bastien, Mathilde, Mathilde, Yoann, Yohan, Valendin, Madeleine, Caleb, Karim, Loïc, Étienne, Simon et Alix pour toutes ces parties au fil des journées !
 Merci Ilévia, d'avoir apporté une touche d'imprévu à des trajets qui auraient été autrement bien monotones !
+
+Merci à l'École Normale Supérieure de Rennes de m'avoir donné goût à la recherche en informatique et d'avoir financé cette thèse.
 
 Enfin merci à ma famille, particulièrement mes parents et ma sœur, d'avoir toujours cru en moi et de m'avoir soutenu toutes ces années.
 :::
