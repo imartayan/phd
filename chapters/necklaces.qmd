@@ -360,7 +360,7 @@ Time/memory trade-off when performing /kmer insertions/deletions (bottom), for $
 ## Perspectives
 
 The use of necklaces as a /kmer representation is relatively recent, and many directions remain open.
-One open question concerns the rank of a necklace: the best known algorithm runs in $\mathcal{O}(k^2)$ [@necklace-rank], which makes it impractical for large-scale use.
+One open question concerns the rank of a necklace: the best known algorithm runs in $\mathcal{O}(k^2)$ time [@necklace-rank], which makes it impractical for large-scale use.
 A promising avenue would be to compute an approximate rank, mapping necklaces to a space slightly larger than $N(k)$ but still $\mathcal{O}(k)$ times smaller than the original /kmer space.
 Piecewise linear approximation, as used in the PLA-index [@pla-index], could provide such an approximation with controllable error, and would be a natural fit given the distribution of necklaces.
 

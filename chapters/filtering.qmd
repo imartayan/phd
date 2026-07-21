@@ -82,7 +82,7 @@ This has two main advantages: not only do we reduce the number of lookups, but q
 
 The second pass only happens for sequences with an upper bound on /kmer matches above the threshold.
 In that case, we must count the exact number of /kmer matches to identify true hits.
-Deacon [@deacon], another tool tailored for decontamination developed by some of the authors, uses a simplified version of the method proposed here.
+Deacon [@deacon], another tool tailored for decontamination developed by Bede Constantinides, uses a simplified version of the method proposed here.
 In particular, it omits this second pass, reducing computational overhead at the cost of potential false positives.
 
 :::{#alg-mini-filtering}
