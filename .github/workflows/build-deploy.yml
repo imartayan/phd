@@ -40,6 +40,9 @@ jobs:
       - name: Add TinyTeX to PATH
         run: echo "$(dirname $(find ~/.TinyTeX -name tlmgr | head -1))" >> $GITHUB_PATH
 
+      - name: Update tlmgr
+        run: tlmgr update --self
+
       - name: Set up TinyTeX
         if: steps.cache-tinytex.outputs.cache-hit != 'true'
         run: tlmgr install dvisvgm pgf standalone
