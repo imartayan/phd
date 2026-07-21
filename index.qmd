@@ -12,6 +12,12 @@ You are looking at the online version of my PhD thesis, a PDF version is availab
 :::
 :::
 
+```{=latex}
+% Let front-matter chapters flow without forcing a recto page each;
+% restored at the end of foreword.qmd, before the table of contents.
+\makeatletter\@openrightfalse\makeatother
+```
+
 # Abstract {.unnumbered}
 
 The management and analysis of large collections of DNA sequences represents a growing challenge for bioinformatics.

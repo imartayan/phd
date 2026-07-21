@@ -57,6 +57,7 @@ Enfin merci à ma famille, particulièrement mes parents et ma sœur, d'avoir to
 :::
 
 :::{=latex}
+\makeatletter\@openrighttrue\makeatother
 \setcounter{tocdepth}{1}
 \tableofcontents
 :::

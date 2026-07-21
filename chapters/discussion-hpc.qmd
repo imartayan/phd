@@ -39,3 +39,8 @@ In practice, the main limitation we face is data movement: transferring sequence
 Processing-in-memory technologies promise to remove this bottleneck by performing computation close to where the data lives, but they remain quite niche and not particularly affordable.
 A more accessible avenue is the unified memory model adopted by recent architectures such as Apple Silicon, where the CPU and GPU share the same physical memory and can exchange data with near-zero cost.
 If this model becomes more widespread, I think it could finally make GPU acceleration practical for sequence processing pipelines, and provide a natural follow-up of the work presented in this part.
+
+```{=latex}
+% Ends right before a \part; hide the footer (see preamble.tex).
+\thispagestyle{empty}
+```

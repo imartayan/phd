@@ -8,7 +8,9 @@ $if(title)$
 $if(has-frontmatter)$
 \pagenumbering{roman}
 $else$
-\pagenumbering{arabic}
+% \pagenumbering{arabic} would reset the counter to 1, so the printed
+% number no longer matches the physical page; just switch the style.
+\renewcommand*{\thepage}{\arabic{page}}
 $endif$
 $if(abstract)$
 \begin{abstract}

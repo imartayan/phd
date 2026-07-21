@@ -16,6 +16,10 @@ The landscape shifted in 1997 when Intel introduced the MMX extension to consume
 MMX exposed 64-bit registers holding multiple packed integers, establishing the template of the extensions that followed.
 The main SIMD instruction set extensions available on modern x86 and ARM CPUs are summarized in @tbl-simd-x86 and @tbl-simd-arm respectively.
 
+```{=latex}
+\needspace{20\baselineskip}
+```
+
 :::{#tbl-simd-x86 .large-table}
 | Extension | Year | Width | Key operations | Adoption |
 |:--:|:-:|:--:|:----------:|:--:|
@@ -37,6 +41,10 @@ Main x86 SIMD instruction set extensions [@intel-manual], with desktop adoption 
 [^avx512-year]: First implemented in 2016 for servers and 2017 for desktop, then completely removed from Intel desktop processors in 2022 (Alder Lake and its successors). AMD implemented it in 2022 (Zen 4).
 
 [^avx512-adoption]: Apart from recent AMD CPUs, AVX-512 is only available for servers, thus explaining the low adoption for consumer CPUs.
+
+```{=latex}
+\needspace{10\baselineskip}
+```
 
 :::{#tbl-simd-arm .large-table}
 | Extension | Year | Width | Key operations | Adoption |

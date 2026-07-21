@@ -133,7 +133,7 @@ To illustrate this methodology, let us focus on the `header` bitmask, critical f
 This bitmask is true for a byte if and only if it belongs to a header of the document.
 Formally, it is delimited by the byte `>` and a line feed without any line feed in between, as described in @eq-regex-fasta.
 
-:::{.large-table}
+:::{.large-table tbl-colwidths="false"}
 | `input`  | `>` | `c` | `h` | `r` | `1` | `↵` | `C` | `G` | `G` | `A` | `C` | `↵` | `A` | `C` | `G` | `T` | `↵` | `>` | `c` | `>` | `h` | `↵` | `C` |
 |------:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | `header` | 1 | 1 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 1 | 0 |
@@ -164,7 +164,7 @@ $$
 The usage of carry propagation to encode part of the branching originates from @myers1999fast.
 Applying this formula to the previous example, we get the following:
 
-:::{.large-table}
+:::{.large-table tbl-colwidths="false"}
 | `input` | `>` | `c` | `h` | `r` | `1` | `↵` | `C` | `G` | `G` | `A` | `C` | `↵` | `A` | `C` | `G` | `T` | `↵` | `>` | `c` | `>` | `h` | `↵` | `C` |
 |-------:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | $\mathbf{1}_{\texttt{↵}}$ | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 1 | 0 |
@@ -343,7 +343,11 @@ The benchmarks presented in this section were run using the commit `5557b93` of 
 We measured the throughput of each parser in three main scenarios: parsing a genome in multiline FASTA format, short reads in FASTQ format and long reads in FASTQ format.
 The datasets used are detailed in @tbl-datasets.
 
-:::{#tbl-datasets .large-table}
+```{=latex}
+\needspace{10\baselineskip}
+```
+
+:::{#tbl-datasets .large-table tbl-colwidths="[30,9,11,10,14,21,5]"}
 | Dataset | Format | Size | \# records | avg. seq. len. | line breaks | Link |
 |:--------|:------:|-----:|:----------:|:--------------:|:-----------:|:----:|
 | Human genome (CHM13v2.0)   | FASTA | 3.16 GB | 25   | 125 Mbp | every 80 bp | [^a] |

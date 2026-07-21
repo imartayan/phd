@@ -1,5 +1,6 @@
 \usepackage{mathrsfs}
 \usepackage{multirow}
+\usepackage{needspace}
 \usepackage{pdfpages}
 \usepackage{scrlayer-scrpage}
 \usepackage{stmaryrd}
@@ -11,15 +12,24 @@
   \AtBeginDocument{%
     \DeclareMathAlphabet{\mathcal}{OMS}{cmsy}{m}{n}
     \SetMathAlphabet{\mathcal}{bold}{OMS}{cmsy}{b}{n}
+    \DeclareMathAlphabet{\mathbb}{U}{msb}{m}{n}
   }
 \fi
 
+% Explicit font selection so the head/foot can't inherit state from the
+% TOC's \normalfont override below (\small here = \fontsize{10}{12}).
 \pagestyle{scrheadings}
 \clearpairofpagestyles
-\setkomafont{pageheadfoot}{\sffamily\slshape\small}
+\setkomafont{pageheadfoot}{\fontfamily{\sfdefault}\fontseries{m}\fontshape{sl}\fontsize{10}{12}\selectfont}
 \ohead{\headmark}
-\cfoot[\pagemark]{\pagemark}
-\automark{chapter}
+\ofoot[\pagemark]{\pagemark}
+% Single-level automark only marks left pages under twoside; repeating
+% chapter as both arguments shows the running head on both sides.
+\automark[chapter]{chapter}
+
+% Part-opening pages already suppress the header (via \partmark clearing
+% both marks); also suppress the footer/page number on them.
+\renewcommand*{\partpagestyle}{empty}
 
 % \emph does not toggle shape when already in italic/slanted context
 \makeatletter
@@ -59,9 +69,23 @@
   \let\toc@@save@@normalfont\normalfont
   \renewcommand{\normalfont}{\toc@@save@@normalfont\sffamily\fontsize{12}{15}\selectfont}%
   \sffamily\fontsize{12}{15}\selectfont
+  % Pages ending right before a \part render the footer in a wrong
+  % (serif) font for unclear reasons; hide header/footer across the TOC.
+  \thispagestyle{empty}%
+  \pagestyle{empty}%
 }
-\AfterStartingTOC[toc]{\let\normalfont\toc@@save@@normalfont}
+\AfterStartingTOC[toc]{%
+  \let\normalfont\toc@@save@@normalfont
+  \thispagestyle{empty}%
+  \pagestyle{scrheadings}%
+}
 \makeatother
+
+% The sans TOC font is wider than tocnumwidth was sized for, causing
+% double-digit numbers (10. onward) to collide with the entry title.
+\RedeclareSectionCommand[tocnumwidth=2.3em]{chapter}
+\RedeclareSectionCommand[tocnumwidth=3.2em]{section}
+\RedeclareSectionCommand[tocnumwidth=4.1em]{subsection}
 
 \makeatletter
 \newif\if@afterpart
@@ -71,6 +95,9 @@
   \vskip\@tempskipa
   \global\@afterparttrue
 }
+% Otherwise inserts a blank page right after the part title, before the
+% epigraph can share it; the following chapter already clears to recto.
+\renewcommand*{\partheademptypage}{}
 \makeatother
 
 \makeatletter

@@ -38,3 +38,8 @@ The SBWT already supports querying any /mmer with $m \le k$, which is a nice sta
 Finally, the range of relevant /kmer sizes is itself evolving.
 Long-read technologies now reach error rates low enough that /kmers in the hundreds become tractable, as already exploited by KFC, and pangenomic comparisons benefit from this range.
 This shift makes the asymptotic behavior of representations matter more, and explains why moving from /skmers to /hkmers pays off so visibly.
+
+```{=latex}
+% Ends right before a \part; hide the footer (see preamble.tex).
+\thispagestyle{empty}
+```
