@@ -25,12 +25,131 @@ $$
 
 Nevertheless, we still want to avoid having to intersect large /kmer sets.
 Thus, instead of working with the original sets, we sample them into smaller sketches $S(A)$ and $S(B)$ for faster comparison.
-@fig-jaccard-mash illustrates this idea for "bottom MinHash" sketching that we present in the next section.
+@fig-jaccard illustrates this idea for "bottom MinHash" sketching that we present in the next section.
 
-:::{#fig-jaccard-mash}
-![](../fig/intro/jaccard-mash.png){width=60%}
+:::{#fig-jaccard}
 
-Overview of Jaccard similarity and how bottom MinHash can approximate it, from @mash.
+```{.tikz}
+%%| filename: jaccard
+%%| opt-zoom: 1.6
+
+\usetikzlibrary{calc}
+
+\definecolor{setA}{RGB}{0,0,255}
+\definecolor{setB}{RGB}{255,0,0}
+\colorlet{setAB}{setA!50!setB}
+
+\def\er{0.11}          % element radius
+\def\crosslen{1.8*\er} % crosshair arm half-length
+\def\crosswidth{1.4pt} % crosshair line width
+
+% inline marker: a filled element with an overhang crosshair, as in the diagram;
+% \vcenter puts the (symmetric) marker center on the math axis for clean alignment
+\newcommand{\marker}[1]{\vcenter{\hbox{\tikz{%
+  \node[circle,fill=#1,draw=#1,minimum size=1.5ex,inner sep=0pt] (m) {};
+  \draw[#1,line width=\crosswidth,line cap=round]
+    ([xshift=-1.25ex]m.center) -- ([xshift=1.25ex]m.center)
+    ([yshift=-1.25ex]m.center) -- ([yshift=1.25ex]m.center);}}}}
+
+% elements are circle nodes colored by their region (\regioncolor, set per
+% scope): a bare node is a hollow element, [select] fills it as a sketch
+% element, and [cross] adds an overhang crosshair, all in the region color
+\tikzset{
+  elt/.style={circle,inner sep=0pt,minimum size=2*\er cm,thick,draw=\regioncolor},
+  select/.style={fill=\regioncolor},
+  cross/.style={
+    append after command={
+      ($(\tikzlastnode.center)+(-\crosslen,0)$) edge[line width=\crosswidth,line cap=round,\regioncolor] ($(\tikzlastnode.center)+(\crosslen,0)$)
+      ($(\tikzlastnode.center)+(0,-\crosslen)$) edge[line width=\crosswidth,line cap=round,\regioncolor] ($(\tikzlastnode.center)+(0,\crosslen)$)
+    }
+  },
+  region/.style={every node/.style=elt, /utils/exec=\def\regioncolor{#1}},
+}
+
+\begin{tikzpicture}
+
+% shaded regions (overlap darkens naturally through transparency)
+\begin{scope}
+  \fill[setA,opacity=0.08] (0,0) circle (1.9);
+  \fill[setB,opacity=0.08] (3.0,0) circle (2.33);
+\end{scope}
+
+% outlines
+\draw[setA,thick] (0,0) circle (1.9);
+\draw[setB,thick] (3.0,0) circle (2.33);
+
+% set labels
+\node[setA] at (-1.6,1.6) {$A$};
+\node[setB] at (4.6,2.1) {$B$};
+
+% A-only
+\begin{scope}[region=setA]
+\node[select] at (0.30,1.41) {};
+\node at (-0.66,-1.36) {};
+\node[select,cross] at (-1.45,0.43) {};
+\node at (0.35,-0.39) {};
+\node at (-0.26,0.44) {};
+\node at (-1.38,-0.69) {};
+\node at (0.69,-1.35) {};
+\node at (-0.78,1.31) {};
+\node at (-0.58,-0.59) {};
+\node at (0.49,0.41) {};
+\node at (-0.91,-0.02) {};
+\node at (0.02,-1.40) {};
+\node[select,cross] at (-0.03,-0.80) {};
+\node at (-0.83,0.79) {};
+\node at (0.14,0.89) {};
+\end{scope}
+
+% B-only
+\begin{scope}[region=setB]
+\node at (2.32,-0.43) {};
+\node at (4.95,0.15) {};
+\node at (3.04,1.75) {};
+\node at (4.00,-1.49) {};
+\node at (1.66,1.34) {};
+\node at (2.44,-1.91) {};
+\node at (3.47,0.29) {};
+\node at (4.35,1.42) {};
+\node at (2.55,0.86) {};
+\node at (4.17,-0.45) {};
+\node at (3.30,-0.87) {};
+\node at (1.70,-1.34) {};
+\node[select,cross] at (3.71,1.03) {};
+\node[select,cross] at (4.89,-0.62) {};
+\node at (4.31,0.65) {};
+\node at (2.31,1.82) {};
+\node at (3.33,-1.87) {};
+\node[select] at (2.58,-1.12) {};
+\node at (2.12,0.38) {};
+\node at (2.90,-0.19) {};
+\node at (4.47,-1.13) {};
+\node at (3.18,0.86) {};
+\node at (3.69,1.73) {};
+\node at (3.84,-0.95) {};
+\node at (4.14,0.10) {};
+\end{scope}
+
+% intersection
+\begin{scope}[region={setA!50!setB}]
+\node[select,cross] at (1.43,0.09) {};
+\node[select] at (1.23,-0.88) {};
+\node at (1.20,0.79) {};
+\node at (1.50,-0.37) {};
+\node at (0.98,0.14) {};
+\end{scope}
+
+% Jaccard index and its bottom-MinHash approximation, centered below the diagram;
+% A is blue, B is red, and the intersection A \cap B is purple, as in the diagram
+\node[below=4mm] at (current bounding box.south) {$\displaystyle
+J({\color{setA}A}, {\color{setB}B}) = \frac{|{\color{setAB}A \cap B}|}{|{\color{setA}A \color{setAB}\cup \color{setB}B}|}
+\approx \frac{|\,\marker{setAB}\,|}{|\,\marker{setA} \,+\, \marker{setAB} \,+\, \marker{setB}\,|}
+$};
+
+\end{tikzpicture}
+```
+
+Overview of Jaccard similarity and how bottom MinHash can approximate it, adapted from @mash.
 Dots filled in blue represent the sketch of $A$, while those filled in red represent the sketch of $B$ and crosses indicate the sketch of $A \cup B$.
 :::
 
@@ -72,7 +191,7 @@ $$
 \widehat{J}(A, B) = \frac{|S(A \cup B) \cap S(A) \cap S(B)|}{|S(A \cup B)|}
 $$
 where $S(A)$ denotes the set of the $s$ smallest hashes in $A$.
-This approach has been used in Mash [@mash] to define a distance approximating ANI for genomes and metagenomes, and is illustrated in @fig-jaccard-mash.
+This approach has been used in Mash [@mash] to define a distance approximating ANI for genomes and metagenomes, and is illustrated in @fig-jaccard.
 
 ### FracMinHash
 
