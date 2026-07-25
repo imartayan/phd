@@ -47,8 +47,8 @@ Bon courage Tim et Karl pour la dernière ligne droite, je vous soutiens sur tou
 Merci Lucas, mon ~~stagiaire~~ voisin préféré, de m'avoir accompagné pendant toutes ces ~~vacances~~ conférences ! Vivement la prochaine !
 Merci aussi à Klára et Lore, qui doivent se demander ce que leur nom fait au milieu de ce paragraphe (well job if you've read this far).
 Merci à Pierre de m'avoir fait découvrir la merveilleuse ville de Besancon !
-Merci à Jules, qui aura sans le savoir été l'un des tous premiers lecteurs de cette thèse !
-Et merci à Bastien, Bastien, Mathilde, Mathilde, Yoann, Yohan, Valendin, Madeleine, Caleb, Karim, Loïc, Étienne, Simon et Alix pour toutes ces parties au fil des journées !
+Merci à Jules, qui aura sans le savoir été l'un des tous premiers lecteurs de cette thèse (tu es capable d'accomplir de grandes choses \texttt{♫}) !
+Et merci à Bastien, Bastien, Mathilde, Mathilde, Yoann, Yohan, Valendin, Madeleine, Caleb, Karim, Loïc, Étienne, Simon, Alix et Louise pour toutes ces parties au fil des journées !
 Merci Ilévia, d'avoir apporté une touche d'imprévu à des trajets qui auraient été autrement bien monotones !
 
 Merci à l'École Normale Supérieure de Rennes de m'avoir donné goût à la recherche en informatique et d'avoir financé cette thèse.
