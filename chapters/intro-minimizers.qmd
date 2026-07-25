@@ -18,7 +18,7 @@ Sliding the window one position at a time along the sequence yields the *minimiz
 We discuss efficient implementations of this sliding window algorithm in more detail in @sec-simd-minimizers.
 
 :::{#fig-minimizers-overview}
-![](../fig/intro/minimizers)
+![](../fig/intro/minimizers){width=70%}
 
 Example of lexicographic minimizer selection, for $k=3$ and $w=5$.
 Each line corresponds to a sliding window of 5 consecutive 3-mers, selecting a minimizer highlighted in red.
