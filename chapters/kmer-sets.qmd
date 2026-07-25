@@ -45,13 +45,13 @@ Importantly, the SPSS strings remain stored as a single contiguous block: minimi
 @fig-sshash illustrates the resulting data structure layout.
 
 :::{#fig-sshash}
-![](../fig/intro/sshash)
+![](../fig/intro/sshash){width=100%}
 
 Overview of the SSHash dictionary data structure, from @sshash.
 The input strings are stored contiguously; minimizers are mapped to partition identifiers via an MPHF; the Sizes and Offsets arrays locate each /skmer within the strings.
 :::
 
-The *skew* component addresses the non-uniformity of partition sizes: even with a random hash function, most minimizers appear only once while a small fraction of minimizers appears in a disproportionately large number of /skmers, yielding highly skewed minimizer partition sizes.
+The *skew* component addresses the non-uniformity of partition sizes: even with a random hash function, most minimizers appear only once while a few minimizers appears in a disproportionately large number of /skmers, yielding highly skewed minimizer partition sizes.
 In particular, for $k = 31$ and $m = 20$, over 97% of minimizers have a single occurrence [@sshash, table 1], while the most frequent minimizer appears more than 36000 times in the SPSS of a human genome.
 This observation was later confirmed by combinatorial analyses [@lex-minimizer-distribution;@vigemers].
 
