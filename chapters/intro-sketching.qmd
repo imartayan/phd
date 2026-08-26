@@ -168,6 +168,7 @@ The nice property of this definition is that the probability for the minimum has
 $$
 \mathbb{P}(h(A) = h(B)) = J(A, B)
 $$
+This can be modelled as a Bernoulli variable with a success probability of $j = J(A, B)$, and a variance equal to $j (1 - j)$.
 
 While comparing a single hash gives the desired result on expectation, this estimate has a high variance.
 Thus, in order to reduce the variance, we want to average multiple independent samples.
@@ -176,7 +177,7 @@ $$
 S(A) = (\min_{x \in A} h_1(x), \dots, \min_{x \in A} h_s(x)) \\
 \widehat{J}(A, B) = \frac{1}{s} \sum_{i=1}^{s} \mathbf{1}_{h_i(A) = h_i(B)}
 $$
-This estimator is still unbiased and its standard deviation is proportional to $1 / \sqrt{s}$.
+This estimator is still unbiased and its variance is equal to $j (1 - j) / s$, leading to standard deviation proportional to $1 / \sqrt{s}$.
 
 ### Bottom MinHash
 
