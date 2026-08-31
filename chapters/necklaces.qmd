@@ -58,6 +58,7 @@ where $\varphi$ denotes Euler's totient function.
     \node[node] (5) at (P.corner 5) {TACGA};
 
     \draw[->, color=good, bend right=20] (1) edge (2) (2) edge (3) (3) edge (4) (4) edge (5) (5) edge (1);
+    \path (P.south) ++(0,-0.4);
 \end{tikzpicture}
 ```
 
