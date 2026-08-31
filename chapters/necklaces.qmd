@@ -120,7 +120,7 @@ Therefore, in addition to the necklace, we want to keep track of the rotation of
 ## Rotation offset
 We define the *rotation offset* $\rho(x)$ of a /kmer $x$ as the minimum number of left rotations required to obtain its necklace:
 $$
-\rho(x) = \arg\min_i \operatorname{rol}^i(x)\\
+\rho(x) = \arg\min_i \operatorname{rol}^i(x) \quad
 \operatorname{rol}^{\rho(x)}(x) = \langle x \rangle
 $$
 :::
