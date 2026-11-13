@@ -1,8 +1,10 @@
 project:
   type: book
+  post-render: scripts/fix_sitemap.py
 
 book:
   title: "Algorithm design and implementation for the scale of sequencing data"
+  date: "2026-09-04"
   author:
     - name: "Igor Martayan"
       orcid: 0009-0008-3007-6168
@@ -109,6 +111,13 @@ format:
 
 execute:
   cache: true
+
+citation:
+  type: thesis
+  genre: "PhD thesis"
+  publisher: "Université de Lille"
+
+google-scholar: true
 
 filters:
   - search-replace
